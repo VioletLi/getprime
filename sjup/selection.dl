@@ -1,0 +1,7 @@
+source s('X': string, 'Y': string).
+view v('X': string, 'Y': string).
+
+_|_ :- v(X, Y), not Y='default'.
+
++v(X, Y) :- +s(X, Y), Y = 'default'.
+-v(X, Y) :- -s(X, Y), Y = 'default'.

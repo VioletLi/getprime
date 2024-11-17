@@ -1,0 +1,152 @@
+bin/ast2fol.cmo : \
+    bin/utils.cmo \
+    bin/stratification.cmo \
+    bin/logic/skolem.cmi \
+    bin/rule_preprocess.cmo \
+    bin/logic/prop.cmi \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi \
+    bin/logic/fol_ex.cmi \
+    bin/logic/fol.cmi \
+    bin/expr.cmo \
+    bin/derivation.cmo
+bin/ast2fol.cmx : \
+    bin/utils.cmx \
+    bin/stratification.cmx \
+    bin/logic/skolem.cmx \
+    bin/rule_preprocess.cmx \
+    bin/logic/prop.cmx \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmx \
+    bin/logic/fol_ex.cmx \
+    bin/logic/fol.cmx \
+    bin/expr.cmx \
+    bin/derivation.cmx
+bin/composer.cmo : \
+    bin/expr.cmo
+bin/composer.cmx : \
+    bin/expr.cmx
+bin/derivation.cmo : \
+    bin/utils.cmo \
+    bin/stratification.cmo \
+    bin/logic/skolem.cmi \
+    bin/rule_preprocess.cmo \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi \
+    bin/logic/fol_ex.cmi \
+    bin/logic/fol.cmi \
+    bin/expr.cmo
+bin/derivation.cmx : \
+    bin/utils.cmx \
+    bin/stratification.cmx \
+    bin/logic/skolem.cmx \
+    bin/rule_preprocess.cmx \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmx \
+    bin/logic/fol_ex.cmx \
+    bin/logic/fol.cmx \
+    bin/expr.cmx
+bin/generator.cmo : \
+    bin/expr.cmo \
+    bin/utils.cmo \
+    bin/composer.cmo
+bin/generator.cmx : \
+    bin/expr.cmx \
+    bin/utils.cmx \
+    bin/composer.cmx
+bin/lexer.cmo : \
+    bin/utils.cmo \
+    bin/parser.cmi
+bin/lexer.cmx : \
+    bin/utils.cmx \
+    bin/parser.cmx
+bin/logic/fol.cmo : \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi \
+    bin/logic/fol.cmi
+bin/logic/fol.cmx : \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmx \
+    bin/logic/fol.cmi
+bin/logic/fol_ex.cmo : \
+    bin/logic/skolem.cmi \
+    bin/logic/prop.cmi \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi \
+    bin/logic/fol.cmi \
+    bin/logic/fol_ex.cmi
+bin/logic/fol_ex.cmx : \
+    bin/logic/skolem.cmx \
+    bin/logic/prop.cmx \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmx \
+    bin/logic/fol.cmx \
+    bin/logic/fol_ex.cmi
+bin/logic/formulas.cmo : \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi
+bin/logic/formulas.cmx : \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmi
+bin/logic/intro.cmo : \
+    bin/logic/intro.cmi
+bin/logic/intro.cmx : \
+    bin/logic/intro.cmi
+bin/logic/lib.cmo : \
+    bin/logic/lib.cmi
+bin/logic/lib.cmx : \
+    bin/logic/lib.cmi
+bin/logic/prop.cmo : \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi \
+    bin/logic/prop.cmi
+bin/logic/prop.cmx : \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmx \
+    bin/logic/prop.cmi
+bin/logic/skolem.cmo : \
+    bin/logic/prop.cmi \
+    bin/logic/lib.cmi \
+    bin/logic/formulas.cmi \
+    bin/logic/fol.cmi \
+    bin/logic/skolem.cmi
+bin/logic/skolem.cmx : \
+    bin/logic/prop.cmx \
+    bin/logic/lib.cmx \
+    bin/logic/formulas.cmx \
+    bin/logic/fol.cmx \
+    bin/logic/skolem.cmi
+bin/parser.cmo : \
+    bin/utils.cmo \
+    bin/expr.cmo \
+    bin/parser.cmi
+bin/parser.cmx : \
+    bin/utils.cmx \
+    bin/expr.cmx \
+    bin/parser.cmi
+bin/rule_preprocess.cmo : \
+    bin/utils.cmo \
+    bin/logic/lib.cmi \
+    bin/expr.cmo
+bin/rule_preprocess.cmx : \
+    bin/utils.cmx \
+    bin/logic/lib.cmx \
+    bin/expr.cmx
+bin/stratification.cmo : \
+    bin/utils.cmo \
+    bin/rule_preprocess.cmo \
+    bin/expr.cmo
+bin/stratification.cmx : \
+    bin/utils.cmx \
+    bin/rule_preprocess.cmx \
+    bin/expr.cmx
+bin/utils.cmo : \
+    bin/expr.cmo
+bin/utils.cmx : \
+    bin/expr.cmx
+bin/verifier.cmo : \
+    bin/utils.cmo \
+    bin/expr.cmo
+bin/verifier.cmx : \
+    bin/utils.cmx \
+    bin/expr.cmx

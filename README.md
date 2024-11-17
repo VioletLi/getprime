@@ -4,6 +4,20 @@
 
 ocaml = 4.07.0
 docker environment?
+opam switch 4.07.0
+eval `opam config env`
+ocamlc -c expr.ml
+ocamlc -c utils.ml
+ocamlyacc parser.mly
+ocamlc -c parser.mli
+ocamlc -c parser.ml
+ocamllex lexer.mll
+ocamlc -c lexer.ml
+ocamlc -c verifier.ml
+ocamlc -c composer.ml
+ocamlc -c generator.ml
+ocamlc -c main.ml
+ocamlc -o f str.cma expr.cmo utils.cmo parser.cmo lexer.cmo verifier.cmo composer.cmo generator.cmo main.cmo
 
 
 ### docker container

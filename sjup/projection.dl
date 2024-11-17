@@ -1,0 +1,11 @@
+source s('X': string, 'Y': string).
+view v('X': string).
+
+IS:
+[
+    s0(X, Y) :- s(X, Y).
+    v0(X) :- s0(X, Y).
+].
+
++v(X) :- +s(X, Y), Y = 'A'.
+-v(X) :- -s(X, Y).
