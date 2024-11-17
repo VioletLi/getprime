@@ -19,6 +19,10 @@ apt-get update
 apt-get install -y curl wget git build-essential m4
 apt-get install -y opam
 opam init
+opam switch 4.07.0
+eval `opam config env`
+opam install num
+opam install postgresql
 ```
 
 #### Before compiling

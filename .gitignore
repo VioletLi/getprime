@@ -8,6 +8,23 @@
 *.cmxs
 *.cmxa
 
+**/*.olean
+**/*.cmi
+**/*.cmt
+**/*.cmti
+**/*.cmo
+**/.DS_Store
+**/bin/
+**/release/
+**/_target/
+**/._d/
+
+src/lexer.ml
+src/parser.ml
+src/parser.mli
+src/*.cmt
+src/logic/*.cmt
+
 # ocamlbuild working directory
 _build/
 
