@@ -212,8 +212,8 @@ let rec findDelta ls =
                 | _ -> Pred ("", [])
           in
           match unpackTerm with
-              | Deltainsert (name, varlist) -> (unpackTerm :: deltas, nondeltas)
-              | Deltadelete (name, varlist) -> (unpackTerm :: deltas, nondeltas)
+              | Deltainsert (name, varlist) -> (unpackTerm :: deltas, (Not (Pred (name, varlist))) :: nondeltas)
+              | Deltadelete (name, varlist) -> (unpackTerm :: deltas, (Rel (Pred (name, varlist))) :: nondeltas)
               | _ -> (deltas, t :: nondeltas)
 
 let getInvRule (vn, varlist) (head, body) =
