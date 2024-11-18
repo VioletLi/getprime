@@ -1,7 +1,9 @@
 bin/ast2theorem.cmo : \
-    bin/expr.cmo 
+    bin/expr.cmo \
+    bin/generator.cmo
 bin/ast2theorem.cmx : \
-    bin/expr.cmx 
+    bin/expr.cmx \
+    bin/generator.cmx
 bin/ast2fol.cmo : \
     bin/utils.cmo \
     bin/stratification.cmo \
@@ -150,7 +152,9 @@ bin/utils.cmx : \
     bin/expr.cmx
 bin/verifier.cmo : \
     bin/utils.cmo \
-    bin/expr.cmo
+    bin/expr.cmo \
+    bin/ast2theorem.cmo
 bin/verifier.cmx : \
     bin/utils.cmx \
-    bin/expr.cmx
+    bin/expr.cmx \
+    bin/ast2theorem.cmx

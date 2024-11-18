@@ -55,7 +55,7 @@ let genIniCode table sources =
 let find_relation name iniRelations = 
   List.fold_right (||) (List.map (fun (n, _) -> String.equal name n) iniRelations) false
 
-let genIniDatalog expr iniRelations =
+let genIniRules expr iniRelations =
   let table:symtable = Hashtbl.create (List.length iniRelations) in
   let insertInistateRule (head, body) =
     let (name, attrs) = getKey head in
@@ -71,7 +71,7 @@ let genIniDatalog expr iniRelations =
     if Hashtbl.mem table key then Hashtbl.find table key else [(get_empty_pred, [Rel (Pred (name, List.map (fun x -> AnonVar) attrs))])]
   in
   List.map insertInistateRule expr.initial_state;
-  String.concat "" (List.map string_of_rule (List.concat (List.map genRules iniRelations))) 
+  List.concat (List.map genRules iniRelations)
 
   
 (* let genSourceDelta (name, varlist) =
@@ -185,12 +185,6 @@ let replaceVDelta rules =
       | _ -> (head, body)
   ) rules
 
-let genSDeltaRules expr composerules =
-  let deltaRules = genDelta expr.sources in
-  let rules = List.concat (List.map crule2rules composerules) in
-  let getPrimeRules = replaceSDelta rules in
-  deltaRules @ (replaceVDelta getPrimeRules)
-
 let getvn view = 
   match view with
     | Some (vn, attrs) -> (vn, List.map (fun (n, _) -> NamedVar n) attrs)
@@ -198,8 +192,10 @@ let getvn view =
 
 let genGetRules expr composerules =
   let (vn, varlist) = getvn expr.view in
+  let rules = List.concat (List.map crule2rules composerules) in
+  let getPrimeRules = replaceSDelta rules in
   [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
-  ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genSDeltaRules expr composerules)
+  ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
 
 let rec findDelta ls =
   match ls with
@@ -265,7 +261,8 @@ let genCode expr =
   let svDef = 
     (List.fold_right (^) (List.map string_of_source (expr.sources @ iniRelation)) "") ^ (string_of_view v)
   in
-  let inistateCode = genIniDatalog expr iniRelation in
+  let inistateRules = genIniRules expr iniRelation in
+  let inistateCode = String.concat "" (List.map string_of_rule inistateRules) in
   let constraints = extractConstraint expr in
   let composerules = compose expr in
   let getRules = genGetRules expr composerules in

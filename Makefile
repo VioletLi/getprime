@@ -23,7 +23,7 @@ LOGIC_FILES=\
 LOGIC_FILES_WITH_MLI=\
     lib intro formulas prop fol skolem fol_ex\
 
-TOP_FILES = expr utils rule_preprocess stratification derivation parser lexer verifier composer generator ast2fol ast2theorem
+TOP_FILES = expr utils rule_preprocess stratification derivation parser lexer composer generator ast2fol ast2theorem verifier
 
 TOP_FILES_WITH_MLI=\
 	parser

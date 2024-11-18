@@ -1,4 +1,5 @@
 open Expr
+open Generator
 
 type lean_type =
   | LeanBaseType of stype
@@ -24,12 +25,19 @@ let source_view_to_lean_func_types (prog : expr) : (string * lean_type) list =
 let make_lean_theorem (name : string) (parameter : (string * lean_type) list) (statement : Fol_ex.lean_formula) : lean_theorem =
   LeanTheorem { name; parameter; statement }
 
+let genGetDelta expr =
+  let iniRelation = genIniRelation expr.sources in
+  let inistateRules = genIniRules expr iniRelation in
+  expr.rules
+
 let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for disjoint deltas";) else ();
+  let rs = genGetDelta prog in
+  let newprog = {prog with rules = rs} in
   let statement =
     Fol_ex.lean_formula_of_fol_formula
-      (Imp (Ast2fol.constraint_sentence_of_stt debug prog,
-        (Imp (Ast2fol.disjoint_delta_sentence_of_stt debug prog, False))))
+      (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
+        (Imp (Ast2fol.disjoint_delta_sentence_of_stt debug newprog, False))))
   in
   LeanTheorem {
     name      = "disjoint_deltas";

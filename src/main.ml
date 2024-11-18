@@ -11,6 +11,9 @@ let _ =
   let expr = Parser.main Lexer.token lexbuf in
   try
     let verifyCode = genVerifyCode expr in
+    let vc = open_out "/home/code/temp.lean" in
+    Printf.fprintf vc "%s\n" verifyCode;
+    close_out vc;
     let code = genCode expr in
     let _ = print_string "Generation finished\n" in
     let oc = open_out "/home/code/temp.dl" in
