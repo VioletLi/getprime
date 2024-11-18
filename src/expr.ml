@@ -123,7 +123,7 @@ let add_stt stt expr = match stt with
 (** add a list of stt to a program *)
 let add_stts stts prog = List.fold_left (fun expr stt -> add_stt stt expr) prog stts
 
-(* let add_rules rs prog = {prog with rules = rs@(prog.rules)} *)
+let add_rules rs prog = {prog with rules = rs@(prog.rules)}
 
 (** Insert a new statement. *)
 let insert_stt stt expr = add_stt stt expr
@@ -160,7 +160,7 @@ let get_rterm_predname rterm = match rterm with
 let is_rule_of_predname predname (h, b) =  (String.compare (get_rterm_predname h)  predname == 0)
 
 (** Delete all rules of a predname. *)
-(* let delete_rule_of_predname predname expr = { expr with rules= List.filter (fun x -> not (is_rule_of_predname predname x)) expr.rules } *)
+let delete_rule_of_predname predname expr = { expr with rules= List.filter (fun x -> not (is_rule_of_predname predname x)) expr.rules }
 
 let is_fact_of_predname predname h = (String.compare (get_rterm_predname h)  predname == 0)
 
@@ -176,8 +176,8 @@ let view_schema_to_source_schema expr = { expr with
 }
 
 (** Check whether a predicate is defined in the program .*)
-(* let is_defined_pred predname expr = 
-  List.length (List.filter (fun x -> (is_rule_of_predname predname x)) expr.rules) > 0 *)
+let is_defined_pred predname expr = 
+  List.length (List.filter (fun x -> (is_rule_of_predname predname x)) expr.rules) > 0
 
 let vterm2var vt = match vt with 
     Const c -> ConstVar c 

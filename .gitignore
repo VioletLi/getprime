@@ -25,6 +25,9 @@ src/parser.mli
 src/*.cmt
 src/logic/*.cmt
 
+temp.dl
+result.sql
+
 # ocamlbuild working directory
 _build/
 

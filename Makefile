@@ -1,4 +1,4 @@
-PACKAGES = str, num
+PACKAGES = str,num
 
 DIR_GUARD = @mkdir -p $(@D)
 
@@ -34,6 +34,11 @@ FILES=\
 
 .PHONY: all clean
 all: $(BIN_DIR)/$(EX_NAME)
+
+$(SOURCE_DIR)/parser.ml $(SOURCE_DIR)/parser.mli: $(SOURCE_DIR)/parser.mly
+	ocamlyacc $<
+$(SOURCE_DIR)/lexer.ml:	$(SOURCE_DIR)/lexer.mll
+	ocamllex $<
 
 $(BIN_DIR)/$(EX_NAME): $(FILES:%=$(OBJ_DIR)/%.cmo) $(OBJ_DIR)/$(MAIN_FILE).cmo
 	$(DIR_GUARD)

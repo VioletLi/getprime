@@ -21,7 +21,7 @@ apt-get install -y opam
 opam init
 opam switch 4.07.0
 eval `opam config env`
-opam install num
+opam install num.1.0
 opam install postgresql
 ```
 
