@@ -27,6 +27,9 @@ src/logic/*.cmt
 
 temp.dl
 result.sql
+temp.lean
+
+sjup/idbx.dl
 
 # ocamlbuild working directory
 _build/

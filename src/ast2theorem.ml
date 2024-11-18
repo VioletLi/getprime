@@ -28,12 +28,15 @@ let make_lean_theorem (name : string) (parameter : (string * lean_type) list) (s
 let genGetDelta expr =
   let iniRelation = genIniRelation expr.sources in
   let inistateRules = genIniRules expr iniRelation in
-  expr.rules
+  { expr with 
+    sources = expr.sources @ iniRelation;
+    rules = inistateRules @ (genDelta expr.sources) @ (replaceSDelta expr.rules)
+  }
 
 let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for disjoint deltas";) else ();
-  let rs = genGetDelta prog in
-  let newprog = {prog with rules = rs} in
+  let newprog = genGetDelta prog in
+  print_string (to_string newprog);
   let statement =
     Fol_ex.lean_formula_of_fol_formula
       (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
