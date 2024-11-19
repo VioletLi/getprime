@@ -587,7 +587,10 @@ let check_ros_prog debug timeout sentence =
   if (debug && (status = 0)) then print_endline @@">>> Checked by Rosette";
   status, message
 
-(* let constraint2rule expr =
+let source2RTerm (name, attrs) =
+  Pred (name, List.map (fun (n, _) -> NamedVar n) attrs)
+
+let constraint2rule expr =
     let trans_pk (relname, attrlst) lst=
         (* generate datalog rules for a primary key *)
         let schema_stt =
@@ -598,7 +601,7 @@ let check_ros_prog debug timeout sentence =
         let allattrlst2 = List.map (fun x -> if (List.mem x attrlst) then x else x^"2") allattrlst in
         let nonkeyattrlst = List.filter (fun x -> not (List.mem x attrlst)) allattrlst in
         (List.map (fun x -> (get_empty_pred, [Rel (Pred(relname, List.map (fun t -> NamedVar t) allattrlst)); Rel (Pred(relname, List.map (fun t -> NamedVar t) allattrlst2)); Equat (Equation("<>", Var (NamedVar x), Var (NamedVar (x^"2"))))] )) nonkeyattrlst )@lst in
-    { expr with rules = (List.fold_right trans_pk expr.primary_keys expr.constraints)@expr.rules} *)
+    { expr with rules = (List.fold_right trans_pk expr.primary_keys expr.constraints)@expr.rules}
 
 (*
 Color	Code

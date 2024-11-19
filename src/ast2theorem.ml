@@ -1,5 +1,6 @@
 open Expr
 open Generator
+open Utils
 
 type lean_type =
   | LeanBaseType of stype
@@ -11,6 +12,43 @@ type lean_theorem =
       parameter : (string * lean_type) list;
       statement : Fol_ex.lean_formula;
     }
+
+let stype_to_lean_type st = match st with
+  (* | Sint -> "ℤ" *)
+  | Sint -> "int"
+  (* | Sreal -> "ℝ" *)
+  (* | Sreal -> "real" *)
+  | Sreal -> "rat"
+  | Sbool -> "Prop"
+  | Sstring -> "string"
+
+let stringify_lean_type (ltyp : lean_type) : string =
+  let rec aux (ltyp : lean_type) : string =
+    match ltyp with
+    | LeanBaseType styp           -> stype_to_lean_type styp
+    | LeanFuncType (ltyp1, ltyp2) -> Printf.sprintf "(%s → %s)" (aux ltyp1) (aux ltyp2)
+  in
+  aux ltyp
+
+let stringify_lean_theorem (thm : lean_theorem) : string =
+  let LeanTheorem { name; parameter; statement } = thm in
+  let s_parameter =
+    parameter |> List.map (fun (x, ltyp) ->
+      Printf.sprintf " {%s: %s}" x (stringify_lean_type ltyp)
+    ) |> String.concat ""
+  in
+  let s_statement = Fol_ex.stringify_lean_formula statement in
+  Printf.sprintf "theorem %s%s: %s" name s_parameter s_statement
+
+let gen_lean_code_for_theorems (thms : lean_theorem list) : string =
+  "import bx
+
+local attribute [instance] classical.prop_decidable
+
+" ^ String.concat "\n\n" (List.map (fun thm -> (stringify_lean_theorem thm) ^ ":=
+  begin
+  z3_smt
+  end") thms)
 
 let source_view_to_lean_func_types (prog : expr) : (string * lean_type) list =
   (* currently just set all the types are int (ℤ) *)
@@ -25,17 +63,32 @@ let source_view_to_lean_func_types (prog : expr) : (string * lean_type) list =
 let make_lean_theorem (name : string) (parameter : (string * lean_type) list) (statement : Fol_ex.lean_formula) : lean_theorem =
   LeanTheorem { name; parameter; statement }
 
+let genDeltaRelation srcs =
+  List.concat (List.map (fun (name, attrs) -> [(name ^ "_ins", attrs);(name ^ "_del", attrs)]) srcs)
+
+let genDeltaConstraints srcs =
+  List.concat (List.map (fun (name, attrs) -> 
+    [ (get_empty_pred, [Rel (source2RTerm (name ^ "_ins", attrs)); Rel (source2RTerm (name ^ "_del", attrs))])
+    ; (get_empty_pred, [Rel (source2RTerm (name ^ "_ins", attrs)); Rel (source2RTerm (name, attrs))])
+    ; (get_empty_pred, [Rel (source2RTerm (name ^ "_del", attrs)); Not (source2RTerm (name, attrs))])
+    ]
+  ) srcs)
+  (* _|_ :- s_ins(X), s_del(X). *)
+  (* _|_ :- s_ins(X), s(X). *)
+  (* _|_ :- s_del(X), not s(X). *)
+
 let genGetDelta expr =
-  let iniRelation = genIniRelation expr.sources in
-  let inistateRules = genIniRules expr iniRelation in
+  let deltaRelation = genDeltaRelation expr.sources in
+  let deltaConstraints = genDeltaConstraints expr.sources in
   { expr with 
-    sources = expr.sources @ iniRelation;
-    rules = inistateRules @ (genDelta expr.sources) @ (replaceSDelta expr.rules)
+    sources = expr.sources @ deltaRelation;
+    constraints = expr.constraints @ deltaConstraints;
+    rules = replaceSDelta expr.rules
   }
 
 let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for disjoint deltas";) else ();
-  let newprog = genGetDelta prog in
+  let newprog = constraint2rule (genGetDelta prog) in
   print_string (to_string newprog);
   let statement =
     Fol_ex.lean_formula_of_fol_formula
