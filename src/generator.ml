@@ -72,7 +72,7 @@ let genIniRules expr iniRelations =
   in
   List.map insertInistateRule expr.initial_state;
   let inirules = List.map genRules iniRelations in
-  (List.concat (List.map (fun (r, _) -> r) inirules), List.concat (List.map (fun (_, (name, attrs)) -> if name = "" then [] else [(name, attrs)])))
+  (List.concat (List.map (fun (r, _) -> r) inirules), List.concat (List.map (fun (_, (name, attrs)) -> if name = "" then [] else [(name, attrs)]) inirules))
 
   
 (* let genSourceDelta (name, varlist) =
