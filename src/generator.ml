@@ -68,10 +68,11 @@ let genIniRules expr iniRelations =
   in
   let genRules (name, attrs) =
     let key = (name, List.length attrs) in
-    if Hashtbl.mem table key then Hashtbl.find table key else [(get_empty_pred, [Rel (Pred (name, List.map (fun x -> AnonVar) attrs))])]
+    if Hashtbl.mem table key then (Hashtbl.find table key, ("", [])) else ([(get_empty_pred, [Rel (Pred (name, List.map (fun x -> AnonVar) attrs))])], (name, attrs))
   in
   List.map insertInistateRule expr.initial_state;
-  List.concat (List.map genRules iniRelations)
+  let inirules = List.map genRules iniRelations in
+  (List.concat (List.map (fun (r, _) -> r) inirules), List.concat (List.map (fun (_, (name, attrs)) -> if name = "" then [] else [(name, attrs)])))
 
   
 (* let genSourceDelta (name, varlist) =
@@ -258,10 +259,10 @@ let genCode expr =
     | None -> raise (GenerationErr "No view Definition")
   in
   let iniRelation = genIniRelation (expr.sources @ [v]) in
+  let (inistateRules, needIniSources) = genIniRules expr iniRelation in
   let svDef = 
-    (List.fold_right (^) (List.map string_of_source (expr.sources @ iniRelation)) "") ^ (string_of_view v)
+    (List.fold_right (^) (List.map string_of_source (expr.sources @ needIniSources)) "") ^ (string_of_view v)
   in
-  let inistateRules = genIniRules expr iniRelation in
   let inistateCode = String.concat "" (List.map string_of_rule inistateRules) in
   let constraints = extractConstraint expr in
   let composerules = compose expr in

@@ -97,6 +97,6 @@ let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theo
   in
   LeanTheorem {
     name      = "disjoint_deltas";
-    parameter = source_view_to_lean_func_types prog;
+    parameter = source_view_to_lean_func_types newprog;
     statement = statement;
   }

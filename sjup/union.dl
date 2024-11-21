@@ -8,7 +8,7 @@ IS:
     v0(X) :- s20(X).
 ].
 
-+v(X) :- +s1(X).
++v(X) :- +s1(X), not s2(X).
 -v(X) :- -s1(X), not s2(X).
 -v(X) :- -s2(X), not s1(X).
 -v(X) :- -s1(X), -s2(X).
