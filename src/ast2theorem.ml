@@ -89,7 +89,7 @@ let genGetDelta expr =
 let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for disjoint deltas";) else ();
   let newprog = constraint2rule (genGetDelta prog) in
-  print_string (to_string newprog);
+  (* print_string (to_string newprog); *)
   let statement =
     Fol_ex.lean_formula_of_fol_formula
       (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
@@ -100,3 +100,20 @@ let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theo
     parameter = source_view_to_lean_func_types newprog;
     statement = statement;
   }
+
+let lean_simp_theorem_of_injectivity (debug : bool) (prog : expr) : lean_theorem =
+  if debug then (print_endline "==> generating theorem for injectivity";) else ();
+  let newprog = constraint2rule (genGetDelta prog) in
+  (* print_string (to_string newprog); *)
+  let statement =
+    Fol_ex.lean_formula_of_fol_formula
+      (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
+        (Imp (Ast2fol.injectivity_sentence_of_stt debug newprog, False))))
+  in
+  LeanTheorem {
+    name      = "injectivity";
+    parameter = source_view_to_lean_func_types newprog;
+    statement = statement;
+  }
+
+  

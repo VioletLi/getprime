@@ -627,3 +627,11 @@ let colored_string color str = match color with
     | "purple" -> "\027[35m"^str^"\027[0m"
     | "brown"	 -> "\027[33m"^str^"\027[0m"
     | _ -> str
+
+let rec get_pairs lst =
+  if List.length lst = 1 then [] else
+  match lst with
+    | [] -> []
+    | x :: xs -> 
+      let pairs = List.map (fun y -> (x, y)) xs in
+      pairs @ (get_pairs xs)

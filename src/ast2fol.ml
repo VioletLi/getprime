@@ -3,9 +3,16 @@
 Functions to transform datalog ast to first-order logic formula and vice versa
  *)
 (********************************************************)
-(*
-@author: Vandang Tran
+(* This code is based on existing code and some functions are added:
+functions to check injectivity;
+functions to check reachability.
 *)
+(********************************************************)
+(*
+@origin author: Vandang Tran
+@modifier: Guanchen Guo
+*)
+
 
 open Lib
 open Formulas
@@ -64,6 +71,8 @@ let rec fol_of_symtkey (idb:symtable) (cnt:colnamtab) (goal:symtkey)  =
     let rule_lst = try Hashtbl.find idb goal
         with Not_found -> raise(SemErr( "Not_found in func fol_of_symtkey"))
         in
+        (* print_string (string_of_symtkey goal); print_string ":\n";
+        print_string (String.concat "\n" (List.map (string_of_rule) rule_lst)); *)
     (* disjunction of all rules then we have FO formula for a idb predicate*)
     let fol_of_rule_lst (idb:symtable) (cnt:colnamtab) rules =
         let fol_list = List.map (fol_of_rule idb cnt) rules in
@@ -516,3 +525,65 @@ let optimize_query_datalog (debug:bool) prog =
             print_endline "______________\n";
         ) else ();
         new_prog
+
+let rules_to_fo_list (idb: symtable) (cnt: colnamtab) (query: rterm) =
+    (* Step 1: Create a temporary rule for the query *)
+    (* let qrule = rule_of_query query idb in
+    
+    (* Step 2: Create local copies of idb and cnt for safe modifications *)
+    let local_idb = Hashtbl.copy idb in
+    let local_cnt = Hashtbl.copy cnt in
+    
+    (* Step 3: Insert the temporary rule into local_idb *)
+    symt_insert local_idb qrule;
+    
+    (* Step 4: Extract the key of the query's head *)
+    let key = symtkey_of_rterm (rule_head qrule) in *)
+    let key = symtkey_of_rterm query in
+
+    (* Step 5: Ensure the variables of the query's head are in local_cnt *)
+    (* if not (Hashtbl.mem local_cnt key) then
+        Hashtbl.add local_cnt key (List.map string_of_var (get_rterm_varlist (rule_head qrule))); *)
+    
+    (* Step 6: Find all rules with the query's head and convert them to FO formulas *)
+    try
+        let rules = Hashtbl.find idb key in
+        (* print_string (String.concat "\n" (List.map (string_of_rule) rules)); *)
+        List.map (fol_of_rule idb cnt) rules
+    with Not_found ->
+        raise (SemErr ("No rules found for the query head: " ^ string_of_rterm (query)))
+    
+
+
+(** Take a view update datalog program and generate the FO sentence of checking whether get' is injectivity. *)
+let injectivity_sentence_of_stt (debug:bool) prog =
+    let edb = extract_edb prog in
+    (* need to change the view (in query predicate) to a edb relation *)
+    let view_rt = get_schema_rterm (get_view prog) in
+    (* need to convert the view to be an edb relation *)
+    symt_insert edb (view_rt,[]);
+    let idb = extract_idb prog in
+    symt_remove idb (symtkey_of_rterm view_rt);
+    preprocess_rules idb;
+    if debug then (
+        print_endline "_____preprocessed datalog rules_______";
+        print_symtable idb;
+        print_endline "______________\n";
+    ) else ();
+    let cnt = build_colnamtab edb idb in
+    let delta_rt_lst = get_delta_rterms prog in
+    (* print_string (String.concat "," (List.map string_of_rterm delta_rt_lst)); *)
+    (* injective: two deltas are same if and only if states are same
+    check: given two rules with the same delta, check (state1 and state2 -> false) *)
+    (* get the emptiness FO sentence of a relation *)
+    let injectivity_fo_sentence delta =
+        let cols = List.map string_of_var (get_rterm_varlist delta) in
+        let ruleslist = rules_to_fo_list idb cnt delta in
+        let folList = 
+            let join2rules (r1,r2) = And(r1,r2) in
+            let rulepairs = get_pairs ruleslist in
+            List.map join2rules rulepairs
+        in
+        List.map (itlist mk_exists cols) folList in
+    let injectivity_sen_lst = List.map (fun d -> injectivity_fo_sentence d) delta_rt_lst in
+    Prop.list_disj (List.concat injectivity_sen_lst)
