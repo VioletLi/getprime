@@ -27,6 +27,8 @@ src/logic/*.cmt
 
 temp.dl
 result.sql
+disjoint.lean
+injective.lean
 temp.lean
 
 sjup/idbx.dl
