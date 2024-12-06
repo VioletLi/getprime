@@ -24,6 +24,8 @@ exception VerificationErr of string
 
 exception GenerationErr of string
 
+exception ComposeErr of string
+
 (** get a concrete message (file, possition of error, error message) for parsing or lexing error  *)
 let spec_error msg start finish  =
   Printf.sprintf "File \"%s\", line %d, characters %d-%d: '%s'" start.pos_fname start.pos_lnum

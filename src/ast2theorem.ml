@@ -86,6 +86,15 @@ let genGetDelta expr =
     rules = replaceSDelta expr.rules
   }
 
+let addPrimeDelta expr =
+  let sourcePrime = List.map (fun (n, attrs) -> (n ^ "_prime", attrs)) expr.sources in
+  let deltaRelation = genDeltaRelation sourcePrime in
+  let deltaConstraints = genDeltaConstraints sourcePrime in
+  { expr with
+    sources = expr.sources @ deltaRelation;
+    constraints = expr.constraints @ deltaConstraints
+  }
+
 let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for disjoint deltas";) else ();
   let newprog = constraint2rule (genGetDelta prog) in
@@ -116,4 +125,31 @@ let lean_simp_theorem_of_injectivity (debug : bool) (prog : expr) : lean_theorem
     statement = statement;
   }
 
-  
+let lean_simp_of_uncomposable (debug : bool) (prog : expr) (queryRTerm : rterm) : lean_theorem =
+  if debug then (print_endline "==> generating theorem for uncomposable";) else ();
+  let newprog = constraint2rule (addPrimeDelta (genGetDelta prog)) in
+  let statement =
+    Fol_ex.lean_formula_of_fol_formula
+      (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
+        (Imp (Ast2fol.compose_sentence_of_stt debug newprog queryRTerm, False))))
+  in
+  LeanTheorem {
+    name      = "compose";
+    parameter = source_view_to_lean_func_types newprog;
+    statement = statement;
+  }
+
+(* let lean_simp_theorem_of_reachability (debug : bool) (prog : expr) : lean_theorem =
+  if debug then (print_endline "==> generating theorem for injectivity";) else ();
+  let newprog = constraint2rule (genGetDelta prog) in
+  (* print_string (to_string newprog); *)
+  let statement =
+    Fol_ex.lean_formula_of_fol_formula
+      (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
+        (Imp (Ast2fol.reachability_sentence_of_stt debug newprog, False))))
+  in
+  LeanTheorem {
+    name      = "reachability";
+    parameter = source_view_to_lean_func_types newprog;
+    statement = statement;
+  }   *)

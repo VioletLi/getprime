@@ -12,7 +12,12 @@ let genInjectiveCode expr =
   let script = gen_lean_code_for_theorems [lt]
   in script
 
-let genVerifyCode expr =
-  let edb = extract_edb expr in
-  let idb = extract_idb expr in
-  genInjectiveCode expr
+let genUncomposableCode expr queryRTerm =
+  let lt = lean_simp_theorem_of_uncomposable false expr queryRTerm in
+  let script = gen_lean_code_for_theorems [lt]
+  in script
+
+(* let genReachableCode expr =
+  let lt = lean_simp_theorem_of_reachability false expr in
+  let script = gen_lean_code_for_theorems [lt]
+  in script *)

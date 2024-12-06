@@ -587,3 +587,25 @@ let injectivity_sentence_of_stt (debug:bool) prog =
         List.map (itlist mk_exists cols) folList in
     let injectivity_sen_lst = List.map (fun d -> injectivity_fo_sentence d) delta_rt_lst in
     Prop.list_disj (List.concat injectivity_sen_lst)
+
+let compose_sentence_of_stt debug prog queryRTerm =
+    let edb = extract_edb prog in
+    let view_rt = get_schema_rterm (get_view prog) in
+    (* need to convert the view to be an edb relation *)
+    symt_insert edb (view_rt,[]);
+    let idb = extract_idb prog in
+    symt_remove idb (symtkey_of_rterm view_rt);
+    preprocess_rules idb;
+    if debug then (
+        print_endline "_____preprocessed datalog rules_______";
+        print_symtable idb;
+        print_endline "______________\n";
+    ) else ();
+    let cnt = build_colnamtab edb idb in
+    Prop.list_disj (List.concat (rules_to_fo_list idb cnt queryRTerm))
+
+
+
+(* let reachability_sentence_of_stt (debug:bool) prog =
+     *)
+
