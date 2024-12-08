@@ -23,7 +23,7 @@ let _ =
     let vc3 = open_out "/home/code/compose.dl" in
     Printf.fprintf vc3 "%s\n" composecode;
     close_out vc3;
-    let code = genCode expr in
+    let code = genCode expr composedrule in
     let _ = print_string "Generation finished\n" in
     let oc = open_out "/home/code/temp.dl" in
     Printf.fprintf oc "%s\n" code;

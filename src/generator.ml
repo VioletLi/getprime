@@ -253,7 +253,7 @@ let genIniRelation rs =
 
 (* has_get definition *)
 
-let genCode expr = 
+let genCode expr composerules = 
   let v = match expr.view with
     | Some view -> view
     | None -> raise (GenerationErr "No view Definition")
@@ -265,7 +265,6 @@ let genCode expr =
   in
   let inistateCode = String.concat "" (List.map string_of_rule inistateRules) in
   let constraints = extractConstraint expr in
-  let composerules = compose expr in
   let getRules = genGetRules expr composerules in
   let get = String.concat "" (List.map string_of_rule getRules) in
   let putdeltaRules = genPutdeltaRules expr composerules in

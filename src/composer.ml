@@ -78,9 +78,6 @@ let isDeltaTerm t =
       end
     | _ -> false
 
-let findDeltas b =
-  let res, others =  in res
-
 let find_index elem lst =
   let rec f i = function
     | [] -> raise (ComposeErr "No element in list")
@@ -177,7 +174,7 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
   in
   let newexpr = { expr with 
     rules = rule :: [(h1, b1); (h2, b2)] :: allInterRules
-  }
+  } in
   let code = genUncomposableCode newexpr queryRTerm in
   let exitcode, message = verify_fo_lean true 120 code in
   if not (exitcode = 0) then
