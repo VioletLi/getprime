@@ -1,6 +1,7 @@
 open Expr
 open Utils
 open Verifier
+open Sys
 
 type crule = (rterm list) * term list
 
@@ -78,7 +79,7 @@ let isDeltaTerm t =
     | _ -> false
 
 let findDeltas b =
-  let res, _ = List.partition isDeltaTerm b in res
+  let res, others =  in res
 
 let find_index elem lst =
   let rec f i = function
@@ -87,21 +88,21 @@ let find_index elem lst =
   in
   f 0 lst
 
+let renameVar vars updatedVars var =
+  match var with
+    | NamedVar n -> 
+        let index = find_index var vars in
+        let newName = List.nth updatedVars index in
+        NamedVar newName
+    | _ -> var
+
 let renameDeltaVars vars updatedVars term =
-  let renameVar var =
-    match var with
-      | NamedVar n -> 
-          let index = find_index var vars in
-          let newName = List.nth updatedVars index in
-          NamedVar newName
-      | _ -> var
-  in
   match term with
     | Rel r ->
       begin
         match r with
-          | Deltainsert (name, attrs) -> Rel (Deltainsert (name, List.map renameDeltaVars attrs))
-          | Deltadelete (name, attrs) -> Rel (Deltadelete (name, List.map renameDeltaVars attrs))
+          | Deltainsert (name, attrs) -> Rel (Deltainsert (name, List.map (renameVar vars updatedVars) attrs))
+          | Deltadelete (name, attrs) -> Rel (Deltadelete (name, List.map (renameVar vars updatedVars) attrs))
           | _ -> raise (ComposeErr "Only vars in delta operations need to be rewrited")
       end
     | _ -> raise (ComposeErr "Only vars in delta operations need to be rewrited")
@@ -111,23 +112,66 @@ let getVarName v =
     | NamedVar n -> n
     | _ -> raise (ComposeErr "Variable needs to be a namedvar")
 
-let canCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
-  let deltab1 = findDeltas b1 in
-  let deltab2 = findDeltas b2 in
+let rec renameVarinVterm vars updatedVars v =
+  match v with
+    | Var var -> Var (renameVar vars updatedVars var)
+    | BinaryOp (s, v1, v2) -> BinaryOp (s, renameVarinVterm vars updatedVars v1, renameVarinVterm vars updatedVars v2)
+    | UnaryOp (s, v1) -> UnaryOp (s, renameVarinVterm vars updatedVars v1)
+    | _ -> v
+
+let renamePredVars vars updatedVars term =
+  match term with
+    | Rel r ->
+      begin
+        match r with
+          | Pred (name, attrs) -> Rel (Pred (name, List.map (renameVar vars updatedVars) attrs))
+          | _ -> raise (ComposeErr "Only vars in non-delta predicates need to be rewrited")
+      end
+    | Not r ->
+      begin
+        match r with
+          | Pred (name, attrs) -> Not (Pred (name, List.map (renameVar vars updatedVars) attrs))
+          | Deltainsert (name, attrs) -> Not (Deltainsert (name, List.map (renameVar vars updatedVars) attrs))
+          | Deltadelete (name, attrs) -> Not (Deltadelete (name, List.map (renameVar vars updatedVars) attrs))
+      end
+    | Equat e -> 
+      begin
+        match e with
+          | Equation (s, v1, v2) -> Equat (Equation (s, renameVarinVterm vars updatedVars v1, renameVarinVterm vars updatedVars v2))
+      end
+    | NonEq e -> 
+      begin
+        match e with
+          | Equation (s, v1, v2) -> NonEq (Equation (s, renameVarinVterm vars updatedVars v1, renameVarinVterm vars updatedVars v2))
+      end
+    | _ -> raise (ComposeErr "Only vars in non-delta operations need to be rewrited")
+
+let isCompareTerm t =
+  match t with
+    | Equat _ -> true
+    | Noneq _ -> true 
+    | _ -> false
+
+let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
+  let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
+  let deltab2, nondeltab2 = List.partition isDeltaTerm b2 in
+  let valueBindingb2, o2 = List.partition isCompareTerm nondeltab2 in
   let h1vars = List.map getVarName (get_rterm_varlist h1) in
   let h2vars = List.map getVarName (get_rterm_varlist h2) in
   let newDeltab1 = List.map (renameDeltaVars h1vars updatedVars) deltab1 in
   let newDeltab2 = List.map (renameDeltaVars h2vars updatedVars) deltab2 in
   let newh1 = match h1 with
-  | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) vars)
-  | Deltadelete (n, _) -> Deltadelete (n, List.map (fun v -> NamedVar v) vars)
-  | _ -> raise (ComposeErr "Head need to be a delta of view")
-in
+    | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) vars)
+    | Deltadelete (n, _) -> Deltadelete (n, List.map (fun v -> NamedVar v) vars)
+    | _ -> raise (ComposeErr "Head need to be a delta of view")
+  in
   let newh2 = match h2 with
     | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) updatedVars)
     | Deltadelete (n, _) -> Deltadelete (n, List.map (fun v -> NamedVar v) updatedVars)
     | _ -> raise (ComposeErr "Head need to be a delta of view")
   in
+  let newb1 = List.map (renamePredVars h1vars vars) nondeltab1 in
+  let newvalBindingb2 = List.map (renamePredVars h2vars updatedVars) valueBindingb2 in
   let queryRTerm = Pred ("testcompose", List.map (fun v -> NamedVar v) (vars @ updatedVars)) in
   let rule = (queryRTerm, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2])
   in
@@ -135,10 +179,11 @@ in
     rules = rule :: [(h1, b1); (h2, b2)] :: allInterRules
   }
   let code = genUncomposableCode newexpr queryRTerm in
-  
-  generate lean code; check return value;
-
-let genNewRule vars updatedVars (h1, b1) (h2, b2) = 
+  let exitcode, message = verify_fo_lean true 120 code in
+  if not (exitcode = 0) then
+    if exitcode = 124 then raise (ComposeErr "Stop composing: timeout, cannot verify if the two rules can be composed or not")
+    else []
+  else [([newh1, newh2], newDeltab1 @ newDeltab2 @ newb1 @ newvalBindingb2)]
 
 let compose expr =
   (* let canUpdate = [] in *)
@@ -162,7 +207,7 @@ let compose expr =
   let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) newDeltaRules) deltaRules) in
   let verifyAndCompose ((h1, b1), (h2, b2)) = 
     if ((isInsertRule (h1, b1)) != (isInsertRule (h2, b2))) then
-      List.concat (List.map (fun updatedVars -> if (canCombine vars expr updatedVars allInterRules (h1, b1) (h2, b2)) then genNewRule vars updatedVars (h1, b1) (h2, b2) else []) combinedVars) 
+      List.concat (List.map (fun updatedVars -> checkAndCombine vars expr updatedVars allInterRules (h1, b1) (h2, b2)) combinedVars) 
     else []
   in
   List.concat (List.map verifyAndCompose rulePairs)
