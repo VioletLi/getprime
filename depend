@@ -58,12 +58,10 @@ bin/derivation.cmx : \
     bin/expr.cmx
 bin/generator.cmo : \
     bin/expr.cmo \
-    bin/utils.cmo \
-    bin/composer.cmo
+    bin/utils.cmo 
 bin/generator.cmx : \
     bin/expr.cmx \
-    bin/utils.cmx \
-    bin/composer.cmx
+    bin/utils.cmx 
 bin/lexer.cmo : \
     bin/utils.cmo \
     bin/parser.cmi

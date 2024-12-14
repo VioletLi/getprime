@@ -125,7 +125,7 @@ let lean_simp_theorem_of_injectivity (debug : bool) (prog : expr) : lean_theorem
     statement = statement;
   }
 
-let lean_simp_of_uncomposable (debug : bool) (prog : expr) (queryRTerm : rterm) : lean_theorem =
+let lean_simp_theorem_of_uncomposable (debug : bool) (prog : expr) (queryRTerm : rterm) : lean_theorem =
   if debug then (print_endline "==> generating theorem for uncomposable";) else ();
   let newprog = constraint2rule (addPrimeDelta (genGetDelta prog)) in
   let statement =

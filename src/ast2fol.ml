@@ -602,7 +602,7 @@ let compose_sentence_of_stt debug prog queryRTerm =
         print_endline "______________\n";
     ) else ();
     let cnt = build_colnamtab edb idb in
-    Prop.list_disj (List.concat (rules_to_fo_list idb cnt queryRTerm))
+    Prop.list_disj (rules_to_fo_list idb cnt queryRTerm)
 
 
 

@@ -1,6 +1,5 @@
 open Expr
 open Utils
-open Composer
 
 let getKey head = 
   match head with 

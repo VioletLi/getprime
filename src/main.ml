@@ -4,6 +4,7 @@ open Parser
 open Utils
 open Verifier
 open Generator
+open Composer
 open Sys
 
 let _ =
@@ -19,7 +20,7 @@ let _ =
     Printf.fprintf vc2 "%s\n" injectiveCode;
     close_out vc2;
     let composedrule = compose expr in
-    let composecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules composedrule)))
+    let composecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules composedrule))) in
     let vc3 = open_out "/home/code/compose.dl" in
     Printf.fprintf vc3 "%s\n" composecode;
     close_out vc3;

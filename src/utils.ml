@@ -637,3 +637,10 @@ let rec get_pairs lst =
     | x :: xs -> 
       let pairs = List.map (fun y -> (x, y)) xs in
       pairs @ (get_pairs xs)
+
+type crule = (rterm list) * term list
+
+let rule2crule (h, b) = ([h], b)
+
+let crule2rules (h, b) =
+  List.map (fun x -> (x, b)) h
