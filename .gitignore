@@ -30,6 +30,7 @@ result.sql
 disjoint.lean
 injective.lean
 temp.lean
+compose.dl
 
 sjup/idbx.dl
 
