@@ -588,12 +588,18 @@ let injectivity_sentence_of_stt (debug:bool) prog =
     let injectivity_sen_lst = List.map (fun d -> injectivity_fo_sentence d) delta_rt_lst in
     Prop.list_disj (List.concat injectivity_sen_lst)
 
+let replaceVDelta rules =
+    List.map (fun (h, b) -> (rterm2noDelta h, b)) rules
+
 let compose_sentence_of_stt debug prog queryRTerm =
-    let edb = extract_edb prog in
-    let view_rt = get_schema_rterm (get_view prog) in
+    let newprog = { prog with
+        rules = replaceVDelta prog.rules
+    } in
+    let edb = extract_edb newprog in
+    let view_rt = get_schema_rterm (get_view newprog) in
     (* need to convert the view to be an edb relation *)
     symt_insert edb (view_rt,[]);
-    let idb = extract_idb prog in
+    let idb = extract_idb newprog in
     symt_remove idb (symtkey_of_rterm view_rt);
     preprocess_rules idb;
     if debug then (

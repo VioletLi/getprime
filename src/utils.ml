@@ -644,3 +644,15 @@ let rule2crule (h, b) = ([h], b)
 
 let crule2rules (h, b) =
   List.map (fun x -> (x, b)) h
+
+let rterm2noDelta r =
+  match r with
+      | Deltainsert (name, varlist) -> Pred (name ^ "_ins", varlist)
+      | Deltadelete (name, varlist) -> Pred (name ^ "_del", varlist)
+      | _ -> r
+
+let term2noDelta t =
+  match t with
+      | Rel r -> Rel (rterm2noDelta r)
+      | Not r -> Not (rterm2noDelta r)
+      | _ -> t

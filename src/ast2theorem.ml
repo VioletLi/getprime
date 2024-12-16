@@ -86,15 +86,6 @@ let genGetDelta expr =
     rules = replaceSDelta expr.rules
   }
 
-let addPrimeDelta expr =
-  let sourcePrime = List.map (fun (n, attrs) -> (n ^ "_prime", attrs)) expr.sources in
-  let deltaRelation = genDeltaRelation sourcePrime in
-  let deltaConstraints = genDeltaConstraints sourcePrime in
-  { expr with
-    sources = expr.sources @ deltaRelation;
-    constraints = expr.constraints @ deltaConstraints
-  }
-
 let lean_simp_theorem_of_disjoint_delta (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for disjoint deltas";) else ();
   let newprog = constraint2rule (genGetDelta prog) in
@@ -127,7 +118,15 @@ let lean_simp_theorem_of_injectivity (debug : bool) (prog : expr) : lean_theorem
 
 let lean_simp_theorem_of_uncomposable (debug : bool) (prog : expr) (queryRTerm : rterm) : lean_theorem =
   if debug then (print_endline "==> generating theorem for uncomposable";) else ();
-  let newprog = constraint2rule (addPrimeDelta (genGetDelta prog)) in
+  let sourcePrime = List.map (fun (n, attrs) -> (n ^ "_prime", attrs)) prog.sources in
+  let deltaRelation = genDeltaRelation sourcePrime in
+  let deltaConstraints = genDeltaConstraints sourcePrime in
+  let temp = genGetDelta prog in
+  let tmp = { temp with
+    sources = temp.sources @ deltaRelation;
+    constraints = temp.constraints @ deltaConstraints
+  } in
+  let newprog = constraint2rule tmp in
   let statement =
     Fol_ex.lean_formula_of_fol_formula
       (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,

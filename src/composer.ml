@@ -145,6 +145,7 @@ let isCompareTerm t =
 let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
   let deltab2, nondeltab2 = List.partition isDeltaTerm b2 in
+  let valueBindingb1, o1 = List.partition isCompareTerm nondeltab1 in
   let valueBindingb2, o2 = List.partition isCompareTerm nondeltab2 in
   let h1vars = List.map getVarName (get_rterm_varlist h1) in
   let h2vars = List.map getVarName (get_rterm_varlist h2) in
@@ -161,24 +162,31 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
     | _ -> raise (ComposeErr "Head need to be a delta of view")
   in
   let newb1 = List.map (renamePredVars h1vars vars) nondeltab1 in
+  let newvalBindingb1 = List.map (renamePredVars h1vars vars) valueBindingb1 in
   let newvalBindingb2 = List.map (renamePredVars h2vars updatedVars) valueBindingb2 in
   let queryRTerm = Pred ("testcompose", List.map (fun v -> NamedVar v) (vars @ updatedVars)) in
-  let rule = (queryRTerm, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2])
+  let rule = (queryRTerm, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2)
   in
   let newexpr = { expr with 
     rules = rule :: [(h1, b1); (h2, b2)] @ allInterRules
   } in
+  (* print_string (to_string newexpr); *)
   let code = genUncomposableCode newexpr queryRTerm in
+  (* print_string "here"; *)
   let exitcode, message = verify_fo_lean true 120 code in
   if not (exitcode = 0) then
     if exitcode = 124 then raise (ComposeErr "Stop composing: timeout, cannot verify if the two rules can be composed or not")
     else []
-  else [([newh1; newh2], newDeltab1 @ newDeltab2 @ newb1 @ newvalBindingb2)]
+  else [([newh1; newh2], newDeltab1 @ newDeltab2 @ newb1 @ newvalBindingb1 @ newvalBindingb2)]
+
+let print_rulePairs rulePairs =
+  print_string "begin rulepairs:\n";
+  List.map (fun (r1, r2) -> print_string (string_of_rule r1);print_string (string_of_rule r2);print_string "\n") rulePairs;
+  print_string "end rulepairs\n"
 
 let compose expr =
-  (* let canUpdate = [] in *)
   (* 分开需要的中间规则和delta规则 *)
-  let interRules, deltaRules = List.partition isDeltaRule expr.rules in
+  let deltaRules, interRules = List.partition isDeltaRule expr.rules in
   (* delta规则变compose *)
   (* let crules = List.map rule2crule expr.rules in *)
   (* 给中间规则和delta规则重命名 *)
@@ -195,10 +203,14 @@ let compose expr =
   let vars = get_schema_attrs viewSchema in
   let combinedVars = List.filter (fun combination -> List.exists (fun (a, b) -> a <> b) (List.combine combination vars)) (generate_combinations vars) in
   let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) newDeltaRules) deltaRules) in
+  print_string "test";
   let verifyAndCompose ((h1, b1), (h2, b2)) = 
     if ((isInsertRule (h1, b1)) != (isInsertRule (h2, b2))) then
+      (* let _ = print_string "y\n" in *)
       List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2)) combinedVars) 
-    else []
+    else 
+      (* let _ = print_string "z\n" in  *)
+    []
   in
   List.concat (List.map verifyAndCompose rulePairs)
   (* 对每一个pair 中间规则的两个版本+重命名新的pair的两个rule+新规则 尝试不同的变量组合 翻译成lean验证 *)

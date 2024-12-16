@@ -83,18 +83,6 @@ let genIniRules expr iniRelations =
 let genPreDatalog expr = 
   String.concat "" (List.map string_of_rule (List.concat (List.map genSourceDelta expr.sources))) *)
 
-let rterm2noDelta r =
-  match r with
-      | Deltainsert (name, varlist) -> Pred (name ^ "_ins", varlist)
-      | Deltadelete (name, varlist) -> Pred (name ^ "_del", varlist)
-      | _ -> r
-
-let term2noDelta t =
-  match t with
-      | Rel r -> Rel (rterm2noDelta r)
-      | Not r -> Not (rterm2noDelta r)
-      | _ -> t
-
 let extractConstraint expr = 
   let filteredConstraints = List.map (fun (r, ts) -> (rterm2noDelta r, List.map term2noDelta ts)) expr.constraints
   in
@@ -192,7 +180,7 @@ let getvn view =
 
 let genGetRules expr composerules =
   let (vn, varlist) = getvn expr.view in
-  let rules = List.concat (List.map crule2rules composerules) in
+  let rules = expr.rules @ (List.concat (List.map crule2rules composerules)) in
   let getPrimeRules = replaceSDelta rules in
   [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
   ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
@@ -242,7 +230,7 @@ let genPutdeltaRules expr composerules =
     [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
     ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
   in
-  let rules = List.map replaceV2IniDelta composerules in
+  let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ composerules) in
   let invRules = genInvRules rules (vn, varlist) in
   let unpackedRules = List.concat (List.map crule2rules invRules) in
   viniRules @ viniDeltaRules @ unpackedRules
