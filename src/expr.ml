@@ -457,6 +457,20 @@ let to_string { rules;facts; query; sources; view; constraints; primary_keys; in
   (* (List.fold_right (^) (List.map string_of_rg rule_groups) "") *)
   (List.fold_right (^) (List.map string_of_rule rules) "")
 
+let to_birds_string { rules;facts; query; sources; view; constraints; primary_keys; initial_state; } = 
+  (List.fold_right (^) (List.map string_of_source sources) "") ^
+  (match view with
+      | Some v -> string_of_view v
+      | None -> "")  ^
+  (match query with
+      | Some v -> string_of_query v
+      | None -> "")  ^
+  (List.fold_right (^) (List.map string_of_pk primary_keys) "") ^
+  (List.fold_right (^) (List.map string_of_constraint constraints) "") ^
+  (List.fold_right (^) (List.map string_of_fact facts) "") ^
+  (* (List.fold_right (^) (List.map string_of_rg rule_groups) "") *)
+  (List.fold_right (^) (List.map string_of_rule rules) "")
+
 let str_to_namedvar = function str -> NamedVar str
 
 let stringlist_to_varlist strlst = List.map str_to_namedvar strlst 

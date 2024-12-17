@@ -32,6 +32,7 @@ injective.lean
 temp.lean
 compose.dl
 
+sjup/testcompose.dl
 sjup/idbx.dl
 
 # ocamlbuild working directory

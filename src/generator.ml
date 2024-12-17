@@ -85,8 +85,8 @@ let genPreDatalog expr =
 
 let extractConstraint expr = 
   let filteredConstraints = List.map (fun (r, ts) -> (rterm2noDelta r, List.map term2noDelta ts)) expr.constraints
-  in
-  String.concat "" (List.map string_of_constraint filteredConstraints)
+  in filteredConstraints
+  (* String.concat "" (List.map string_of_constraint filteredConstraints) *)
 
 (* let source2initial names t =
   match t with
@@ -247,15 +247,21 @@ let genCode expr composerules =
   in
   let iniRelation = genIniRelation (expr.sources @ [v]) in
   let (inistateRules, needIniSources) = genIniRules expr iniRelation in
-  let svDef = 
+  (* let svDef = 
     (List.fold_right (^) (List.map string_of_source (expr.sources @ needIniSources)) "") ^ (string_of_view v)
-  in
-  let inistateCode = String.concat "" (List.map string_of_rule inistateRules) in
-  let constraints = extractConstraint expr in
+  in *)
+  (* let inistateCode = String.concat "" (List.map string_of_rule inistateRules) in *)
+  let updatedConstraints = extractConstraint expr in
   let getRules = genGetRules expr composerules in
-  let get = String.concat "" (List.map string_of_rule getRules) in
+  (* let get = String.concat "" (List.map string_of_rule getRules) in *)
   let putdeltaRules = genPutdeltaRules expr composerules in
-  let putdelta = String.concat "" (List.map string_of_rule putdeltaRules) in
-    "% schema definition\n" ^ svDef ^ "\n% initial state\n" ^ inistateCode ^ "% constraints\n" ^ constraints ^ "\n% get\n" ^ get ^ "\n% putdelta\n" ^ putdelta
+  (* let putdelta = String.concat "" (List.map string_of_rule putdeltaRules) in *)
+  let newexpr = { expr with
+    sources = expr.sources @ needIniSources;
+    constraints = updatedConstraints;
+    rules =  inistateRules @ getRules @ putdeltaRules
+  } in
+  to_birds_string newexpr
+    (* "% schema definition\n" ^ svDef ^ "\n% initial state\n" ^ inistateCode ^ "% constraints\n" ^ constraints ^ "\n% get\n" ^ get ^ "\n% putdelta\n" ^ putdelta *)
 
 
