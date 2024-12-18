@@ -149,7 +149,7 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
   let valueBindingb2, o2 = List.partition isCompareTerm nondeltab2 in
   let h1vars = List.map getVarName (get_rterm_varlist h1) in
   let h2vars = List.map getVarName (get_rterm_varlist h2) in
-  let newDeltab1 = List.map (renameDeltaVars h1vars updatedVars) deltab1 in
+  let newDeltab1 = List.map (renameDeltaVars h1vars vars) deltab1 in
   let newDeltab2 = List.map (renameDeltaVars h2vars updatedVars) deltab2 in
   let newh1 = match h1 with
     | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) vars)
