@@ -187,11 +187,12 @@ let print_rulePairs rulePairs =
 let compose expr =
   (* 分开需要的中间规则和delta规则 *)
   let deltaRules, interRules = List.partition isDeltaRule expr.rules in
+  let insRules, delRules = List.partition isInsertRule deltaRules in
   (* delta规则变compose *)
   (* let crules = List.map rule2crule expr.rules in *)
   (* 给中间规则和delta规则重命名 *)
   let newInterRules = List.map renameRule interRules in
-  let newDeltaRules = List.map renameRule deltaRules in
+  let newInsRules = List.map renameRule insRules in
   let newSourceRules = List.concat (List.map applyUpdateRules expr.sources) in
   (* let newrules = List.map (rule2crule) (List.map renameRule expr.rules) in *)
   (* delta重命名组合pair *)
@@ -202,15 +203,9 @@ let compose expr =
   in
   let vars = get_schema_attrs viewSchema in
   let combinedVars = List.filter (fun combination -> List.exists (fun (a, b) -> a <> b) (List.combine combination vars)) (generate_combinations vars) in
-  let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) newDeltaRules) deltaRules) in
-  print_string "test";
+  let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) newInsRules) delRules) in
   let verifyAndCompose ((h1, b1), (h2, b2)) = 
-    if ((isInsertRule (h1, b1)) != (isInsertRule (h2, b2))) then
-      (* let _ = print_string "y\n" in *)
-      List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2)) combinedVars) 
-    else 
-      (* let _ = print_string "z\n" in  *)
-    []
+    List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2)) combinedVars) 
   in
   List.concat (List.map verifyAndCompose rulePairs)
   (* 对每一个pair 中间规则的两个版本+重命名新的pair的两个rule+新规则 尝试不同的变量组合 翻译成lean验证 *)

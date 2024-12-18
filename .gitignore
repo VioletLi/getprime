@@ -31,6 +31,7 @@ disjoint.lean
 injective.lean
 temp.lean
 compose.dl
+tmp
 
 sjup/testcompose.dl
 sjup/idbx.dl
