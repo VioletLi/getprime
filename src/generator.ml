@@ -143,7 +143,7 @@ let genDelta sourceRelations =
     ; (Pred (sn^"_del", varlist), [Rel (Pred (sn^"0", varlist)); Not (Pred (sn, varlist))])]
   ) sourceRelations)
 
-let replaceSDelta rules =
+let replaceSAndDelta rules =
   List.map (fun (head, body) ->
     (head, List.map (fun t ->
       match t with
@@ -152,14 +152,14 @@ let replaceSDelta rules =
               match r with
                 | Deltainsert (sn, varlist) -> Rel (Pred (sn^"_ins", varlist))
                 | Deltadelete (sn, varlist) -> Rel (Pred (sn^"_del", varlist))
-                | _                         -> t
+                | Pred (sn, varlist)        -> Rel (Pred (sn^"0", varlist))
             end
         | Not r ->
           begin
             match r with
               | Deltainsert (sn, varlist) -> Not (Pred (sn^"_ins", varlist))
               | Deltadelete (sn, varlist) -> Not (Pred (sn^"_del", varlist))
-              | _                         -> t
+              | Pred (sn, varlist)        -> Not (Pred (sn^"0", varlist))
           end
         | _ -> t
     ) body)
@@ -181,7 +181,7 @@ let getvn view =
 let genGetRules expr composerules =
   let (vn, varlist) = getvn expr.view in
   let rules = expr.rules @ (List.concat (List.map crule2rules composerules)) in
-  let getPrimeRules = replaceSDelta rules in
+  let getPrimeRules = replaceSAndDelta rules in
   [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
   ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
 

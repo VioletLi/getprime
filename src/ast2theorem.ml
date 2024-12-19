@@ -1,5 +1,4 @@
 open Expr
-open Generator
 open Utils
 
 type lean_type =
@@ -76,6 +75,28 @@ let genDeltaConstraints srcs =
   (* _|_ :- s_ins(X), s_del(X). *)
   (* _|_ :- s_ins(X), s(X). *)
   (* _|_ :- s_del(X), not s(X). *)
+
+let replaceSDelta rules =
+  List.map (fun (head, body) ->
+    (head, List.map (fun t ->
+      match t with
+        | Rel r -> 
+            begin
+              match r with
+                | Deltainsert (sn, varlist) -> Rel (Pred (sn^"_ins", varlist))
+                | Deltadelete (sn, varlist) -> Rel (Pred (sn^"_del", varlist))
+                | Pred (sn, varlist)        -> t
+            end
+        | Not r ->
+          begin
+            match r with
+              | Deltainsert (sn, varlist) -> Not (Pred (sn^"_ins", varlist))
+              | Deltadelete (sn, varlist) -> Not (Pred (sn^"_del", varlist))
+              | Pred (sn, varlist)        -> t
+          end
+        | _ -> t
+    ) body)
+  ) rules
 
 let genGetDelta expr =
   let deltaRelation = genDeltaRelation expr.sources in

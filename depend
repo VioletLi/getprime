@@ -1,10 +1,8 @@
 bin/ast2theorem.cmo : \
     bin/expr.cmo \
-    bin/generator.cmo \
     bin/utils.cmo
 bin/ast2theorem.cmx : \
     bin/expr.cmx \
-    bin/generator.cmx \
     bin/utils.cmo
 bin/ast2fol.cmo : \
     bin/utils.cmo \
