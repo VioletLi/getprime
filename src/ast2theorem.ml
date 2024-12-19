@@ -148,6 +148,7 @@ let lean_simp_theorem_of_uncomposable (debug : bool) (prog : expr) (queryRTerm :
     constraints = temp.constraints @ deltaConstraints
   } in
   let newprog = constraint2rule tmp in
+  print_string (to_birds_string newprog);
   let statement =
     Fol_ex.lean_formula_of_fol_formula
       (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,

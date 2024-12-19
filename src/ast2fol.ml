@@ -572,7 +572,6 @@ let injectivity_sentence_of_stt (debug:bool) prog =
     ) else ();
     let cnt = build_colnamtab edb idb in
     let delta_rt_lst = get_delta_rterms prog in
-    (* print_string (String.concat "," (List.map string_of_rterm delta_rt_lst)); *)
     (* injective: two deltas are same if and only if states are same
     check: given two rules with the same delta, check (state1 and state2 -> false) *)
     (* get the emptiness FO sentence of a relation *)
@@ -608,9 +607,10 @@ let compose_sentence_of_stt debug prog queryRTerm =
         print_endline "______________\n";
     ) else ();
     let cnt = build_colnamtab edb idb in
-    Prop.list_disj (rules_to_fo_list idb cnt queryRTerm)
-
-
+    let newrterm = variablize_rterm queryRTerm in
+    let cols = List.map string_of_var (get_rterm_varlist newrterm) in
+    let sentence = List.map (itlist mk_forall cols) (rules_to_fo_list idb cnt newrterm) in
+    Prop.list_disj sentence
 
 (* let reachability_sentence_of_stt (debug:bool) prog =
      *)
