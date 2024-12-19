@@ -656,3 +656,8 @@ let term2noDelta t =
       | Rel r -> Rel (rterm2noDelta r)
       | Not r -> Not (rterm2noDelta r)
       | _ -> t
+
+let is_empty ls = 
+  match ls with
+    | [] -> true
+    | _ :: tail -> false
