@@ -141,6 +141,9 @@ let isCompareTerm t =
     | Equat _ -> true
     | Noneq _ -> true 
     | _ -> false
+  
+let mkEqualityBinding vars updatedVars =
+  List.concat (List.map (fun (x, y) -> if x <> y then [Noneq (Equation ("=", (Var (NamedVar x)), (Var (NamedVar y))))] else []) (List.combine vars updatedVars))
 
 let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
@@ -164,8 +167,9 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
   let newb1 = List.map (renamePredVars h1vars vars) nondeltab1 in
   let newvalBindingb1 = List.map (renamePredVars h1vars vars) valueBindingb1 in
   let newvalBindingb2 = List.map (renamePredVars h2vars updatedVars) valueBindingb2 in
-  let queryRTerm = Pred ("testcompose", List.map (fun v -> NamedVar v) (vars @ updatedVars)) in
-  let rule = (queryRTerm, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2)
+  let queryRTerm = Pred ("testcompose", List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars))) in
+  let equalityBinding = mkEqualityBinding vars updatedVars in
+  let rule = (queryRTerm, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in
   let newexpr = { expr with 
     rules = rule :: [(h1, b1); (h2, b2)] @ allInterRules

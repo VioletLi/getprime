@@ -661,3 +661,7 @@ let is_empty ls =
   match ls with
     | [] -> true
     | _ :: tail -> false
+
+(* remove the variables in ys which appear in xs *)
+let removeDup xs ys =
+  List.map snd (List.filter (fun (a, b) -> a <> b) (List.combine xs ys))
