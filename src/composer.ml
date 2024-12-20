@@ -177,35 +177,34 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) 
   let newvalBindingb1 = List.map (renamePredVars h1vars vars) valueBindingb1 in
   let newvalBindingoldb2 = List.map (renamePredVars oldh2vars updatedVars) valueBindingoldb2 in
   let newvalBindingb2 = List.map (renamePredVars h2vars updatedVars) valueBindingb2 in
-  let queryRTerm1 = Pred ("canExecBefore", List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars))) in
-  let queryRTerm2 = Pred ("cannotExecAfter", List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars))) in
+  let varsNeedtobeTested = List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars)) in
+  let queryRTerm1 = Pred ("canExecBefore", varsNeedtobeTested) in
+  let queryRTerm2 = Pred ("cannotExecAfter", varsNeedtobeTested) in
   let equalityBinding = mkEqualityBinding vars updatedVars in
   let rule1 = (queryRTerm1, [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
   let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in
-  print_string "checkandcombine\n";
-  print_string "h1:\n";
-  print_string (string_of_rule (h1, b1));
-  print_string "oldh2:\n";
-  print_string (string_of_rule (oldh2, oldb2));
-  print_string "h2:\n";
-  print_string (string_of_rule (h2, b2));
-  print_string "rule1:\n";
-  print_string (string_of_rule rule1);
-  print_string "rule2:\n";
-  print_string (string_of_rule rule2);
-  print_string "\n\n\n";
   let newexpr = { expr with 
     rules = [rule1; rule2] @ [(h1, b1); (oldh2, oldb2); (h2, b2)] @ allInterRules
   } in
   (* print_string (to_string newexpr); *)
   let code = genUncomposableCode newexpr queryRTerm1 queryRTerm2 in
   (* print_string "here"; *)
-  let exitcode, message = verify_fo_lean true 120 code in
+  let exitcode, message = verify_fo_lean false 120 code in
   if not (exitcode = 0) then
     if exitcode = 124 then raise (ComposeErr "Stop composing: timeout, cannot verify if the two rules can be composed or not")
     else []
-  else [([newh1; newh2], newDeltab1 @ newDeltab2 @ newb1 @ newvalBindingb1 @ newvalBindingb2)]
+  else 
+    let newruleHead = Pred ("isEmpty", varsNeedtobeTested) in
+    let newruleBody = newDeltab1 @ newDeltaoldb2 @ newb1 @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding in
+    let testEmptyExpr = {expr with rules = (newruleHead, newruleBody) :: allInterRules} in
+    let isEmptyCode = genTestEmptyCode testEmptyExpr newruleHead in
+    let exitcode2, message2 = verify_fo_lean true 120 isEmptyCode in
+    if not (exitcode = 0) then 
+      if exitcode = 124 then raise (ComposeErr "Stop testing: timeout, cannot verify if the composed rule is empty")
+      else [([newh1; newoldh2], newruleBody)]
+    else
+      []
 
 let print_rulePairs rulePairs =
   print_string "begin rulepairs:\n";
@@ -235,13 +234,6 @@ let compose expr =
     let allInterRules = interRules @ newInterRules @ newSourceRules in
     let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) (List.combine insRules newInsRules)) delRules) in
     let verifyAndCompose ((h1, b1), ((oldh2, oldb2), (h2, b2))) = 
-      print_string "h1:\n";
-      print_string (string_of_rule (h1, b1));
-      print_string "oldh2:\n";
-      print_string (string_of_rule (oldh2, oldb2));
-      print_string "h2:\n";
-      print_string (string_of_rule (h2, b2));
-      print_string "\n\n\n";
       List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)) combinedVars) 
     in
     List.concat (List.map verifyAndCompose rulePairs)
