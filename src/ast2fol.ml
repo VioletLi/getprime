@@ -590,7 +590,9 @@ let injectivity_sentence_of_stt (debug:bool) prog =
 let replaceVDelta rules =
     List.map (fun (h, b) -> (rterm2noDelta h, b)) rules
 
-let compose_sentence_of_stt debug prog queryRTerm =
+(* let rules_to_fo_compose idb cnt newrterm =  *)
+
+let compose_sentence_of_stt debug prog queryRTerm1 queryRTerm2 =
     let newprog = { prog with
         rules = replaceVDelta prog.rules
     } in
@@ -607,11 +609,8 @@ let compose_sentence_of_stt debug prog queryRTerm =
         print_endline "______________\n";
     ) else ();
     let cnt = build_colnamtab edb idb in
-    let newrterm = variablize_rterm queryRTerm in
-    let cols = List.map string_of_var (get_rterm_varlist newrterm) in
-    let sentence = List.map (itlist mk_forall cols) (rules_to_fo_list idb cnt newrterm) in
-    Prop.list_disj sentence
-
-(* let reachability_sentence_of_stt (debug:bool) prog =
-     *)
-
+    let newrterm1 = variablize_rterm queryRTerm1 in
+    let newrterm2 = variablize_rterm queryRTerm2 in
+    let cols = List.map string_of_var (get_rterm_varlist newrterm1) in
+    let sentence = And (itlist mk_forall cols (Imp (Prop.list_disj (rules_to_fo_list idb cnt newrterm1), False)), itlist mk_forall cols (Imp (Prop.list_disj (rules_to_fo_list idb cnt newrterm2), False))) in
+    sentence

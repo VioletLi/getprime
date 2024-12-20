@@ -145,37 +145,61 @@ let isCompareTerm t =
 let mkEqualityBinding vars updatedVars =
   List.concat (List.map (fun (x, y) -> if x <> y then [Noneq (Equation ("=", (Var (NamedVar x)), (Var (NamedVar y))))] else []) (List.combine vars updatedVars))
 
-let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2) =
+let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
+  let deltaoldb2, nondeltaoldb2 = List.partition isDeltaTerm oldb2 in
   let deltab2, nondeltab2 = List.partition isDeltaTerm b2 in
   let valueBindingb1, o1 = List.partition isCompareTerm nondeltab1 in
+  let valueBindingoldb2, oldo2 = List.partition isCompareTerm nondeltaoldb2 in
   let valueBindingb2, o2 = List.partition isCompareTerm nondeltab2 in
   let h1vars = List.map getVarName (get_rterm_varlist h1) in
+  let oldh2vars = List.map getVarName (get_rterm_varlist oldh2) in
   let h2vars = List.map getVarName (get_rterm_varlist h2) in
   let newDeltab1 = List.map (renameDeltaVars h1vars vars) deltab1 in
+  let newDeltaoldb2 = List.map (renameDeltaVars oldh2vars updatedVars) deltaoldb2 in
   let newDeltab2 = List.map (renameDeltaVars h2vars updatedVars) deltab2 in
   let newh1 = match h1 with
-    | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) vars)
+    | Deltainsert (n, _) -> raise (ComposeErr "head of rule 1 is delete")
     | Deltadelete (n, _) -> Deltadelete (n, List.map (fun v -> NamedVar v) vars)
+    | _ -> raise (ComposeErr "Head need to be a delta of view")
+  in
+  let newoldh2 = match oldh2 with
+    | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) updatedVars)
+    | Deltadelete (n, _) -> raise (ComposeErr "head of rule 2 is insert")
     | _ -> raise (ComposeErr "Head need to be a delta of view")
   in
   let newh2 = match h2 with
     | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) updatedVars)
-    | Deltadelete (n, _) -> Deltadelete (n, List.map (fun v -> NamedVar v) updatedVars)
+    | Deltadelete (n, _) -> raise (ComposeErr "head of rule 2 is insert")
     | _ -> raise (ComposeErr "Head need to be a delta of view")
   in
   let newb1 = List.map (renamePredVars h1vars vars) nondeltab1 in
   let newvalBindingb1 = List.map (renamePredVars h1vars vars) valueBindingb1 in
+  let newvalBindingoldb2 = List.map (renamePredVars oldh2vars updatedVars) valueBindingoldb2 in
   let newvalBindingb2 = List.map (renamePredVars h2vars updatedVars) valueBindingb2 in
-  let queryRTerm = Pred ("testcompose", List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars))) in
+  let queryRTerm1 = Pred ("canExecBefore", List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars))) in
+  let queryRTerm2 = Pred ("cannotExecAfter", List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars))) in
   let equalityBinding = mkEqualityBinding vars updatedVars in
-  let rule = (queryRTerm, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
+  let rule1 = (queryRTerm1, [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
+  let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in
+  print_string "checkandcombine\n";
+  print_string "h1:\n";
+  print_string (string_of_rule (h1, b1));
+  print_string "oldh2:\n";
+  print_string (string_of_rule (oldh2, oldb2));
+  print_string "h2:\n";
+  print_string (string_of_rule (h2, b2));
+  print_string "rule1:\n";
+  print_string (string_of_rule rule1);
+  print_string "rule2:\n";
+  print_string (string_of_rule rule2);
+  print_string "\n\n\n";
   let newexpr = { expr with 
-    rules = rule :: [(h1, b1); (h2, b2)] @ allInterRules
+    rules = [rule1; rule2] @ [(h1, b1); (oldh2, oldb2); (h2, b2)] @ allInterRules
   } in
   (* print_string (to_string newexpr); *)
-  let code = genUncomposableCode newexpr queryRTerm in
+  let code = genUncomposableCode newexpr queryRTerm1 queryRTerm2 in
   (* print_string "here"; *)
   let exitcode, message = verify_fo_lean true 120 code in
   if not (exitcode = 0) then
@@ -209,9 +233,16 @@ let compose expr =
     (* let newrules = List.map (rule2crule) (List.map renameRule expr.rules) in *)
     (* delta重命名组合pair *)
     let allInterRules = interRules @ newInterRules @ newSourceRules in
-    let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) newInsRules) delRules) in
-    let verifyAndCompose ((h1, b1), (h2, b2)) = 
-      List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (h2, b2)) combinedVars) 
+    let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) (List.combine insRules newInsRules)) delRules) in
+    let verifyAndCompose ((h1, b1), ((oldh2, oldb2), (h2, b2))) = 
+      print_string "h1:\n";
+      print_string (string_of_rule (h1, b1));
+      print_string "oldh2:\n";
+      print_string (string_of_rule (oldh2, oldb2));
+      print_string "h2:\n";
+      print_string (string_of_rule (h2, b2));
+      print_string "\n\n\n";
+      List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)) combinedVars) 
     in
     List.concat (List.map verifyAndCompose rulePairs)
   (* 对每一个pair 中间规则的两个版本+重命名新的pair的两个rule+新规则 尝试不同的变量组合 翻译成lean验证 *)
