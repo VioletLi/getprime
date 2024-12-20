@@ -7,5 +7,5 @@ IS:
     v0(X) :- s0(X, Y).
 ].
 
-+v(X) :- +s(X, Y), Y = 'A', not s(X, _).
--v(X) :- -s(X, Y).
++v(X) :- +s(X, Y), not s(X, Y), Y = 'A', not s(X, _).
+-v(X) :- -s(X, Y), s(X, Y).

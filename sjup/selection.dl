@@ -3,5 +3,5 @@ view v('X': string, 'Y': string).
 
 _|_ :- v(X, Y), not Y='default'.
 
-+v(X, Y) :- +s(X, Y), Y = 'default'.
--v(X, Y) :- -s(X, Y), Y = 'default'.
++v(X, Y) :- +s(X, Y), not s(X, Y), Y = 'default'.
+-v(X, Y) :- -s(X, Y), s(X, Y), Y = 'default'.
