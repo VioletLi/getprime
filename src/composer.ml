@@ -145,6 +145,48 @@ let isCompareTerm t =
 let mkEqualityBinding vars updatedVars =
   List.concat (List.map (fun (x, y) -> if x <> y then [Noneq (Equation ("=", (Var (NamedVar x)), (Var (NamedVar y))))] else []) (List.combine vars updatedVars))
 
+let isInsertDelta rterm =
+  match rterm with
+    | Deltainsert _ -> true
+    | Deltadelete _ -> false
+    | _ -> raise (ComposeErr "Only delta operations can be tested")
+
+let unpack_term t = 
+  match t with
+    | Rel rterm -> rterm
+    | _ -> raise (ComposeErr "Only positive rterm can be unpacked")
+
+let getDeltaRelationName rterm =
+  match rterm with
+    | Deltainsert (name, _) -> name
+    | Deltadelete (name, _) -> name
+    | _ -> raise (ComposeErr "Only delta name can be handled")
+
+let getRtermVarNames rterm = List.map string_of_var (get_rterm_varlist rterm)
+
+let checkAndCancel insDelta delDeltas =
+  let insRelation = getDeltaRelationName insDelta in
+  let candidates = List.filter (fun d -> (getDeltaRelationName d) = insRelation) delDeltas in
+  let canCancel = List.filter (fun d -> isEqualLists (getRtermVarNames insDelta) (getRtermVarNames d)) candidates in
+  if is_empty canCancel then [] else insDelta :: canCancel
+
+let isEqualDelta d1 d2 =
+  if (isInsertDelta d1) <> (isInsertDelta d2) then false
+  else
+    if (getDeltaRelationName d1) <> (getDeltaRelationName d2) then false
+    else
+      isEqualLists (getRtermVarNames d1) (getRtermVarNames d2)
+
+let inDeltaList d deltas = 
+  List.exists (fun delta -> isEqualDelta d delta) deltas
+
+let cancelDelta delta1 delta2 =
+  let deltas = List.map unpack_term (delta1 @ delta2) in
+  let insDeltas, delDeltas = List.partition isInsertDelta deltas in
+  let cancelDeltas = List.concat (List.map (fun insDelta -> checkAndCancel insDelta delDeltas) insDeltas) in
+  let resDeltas = List.filter (fun d -> not (inDeltaList d cancelDeltas)) deltas in
+  List.map (fun rterm -> Rel rterm) resDeltas
+
 let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
   let deltaoldb2, nondeltaoldb2 = List.partition isDeltaTerm oldb2 in
@@ -196,8 +238,10 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) 
     else []
   else 
     let newruleHead = Pred ("isEmpty", varsNeedtobeTested) in
-    let newruleBody = newDeltab1 @ newDeltaoldb2 @ newb1 @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding in
+    let composeDelta = cancelDelta newDeltab1 newDeltaoldb2 in
+    let newruleBody = composeDelta @ newb1 @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding in
     let testEmptyExpr = {expr with rules = (newruleHead, newruleBody) :: allInterRules} in
+    (* print_string (string_of_rule (newruleHead, newruleBody)); *)
     let isEmptyCode = genTestEmptyCode testEmptyExpr newruleHead in
     let exitcode2, message2 = verify_fo_lean true 120 isEmptyCode in
     if not (exitcode = 0) then 

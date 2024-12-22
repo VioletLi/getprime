@@ -665,3 +665,6 @@ let is_empty ls =
 (* remove the variables in ys which appear in xs *)
 let removeDup xs ys =
   List.map snd (List.filter (fun (a, b) -> a <> b) (List.combine xs ys))
+
+let isEqualLists xs ys =
+  not (List.exists (fun (x, y) -> x <> y) (List.combine xs ys))
