@@ -29,13 +29,13 @@ let isInsertRule (h, b) =
   match h with
     | Deltainsert _ -> true
     | Deltadelete _ -> false
-    | _ -> raise (ComposeErr "there cannot be non-delta rules when verify and compose")
+    | _ -> raise (FuseErr "there cannot be non-delta rules when verify and fuse")
 
 let getVarNum h = 
   match h with 
     | Deltainsert (n, attrs) -> List.length attrs
     | Deltadelete (n, attrs) -> List.length attrs
-    | _ -> raise (ComposeErr "there cannot be non-delta rules when verify and compose")
+    | _ -> raise (FuseErr "there cannot be non-delta rules when verify and fuse")
 
 let generate_combinations vars =
   let n = List.length vars in
@@ -73,7 +73,7 @@ let isDeltaTerm t =
 
 let find_index elem lst =
   let rec f i = function
-    | [] -> raise (ComposeErr "No element in list")
+    | [] -> raise (FuseErr "No element in list")
     | x::xs -> if x = elem then i else f (i + 1) xs
   in
   f 0 lst
@@ -93,14 +93,14 @@ let renameDeltaVars vars updatedVars term =
         match r with
           | Deltainsert (name, attrs) -> Rel (Deltainsert (name, List.map (renameVar vars updatedVars) attrs))
           | Deltadelete (name, attrs) -> Rel (Deltadelete (name, List.map (renameVar vars updatedVars) attrs))
-          | _ -> raise (ComposeErr "Only vars in delta operations need to be rewrited")
+          | _ -> raise (FuseErr "Only vars in delta operations need to be rewrited")
       end
-    | _ -> raise (ComposeErr "Only vars in delta operations need to be rewrited")
+    | _ -> raise (FuseErr "Only vars in delta operations need to be rewrited")
 
 let getVarName v =
   match v with
     | NamedVar n -> n
-    | _ -> raise (ComposeErr "Variable needs to be a namedvar")
+    | _ -> raise (FuseErr "Variable needs to be a namedvar")
 
 let rec renameVarinVterm vars updatedVars v =
   match v with
@@ -115,7 +115,7 @@ let renamePredVars vars updatedVars term =
       begin
         match r with
           | Pred (name, attrs) -> Rel (Pred (name, List.map (renameVar vars updatedVars) attrs))
-          | _ -> raise (ComposeErr "Only vars in non-delta predicates need to be rewrited")
+          | _ -> raise (FuseErr "Only vars in non-delta predicates need to be rewrited")
       end
     | Not r ->
       begin
@@ -134,7 +134,7 @@ let renamePredVars vars updatedVars term =
         match e with
           | Equation (s, v1, v2) -> Noneq (Equation (s, renameVarinVterm vars updatedVars v1, renameVarinVterm vars updatedVars v2))
       end
-    | _ -> raise (ComposeErr "Only vars in non-delta operations need to be rewrited")
+    | _ -> raise (FuseErr "Only vars in non-delta operations need to be rewrited")
 
 let isCompareTerm t =
   match t with
@@ -149,18 +149,18 @@ let isInsertDelta rterm =
   match rterm with
     | Deltainsert _ -> true
     | Deltadelete _ -> false
-    | _ -> raise (ComposeErr "Only delta operations can be tested")
+    | _ -> raise (FuseErr "Only delta operations can be tested")
 
 let unpack_term t = 
   match t with
     | Rel rterm -> rterm
-    | _ -> raise (ComposeErr "Only positive rterm can be unpacked")
+    | _ -> raise (FuseErr "Only positive rterm can be unpacked")
 
 let getDeltaRelationName rterm =
   match rterm with
     | Deltainsert (name, _) -> name
     | Deltadelete (name, _) -> name
-    | _ -> raise (ComposeErr "Only delta name can be handled")
+    | _ -> raise (FuseErr "Only delta name can be handled")
 
 let getRtermVarNames rterm = List.map string_of_var (get_rterm_varlist rterm)
 
@@ -187,7 +187,7 @@ let cancelDelta delta1 delta2 =
   let resDeltas = List.filter (fun d -> not (inDeltaList d cancelDeltas)) deltas in
   List.map (fun rterm -> Rel rterm) resDeltas
 
-let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2) =
+let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
   let deltaoldb2, nondeltaoldb2 = List.partition isDeltaTerm oldb2 in
   let deltab2, nondeltab2 = List.partition isDeltaTerm b2 in
@@ -201,19 +201,19 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) 
   let newDeltaoldb2 = List.map (renameDeltaVars oldh2vars updatedVars) deltaoldb2 in
   let newDeltab2 = List.map (renameDeltaVars h2vars updatedVars) deltab2 in
   let newh1 = match h1 with
-    | Deltainsert (n, _) -> raise (ComposeErr "head of rule 1 is delete")
+    | Deltainsert (n, _) -> raise (FuseErr "head of rule 1 is delete")
     | Deltadelete (n, _) -> Deltadelete (n, List.map (fun v -> NamedVar v) vars)
-    | _ -> raise (ComposeErr "Head need to be a delta of view")
+    | _ -> raise (FuseErr "Head need to be a delta of view")
   in
   let newoldh2 = match oldh2 with
     | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) updatedVars)
-    | Deltadelete (n, _) -> raise (ComposeErr "head of rule 2 is insert")
-    | _ -> raise (ComposeErr "Head need to be a delta of view")
+    | Deltadelete (n, _) -> raise (FuseErr "head of rule 2 is insert")
+    | _ -> raise (FuseErr "Head need to be a delta of view")
   in
   let newh2 = match h2 with
     | Deltainsert (n, _) -> Deltainsert (n, List.map (fun v -> NamedVar v) updatedVars)
-    | Deltadelete (n, _) -> raise (ComposeErr "head of rule 2 is insert")
-    | _ -> raise (ComposeErr "Head need to be a delta of view")
+    | Deltadelete (n, _) -> raise (FuseErr "head of rule 2 is insert")
+    | _ -> raise (FuseErr "Head need to be a delta of view")
   in
   let newb1 = List.map (renamePredVars h1vars vars) nondeltab1 in
   let newvalBindingb1 = List.map (renamePredVars h1vars vars) valueBindingb1 in
@@ -223,31 +223,43 @@ let checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) 
   let queryRTerm1 = Pred ("canExecBefore", varsNeedtobeTested) in
   let queryRTerm2 = Pred ("cannotExecAfter", varsNeedtobeTested) in
   let equalityBinding = mkEqualityBinding vars updatedVars in
-  let rule1 = (queryRTerm1, [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
+  let rule1 = (queryRTerm1, newDeltab1 @ [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
   let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in
   let newexpr = { expr with 
-    rules = [rule1; rule2] @ [(h1, b1); (oldh2, oldb2); (h2, b2)] @ allInterRules
+    rules = [(h1, b1); (oldh2, oldb2); (h2, b2)] @ allInterRules
   } in
   (* print_string (to_string newexpr); *)
-  let code = genUncomposableCode newexpr queryRTerm1 queryRTerm2 in
+  let code = genFusableCode newexpr queryRTerm1 queryRTerm2 in
   (* print_string "here"; *)
-  let exitcode, message = verify_fo_lean false 120 code in
-  if not (exitcode = 0) then
-    if exitcode = 124 then raise (ComposeErr "Stop composing: timeout, cannot verify if the two rules can be composed or not")
+  let exitcode, message = verify_fo_lean true 120 code in
+  if not (exitcode = 0) then 
+    begin
+    print_string "cannot fused:\n";
+    print_string (string_of_rule (h1, b1));
+    print_string (string_of_rule (oldh2, oldb2));
+    print_string (string_of_rule rule1);
+    print_string (string_of_rule rule2);
+    if exitcode = 124 then raise (FuseErr "Stop composing: timeout, cannot verify if the two rules can be fused or not")
     else []
+    end
   else 
     let newruleHead = Pred ("isEmpty", varsNeedtobeTested) in
-    let composeDelta = cancelDelta newDeltab1 newDeltaoldb2 in
-    let newruleBody = composeDelta @ newb1 @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding in
-    let testEmptyExpr = {expr with rules = (newruleHead, newruleBody) :: allInterRules} in
-    (* print_string (string_of_rule (newruleHead, newruleBody)); *)
-    let isEmptyCode = genTestEmptyCode testEmptyExpr newruleHead in
-    let exitcode2, message2 = verify_fo_lean true 120 isEmptyCode in
+    let fuseDelta = cancelDelta newDeltab1 newDeltaoldb2 in
+    let newruleBody = fuseDelta @ newb1 @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding in
+    (* let testEmptyExpr = {expr with rules = (newruleHead, newruleBody) :: allInterRules} in *)
+    print_string "can fused:\n";
+    print_string (string_of_rule (h1, b1));
+    print_string (string_of_rule (oldh2, oldb2));
+    print_string (string_of_rule rule1);
+    print_string (string_of_rule rule2);
+    print_string (string_of_rule (newruleHead, newruleBody));
+    (* let isEmptyCode = genTestEmptyCode testEmptyExpr newruleHead in
+    let exitcode2, message2 = verify_fo_lean false 120 isEmptyCode in
     if not (exitcode = 0) then 
-      if exitcode = 124 then raise (ComposeErr "Stop testing: timeout, cannot verify if the composed rule is empty")
+      if exitcode = 124 then raise (FuseErr "Stop testing: timeout, cannot verify if the fused rule is empty")
       else [([newh1; newoldh2], newruleBody)]
-    else
+    else *)
       []
 
 let print_rulePairs rulePairs =
@@ -255,10 +267,10 @@ let print_rulePairs rulePairs =
   List.map (fun (r1, r2) -> print_string (string_of_rule r1);print_string (string_of_rule r2);print_string "\n") rulePairs;
   print_string "end rulepairs\n"
 
-let compose expr =
+let fuseRules expr =
   let viewSchema = match expr.view with
     | Some v -> v
-    | _ -> raise (ComposeErr "No view definition")
+    | _ -> raise (FuseErr "No view definition")
   in
   let vars = get_schema_attrs viewSchema in
   let tempVars = List.filter (fun combination -> List.exists (fun (a, b) -> a <> b) (List.combine combination vars)) (generate_combinations vars) in
@@ -267,7 +279,7 @@ let compose expr =
   (* 分开需要的中间规则和delta规则 *)
     let deltaRules, interRules = List.partition isDeltaRule expr.rules in
     let insRules, delRules = List.partition isInsertRule deltaRules in
-    (* delta规则变compose *)
+    (* delta规则变fuse *)
     (* let crules = List.map rule2crule expr.rules in *)
     (* 给中间规则和delta规则重命名 *)
     let newInterRules = List.map renameRule interRules in
@@ -277,14 +289,14 @@ let compose expr =
     (* delta重命名组合pair *)
     let allInterRules = interRules @ newInterRules @ newSourceRules in
     let rulePairs = List.concat (List.map (fun x -> List.map (fun y -> (x, y)) (List.combine insRules newInsRules)) delRules) in
-    let verifyAndCompose ((h1, b1), ((oldh2, oldb2), (h2, b2))) = 
-      List.concat (List.map (fun updatedVars -> checkAndCombine expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)) combinedVars) 
+    let verifyAndFuse ((h1, b1), ((oldh2, oldb2), (h2, b2))) = 
+      List.concat (List.map (fun updatedVars -> tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)) combinedVars) 
     in
-    List.concat (List.map verifyAndCompose rulePairs)
+    List.concat (List.map verifyAndFuse rulePairs)
   (* 对每一个pair 中间规则的两个版本+重命名新的pair的两个rule+新规则 尝试不同的变量组合 翻译成lean验证 *)
 
 
-  (* compose的思路：对于任意的两条规则的pair：
+  (* fuse的思路：对于任意的两条规则的pair：
   已经验证了每次只会trigger一条规则
 1. 给第二条规则改名，s改为s'之类的，添加规则s' :- s,not s_del, s' :- s_ins, s_ins', s_del'
 2. 找到v中所有的可以更新的变量组合 only X，only Y，X+Y。。。

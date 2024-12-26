@@ -30,10 +30,10 @@ result.sql
 disjoint.lean
 injective.lean
 temp.lean
-compose.dl
+fuse.dl
 tmp
 
-sjup/testcompose.dl
+sjup/testfuse.dl
 sjup/idbx.dl
 
 # ocamlbuild working directory

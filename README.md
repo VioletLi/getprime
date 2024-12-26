@@ -43,8 +43,8 @@ ocamlc -c parser.ml
 ocamllex lexer.mll
 ocamlc -c lexer.ml
 ocamlc -c verifier.ml
-ocamlc -c composer.ml
+ocamlc -c fuser.ml
 ocamlc -c generator.ml
 ocamlc -c main.ml
-ocamlc -o f str.cma expr.cmo utils.cmo parser.cmo lexer.cmo verifier.cmo composer.cmo generator.cmo main.cmo
+ocamlc -o f str.cma expr.cmo utils.cmo parser.cmo lexer.cmo verifier.cmo fuser.cmo generator.cmo main.cmo
 ```

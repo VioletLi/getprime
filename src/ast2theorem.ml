@@ -137,8 +137,8 @@ let lean_simp_theorem_of_injectivity (debug : bool) (prog : expr) : lean_theorem
     statement = statement;
   }
 
-let lean_simp_theorem_of_uncomposable (debug : bool) (prog : expr) (queryRTerm1 : rterm) (queryRTerm2 : rterm) : lean_theorem =
-  if debug then (print_endline "==> generating theorem for uncomposable";) else ();
+let lean_simp_theorem_of_fusable (debug : bool) (prog : expr) (queryRTerm1 : rterm) (queryRTerm2 : rterm) : lean_theorem =
+  if debug then (print_endline "==> generating theorem for fusable";) else ();
   let sourcePrime = List.map (fun (n, attrs) -> (n ^ "_prime", attrs)) prog.sources in
   let deltaRelation = genDeltaRelation sourcePrime in
   let deltaConstraints = genDeltaConstraints sourcePrime in
@@ -152,10 +152,10 @@ let lean_simp_theorem_of_uncomposable (debug : bool) (prog : expr) (queryRTerm1 
   let statement =
     Fol_ex.lean_formula_of_fol_formula
       (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
-        Ast2fol.compose_sentence_of_stt debug newprog queryRTerm1 queryRTerm2))
+        Ast2fol.fusable_sentence_of_stt debug newprog queryRTerm1 queryRTerm2))
   in
   LeanTheorem {
-    name      = "compose";
+    name      = "fusable";
     parameter = source_view_to_lean_func_types newprog;
     statement = statement;
   }

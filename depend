@@ -28,10 +28,10 @@ bin/ast2fol.cmx : \
     bin/logic/fol.cmx \
     bin/expr.cmx \
     bin/derivation.cmx
-bin/composer.cmo : \
+bin/fuser.cmo : \
     bin/expr.cmo \
     bin/verifier.cmo
-bin/composer.cmx : \
+bin/fuser.cmx : \
     bin/expr.cmx \
     bin/verifier.cmx
 bin/derivation.cmo : \

@@ -12,8 +12,8 @@ let genInjectiveCode expr =
   let script = gen_lean_code_for_theorems [lt]
   in script
 
-let genUncomposableCode expr queryRTerm1 queryRTerm2 =
-  let lt = lean_simp_theorem_of_uncomposable false expr queryRTerm1 queryRTerm2 in
+let genFusableCode expr queryRTerm1 queryRTerm2 =
+  let lt = lean_simp_theorem_of_fusable false expr queryRTerm1 queryRTerm2 in
   let script = gen_lean_code_for_theorems [lt]
   in script
 

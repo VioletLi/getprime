@@ -4,7 +4,7 @@ open Parser
 open Utils
 open Verifier
 open Generator
-open Composer
+open Fuser
 open Sys
 
 let _ =
@@ -19,12 +19,12 @@ let _ =
     let vc2 = open_out "/home/code/injective.lean" in
     Printf.fprintf vc2 "%s\n" injectiveCode;
     close_out vc2;
-    let composedrule = compose expr in
-    let composecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules composedrule))) in
-    let vc3 = open_out "/home/code/compose.dl" in
-    Printf.fprintf vc3 "%s\n" composecode;
+    let fusedrule = fuseRules expr in
+    let fusecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules fusedrule))) in
+    let vc3 = open_out "/home/code/fuse.dl" in
+    Printf.fprintf vc3 "%s\n" fusecode;
     close_out vc3;
-    let code = genCode expr composedrule in
+    let code = genCode expr fusedrule in
     let _ = print_string "Generation finished\n" in
     let oc = open_out "/home/code/temp.dl" in
     Printf.fprintf oc "%s\n" code;

@@ -178,9 +178,9 @@ let getvn view =
     | Some (vn, attrs) -> (vn, List.map (fun (n, _) -> NamedVar n) attrs)
     | None -> raise (GenerationErr "No view definition")
 
-let genGetRules expr composerules =
+let genGetRules expr fuserules =
   let (vn, varlist) = getvn expr.view in
-  let rules = expr.rules @ (List.concat (List.map crule2rules composerules)) in
+  let rules = expr.rules @ (List.concat (List.map crule2rules fuserules)) in
   let getPrimeRules = replaceSAndDelta rules in
   [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
   ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
@@ -209,8 +209,8 @@ let getInvRule (vn, varlist) (head, body) =
         (deltas, (List.map (fun h -> Rel h) head) @ diffDelta @ remain)
   (* canUpdate中每一个key是一个view中的变量 如果可以被update就置为true 如果这条规则的head只有一个操作那么在swap之后要把对应位为true的变量置为匿名变量并加not 这样的反操作加到里面 *)
 
-let genInvRules composerules (vn, varlist) =
-  List.map (getInvRule (vn, varlist)) composerules
+let genInvRules fuserules (vn, varlist) =
+  List.map (getInvRule (vn, varlist)) fuserules
 
 let replaceV2IniDelta (h, b) =
   (List.map (fun p ->
@@ -220,7 +220,7 @@ let replaceV2IniDelta (h, b) =
       | _ -> p
   ) h, b)
 
-let genPutdeltaRules expr composerules = 
+let genPutdeltaRules expr fuserules = 
   let (vn, varlist) = getvn expr.view in
   let viniRules =
     [ (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
@@ -230,7 +230,7 @@ let genPutdeltaRules expr composerules =
     [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
     ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
   in
-  let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ composerules) in
+  let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ fuserules) in
   let invRules = genInvRules rules (vn, varlist) in
   let unpackedRules = List.concat (List.map crule2rules invRules) in
   viniRules @ viniDeltaRules @ unpackedRules
@@ -240,7 +240,7 @@ let genIniRelation rs =
 
 (* has_get definition *)
 
-let genCode expr composerules = 
+let genCode expr fuserules = 
   let v = match expr.view with
     | Some view -> view
     | None -> raise (GenerationErr "No view Definition")
@@ -252,9 +252,9 @@ let genCode expr composerules =
   in *)
   (* let inistateCode = String.concat "" (List.map string_of_rule inistateRules) in *)
   let updatedConstraints = extractConstraint expr in
-  let getRules = genGetRules expr composerules in
+  let getRules = genGetRules expr fuserules in
   (* let get = String.concat "" (List.map string_of_rule getRules) in *)
-  let putdeltaRules = genPutdeltaRules expr composerules in
+  let putdeltaRules = genPutdeltaRules expr fuserules in
   (* let putdelta = String.concat "" (List.map string_of_rule putdeltaRules) in *)
   let newexpr = { expr with
     sources = expr.sources @ needIniSources;
