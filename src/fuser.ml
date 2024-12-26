@@ -227,7 +227,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
   let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in
   let newexpr = { expr with 
-    rules = [(h1, b1); (oldh2, oldb2); (h2, b2)] @ allInterRules
+    rules = [rule1; rule2; (h1, b1); (oldh2, oldb2); (h2, b2)] @ allInterRules
   } in
   (* print_string (to_string newexpr); *)
   let code = genFusableCode newexpr queryRTerm1 queryRTerm2 in

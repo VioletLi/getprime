@@ -612,7 +612,7 @@ let fusable_sentence_of_stt debug prog queryRTerm1 queryRTerm2 =
     let newrterm1 = variablize_rterm queryRTerm1 in
     let newrterm2 = variablize_rterm queryRTerm2 in
     let cols = List.map string_of_var (get_rterm_varlist newrterm1) in
-    let sentence = And (itlist mk_exists cols (Prop.list_disj (rules_to_fo_list idb cnt newrterm1)), itlist mk_exists cols (Prop.list_disj (rules_to_fo_list idb cnt newrterm2))) in
+    let sentence = And (Imp (itlist mk_exists cols (Prop.list_disj (rules_to_fo_list idb cnt newrterm1)), False), Imp (itlist mk_exists cols (Prop.list_disj (rules_to_fo_list idb cnt newrterm2)), False)) in
     sentence
 
 let empty_sentence_of_stt (debug:bool) prog (queryRTerm : rterm) =
