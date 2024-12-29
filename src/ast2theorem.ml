@@ -175,6 +175,21 @@ let lean_simp_theorem_of_empty (debug : bool) (prog : expr) (queryRTerm : rterm)
     statement = statement;
   }
 
+let lean_simp_theorem_of_contradictory (debug : bool) (prog : expr) (contradictoryRTerm : rterm) : lean_theorem =
+  if debug then (print_endline "==> generating theorem for empty testing";) else ();
+  let newprog = constraint2rule prog in
+  (* print_string (to_birds_string newprog); *)
+  let statement =
+    Fol_ex.lean_formula_of_fol_formula
+      (Imp (Ast2fol.constraint_sentence_of_stt debug newprog,
+        (Imp (Ast2fol.contradictory_sentence_of_stt debug newprog contradictoryRTerm, False))))
+  in
+  LeanTheorem {
+    name      = "contradictoryTesting";
+    parameter = source_view_to_lean_func_types newprog;
+    statement = statement;
+  }
+
 (* let lean_simp_theorem_of_reachability (debug : bool) (prog : expr) : lean_theorem =
   if debug then (print_endline "==> generating theorem for injectivity";) else ();
   let newprog = constraint2rule (genGetDelta prog) in

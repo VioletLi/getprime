@@ -9,8 +9,9 @@ open Sys
 
 let _ =
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
-  let expr = Parser.main Lexer.token lexbuf in
+  let prog = Parser.main Lexer.token lexbuf in
   try
+    let expr = preProcessProg prog in
     let disjointCode = genDisjointCode expr in
     let vc1 = open_out "/home/code/disjoint.lean" in
     Printf.fprintf vc1 "%s\n" disjointCode;

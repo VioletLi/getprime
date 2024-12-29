@@ -69,6 +69,12 @@ let isDeltaTerm t =
           | Pred _ -> false
           | _ -> true
       end
+    | Not r ->
+      begin
+        match r with
+          | Pred _ -> false
+          | _ -> true
+      end
     | _ -> false
 
 let find_index elem lst =
@@ -89,6 +95,13 @@ let renameVar vars updatedVars var =
 let renameDeltaVars vars updatedVars term =
   match term with
     | Rel r ->
+      begin
+        match r with
+          | Deltainsert (name, attrs) -> Rel (Deltainsert (name, List.map (renameVar vars updatedVars) attrs))
+          | Deltadelete (name, attrs) -> Rel (Deltadelete (name, List.map (renameVar vars updatedVars) attrs))
+          | _ -> raise (FuseErr "Only vars in delta operations need to be rewrited")
+      end
+    | Not r ->
       begin
         match r with
           | Deltainsert (name, attrs) -> Rel (Deltainsert (name, List.map (renameVar vars updatedVars) attrs))
@@ -145,23 +158,6 @@ let isCompareTerm t =
 let mkEqualityBinding vars updatedVars =
   List.concat (List.map (fun (x, y) -> if x <> y then [Noneq (Equation ("=", (Var (NamedVar x)), (Var (NamedVar y))))] else []) (List.combine vars updatedVars))
 
-let isInsertDelta rterm =
-  match rterm with
-    | Deltainsert _ -> true
-    | Deltadelete _ -> false
-    | _ -> raise (FuseErr "Only delta operations can be tested")
-
-let unpack_term t = 
-  match t with
-    | Rel rterm -> rterm
-    | _ -> raise (FuseErr "Only positive rterm can be unpacked")
-
-let getDeltaRelationName rterm =
-  match rterm with
-    | Deltainsert (name, _) -> name
-    | Deltadelete (name, _) -> name
-    | _ -> raise (FuseErr "Only delta name can be handled")
-
 let getRtermVarNames rterm = List.map string_of_var (get_rterm_varlist rterm)
 
 let checkAndCancel insDelta delDeltas =
@@ -216,14 +212,33 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
     | _ -> raise (FuseErr "Head need to be a delta of view")
   in
   let newb1 = List.map (renamePredVars h1vars vars) nondeltab1 in
+  let newoldb2 = List.map (renamePredVars oldh2vars updatedVars) nondeltaoldb2 in
   let newvalBindingb1 = List.map (renamePredVars h1vars vars) valueBindingb1 in
   let newvalBindingoldb2 = List.map (renamePredVars oldh2vars updatedVars) valueBindingoldb2 in
   let newvalBindingb2 = List.map (renamePredVars h2vars updatedVars) valueBindingb2 in
   let varsNeedtobeTested = List.map (fun v -> NamedVar v) (vars @ (removeDup vars updatedVars)) in
-  let queryRTerm1 = Pred ("canExecBefore", varsNeedtobeTested) in
-  let queryRTerm2 = Pred ("cannotExecAfter", varsNeedtobeTested) in
+  let contradictoryRTerm = Pred ("contradictory", varsNeedtobeTested) in
+  (* let queryRTerm2 = Pred ("cannotExecAfter", varsNeedtobeTested) in *)
   let equalityBinding = mkEqualityBinding vars updatedVars in
-  let rule1 = (queryRTerm1, newDeltab1 @ [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
+  (* 第一条规则和第二条规则都能执行 也就是说他们的执行条件不冲突 *)
+  let contradictoryRule = (contradictoryRTerm, newb1 @ newoldb2 @ equalityBinding) in
+  let contradictoryExpr = { expr with
+    rules = contradictoryRule :: allInterRules
+  } in
+  let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
+  let exitcode, message = verify_fo_lean true 300 checkContradictoryCode in
+  if exitcode = 0 then 
+    begin
+      print_string (String.concat "," updatedVars);
+      print_string "\n";
+      print_string (string_of_rule (h1, b1));
+      print_string (string_of_rule (oldh2, oldb2));
+      print_string (string_of_rule contradictoryRule);
+      print_string "\n\n";
+      []
+    end
+  else []
+  (* let rule1 = (queryRTerm1, newDeltab1 @ [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
   let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in
   let newexpr = { expr with 
@@ -232,7 +247,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
   (* print_string (to_string newexpr); *)
   let code = genFusableCode newexpr queryRTerm1 queryRTerm2 in
   (* print_string "here"; *)
-  let exitcode, message = verify_fo_lean true 120 code in
+  let exitcode, message = verify_fo_lean true 300 code in
   if not (exitcode = 0) then 
     begin
     print_string "cannot fused:\n";
@@ -260,7 +275,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
       if exitcode = 124 then raise (FuseErr "Stop testing: timeout, cannot verify if the fused rule is empty")
       else [([newh1; newoldh2], newruleBody)]
     else *)
-      []
+      [] *)
 
 let print_rulePairs rulePairs =
   print_string "begin rulepairs:\n";
