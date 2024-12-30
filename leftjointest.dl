@@ -1,0 +1,52 @@
+source s1('X': string, 'Y': string).
+source s2('X': string, 'Z': string).
+view v('X': string, 'Y': string, 'Z': string).
+
+_|_ :- s2(_, 'null').
+_|_ :- s2(X, _), not s1(X, _).
+PK(s1, ['X']).
+PK(s2, ['X']).
+PK(v, ['X']).
+
+v(X, Y, Z) :- s1(X, Y), s2(X, Z), not Z = 'null'.
+v(X, Y, 'null') :- s1(X, Y), not s2(X, _).
+
+v_ini(X, Y, Z) :- s1(X, Y), s2(X, Z), not Z = 'null'.
+v_ini(X, Y, 'null') :- s1(X, Y), not s2(X, _).
+v_ins(X, Y, Z) :- v(X, Y, Z) , not v_ini(X, Y, Z).
+v_del(X, Y, Z) :- v_ini(X, Y, Z) , not v(X, Y, Z).
+
+
+
+
++s1(X,Y) :- v_ins(X,Y,Z), not v_del(X,_,_),not s1(X,Y),not s2(X,Z),not Z='null'. 
++s2(X,Z) :- v_ins(X,Y,Z), not v_del(X,_,_),not s1(X,Y),not s2(X,Z),not Z='null'. 
++s1(X,Y) :- v_ins(X,Y,Z), not v_del(X,_,_),not s1(X,Y),not s2(X,_),Z='null'. 
+-s1(X,Y) :- v_del(X,Y,Z),not v_ins(X,_,_),s1(X,Y),s2(X,Z),not Z='null'.
+-s2(X,Z) :- v_del(X,Y,Z),not v_ins(X,_,_),s1(X,Y),s2(X,Z),not Z='null'.
+-s1(X,Y) :- v_del(X,Y,Z),not v_ins(X,_,_),s1(X,Y),not s2(X,_),Z='null'. 
+-s1(X,Y1) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
+-s2(X,Z1) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
++s1(X,Y2) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
++s2(X,Z2) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
+-s1(X,Y1) :- v_del(X,Y1,Z),v_ins(X,Y2,Z),s1(X,Y1),s2(X,Z),not Z='null',not Y1=Y2.
++s1(X,Y2) :- v_del(X,Y1,Z),v_ins(X,Y2,Z),s1(X,Y1),s2(X,Z),not Z='null',not Y1=Y2.
+-s2(X,Z1) :- v_del(X,Y,Z1),v_ins(X,Y,Z2),s1(X,Y),s2(X,Z1),not Z1='null',not Z2='null',not Z1=Z2.
++s2(X,Z2) :- v_del(X,Y,Z1),v_ins(X,Y,Z2),s1(X,Y),s2(X,Z1),not Z1='null',not Z2='null',not Z1=Z2.
+-s1(X,Y1) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),not s2(X,_),Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
++s1(X,Y2) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),not s2(X,_),Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
++s2(X,Z2) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),not s2(X,_),Z1='null',not Z2='null',not Y1=Y2,not Z1=Z2.
++s2(X,Z2) :- v_del(X,Y,Z1),v_ins(X,Y,Z2),s1(X,Y),not s2(X,_),Z1='null',not Z2='null'.
+-s1(X,Y1) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',Z2='null',not Y1=Y2,not Z1=Z2.
+-s2(X,Z1) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',Z2='null',not Y1=Y2,not Z1=Z2.
++s1(X,Y2) :- v_del(X,Y1,Z1),v_ins(X,Y2,Z2),s1(X,Y1),s2(X,Z1),not Z1='null',Z2='null',not Y1=Y2,not Z1=Z2.
+-s2(X,Z1) :- v_del(X,Y,Z1),v_ins(X,Y,Z2),s1(X,Y),s2(X,Z1),not Z1='null',Z2='null',not Z1=Z2.
+-s1(X,Y1) :- v_del(X,Y1,Z),v_ins(X,Y2,Z),s1(X,Y1),not s2(X,_),Z='null',not Y1=Y2.
++s1(X,Y2) :- v_del(X,Y1,Z),v_ins(X,Y2,Z),s1(X,Y1),not s2(X,_),Z='null',not Y1=Y2.
+
+% 1. 是否需要验证只执行规则2的时候不能执行成功？不需要 因为这实际上说明规则2就不能在这个状态下独立执行，规则1和规则2同时触发反而可以共同执行？（只有一条 v_del(X, Y, null) v_ins(X, Y1, null),那么这条是否需要fuse？待检查
+% 2. 当我发现了规则1和规则2存在执行前条件矛盾，我要检查1执行后2是否能够执行，那么我要检查(exists X, 规则1执行后的条件 and not 规则2的条件) -> false来验证这两个条件是否有明显的矛盾，如果有矛盾说明两个条件一定是同时满足的，那么1执行后2总能执行，说明两个要fuse？
+
+% constraint -> ((exists rules1 and rules2) -> false)
+% 当存在一组delta使得规则2必须在规则1后执行才能成功，否则不成功时，这两条规则需要根据这组delta的取值进行fuse
+% 规则1执行前不满足规则2的执行条件 or 规则1执行前执行规则2会导致违反constraint

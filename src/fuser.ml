@@ -226,7 +226,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
     rules = contradictoryRule :: allInterRules
   } in
   let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
-  let exitcode, message = verify_fo_lean true 300 checkContradictoryCode in
+  let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
   if exitcode = 0 then 
     begin
       print_string (String.concat "," updatedVars);
