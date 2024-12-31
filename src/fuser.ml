@@ -183,6 +183,39 @@ let cancelDelta delta1 delta2 =
   let resDeltas = List.filter (fun d -> not (inDeltaList d cancelDeltas)) deltas in
   List.map (fun rterm -> Rel rterm) resDeltas
 
+let isNamedVar v =
+  match v with
+    | NamedVar _ -> true
+    | _ -> false
+
+let rec getNamedVarsinVTerm vterm =
+  match vterm with
+    | Var v -> if isNamedVar v then [v] else []
+    | BinaryOp (_, v1, v2) -> (getNamedVarsinVTerm v1) @ (getNamedVarsinVTerm v2)
+    | UnaryOp (_, v) -> getNamedVarsinVTerm v
+    | _ -> []
+
+let collectVarsinEquation terms = 
+  List.concat (List.map (fun t ->
+    match t with
+      | Equat e -> 
+        begin
+          match e with
+            | Equation (_, v1, v2) -> (getNamedVarsinVTerm v1) @ (getNamedVarsinVTerm v2)
+        end
+      | Noneq e ->
+        begin
+          match e with
+            | Equation (_, v1, v2) -> (getNamedVarsinVTerm v1) @ (getNamedVarsinVTerm v2)
+        end
+      | _ -> raise (FuseErr "there should be only equations when collecting")
+  ) terms)
+
+let removeDupVars varlist =
+  List.fold_left (fun acc x ->
+    if List.exists (fun y -> (string_of_var x) = (string_of_var y)) acc then acc else x :: acc
+  ) [] varlist
+
 let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
   let deltaoldb2, nondeltaoldb2 = List.partition isDeltaTerm oldb2 in
@@ -222,22 +255,34 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
   let equalityBinding = mkEqualityBinding vars updatedVars in
   (* 第一条规则和第二条规则都能执行 也就是说他们的执行条件不冲突 *)
   let contradictoryRule = (contradictoryRTerm, newb1 @ newoldb2 @ equalityBinding) in
-  let contradictoryExpr = { expr with
-    rules = contradictoryRule :: allInterRules
+  let varsinValBinding = removeDupVars (collectVarsinEquation (newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding)) in
+  let valBindingRTerm = Pred ("valbinding", varsinValBinding) in
+  let valBindingRule = (valBindingRTerm, newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
+  let testValBindingExpr = { expr with
+    rules = [valBindingRule]
   } in
-  let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
-  let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
-  if exitcode = 0 then 
-    begin
-      print_string (String.concat "," updatedVars);
-      print_string "\n";
-      print_string (string_of_rule (h1, b1));
-      print_string (string_of_rule (oldh2, oldb2));
-      print_string (string_of_rule contradictoryRule);
-      print_string "\n\n";
-      []
-    end
-  else []
+  let checkValBindingCode = genValBindingCode testValBindingExpr valBindingRTerm in
+  let exitcodeVal, messageVal = verify_fo_lean true 120 checkValBindingCode in
+  if exitcodeVal = 0 then []
+  else
+  begin
+    let contradictoryExpr = { expr with
+      rules = contradictoryRule :: allInterRules
+    } in
+    let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
+    let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
+    if exitcode = 0 then 
+      begin
+        print_string (String.concat "," updatedVars);
+        print_string "\n";
+        print_string (string_of_rule (h1, b1));
+        print_string (string_of_rule (oldh2, oldb2));
+        print_string (string_of_rule contradictoryRule);
+        print_string "\n\n";
+        []
+      end
+    else []
+  end
   (* let rule1 = (queryRTerm1, newDeltab1 @ [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
   let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in

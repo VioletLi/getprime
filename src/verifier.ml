@@ -12,6 +12,11 @@ let genInjectiveCode expr =
   let script = gen_lean_code_for_theorems [lt]
   in script
 
+let genValBindingCode expr valBindingRTerm = 
+  let lt = lean_simp_theorem_of_valbinding false expr valBindingRTerm in
+  let script = gen_lean_code_for_theorems [lt]
+  in script
+
 let genContradictoryCode expr contradictoryRTerm =
   let lt = lean_simp_theorem_of_contradictory false expr contradictoryRTerm in
   let script = gen_lean_code_for_theorems [lt]

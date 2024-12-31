@@ -654,3 +654,23 @@ let contradictory_sentence_of_stt (debug:bool) (prog : expr) (contradictoryRTerm
     let cols = List.map string_of_var (get_rterm_varlist newrterm) in
     let sentence = itlist mk_exists cols (Prop.list_disj (rules_to_fo_list idb cnt newrterm)) in
     sentence
+
+let valbinding_sentence_of_stt (debug:bool) (prog : expr) (valBindingRTerm : rterm) =
+    let edb = extract_edb prog in
+    (* need to change the view (in query predicate) to a edb relation *)
+    let view_rt = get_schema_rterm (get_view prog) in
+    (* need to convert the view to be an edb relation *)
+    symt_insert edb (view_rt,[]);
+    let idb = extract_idb prog in
+    symt_remove idb (symtkey_of_rterm view_rt);
+    preprocess_rules idb;
+    if debug then (
+        print_endline "_____preprocessed datalog rules_______";
+        print_symtable idb;
+        print_endline "______________\n";
+    ) else ();
+    let cnt = build_colnamtab edb idb in
+    let newrterm = variablize_rterm valBindingRTerm in
+    let cols = List.map string_of_var (get_rterm_varlist newrterm) in
+    let sentence = itlist mk_exists cols (Prop.list_disj (rules_to_fo_list idb cnt newrterm)) in
+    sentence

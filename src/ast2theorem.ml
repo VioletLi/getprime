@@ -176,7 +176,7 @@ let lean_simp_theorem_of_empty (debug : bool) (prog : expr) (queryRTerm : rterm)
   }
 
 let lean_simp_theorem_of_contradictory (debug : bool) (prog : expr) (contradictoryRTerm : rterm) : lean_theorem =
-  if debug then (print_endline "==> generating theorem for empty testing";) else ();
+  if debug then (print_endline "==> generating theorem for contradictory testing";) else ();
   let newprog = constraint2rule prog in
   (* print_string (to_birds_string newprog); *)
   let statement =
@@ -187,6 +187,19 @@ let lean_simp_theorem_of_contradictory (debug : bool) (prog : expr) (contradicto
   LeanTheorem {
     name      = "contradictoryTesting";
     parameter = source_view_to_lean_func_types newprog;
+    statement = statement;
+  }
+
+let lean_simp_theorem_of_valbinding (debug : bool) (prog : expr) (valBindingRTerm : rterm) : lean_theorem =
+  if debug then (print_endline "==> generating theorem for valBinding testing";) else ();
+  (* print_string (to_birds_string newprog); *)
+  let statement =
+    Fol_ex.lean_formula_of_fol_formula
+      (Imp (Ast2fol.valbinding_sentence_of_stt debug prog valBindingRTerm, False))
+  in
+  LeanTheorem {
+    name      = "valBindingTesting";
+    parameter = [];
     statement = statement;
   }
 
