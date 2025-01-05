@@ -195,21 +195,96 @@ let rec getNamedVarsinVTerm vterm =
     | UnaryOp (_, v) -> getNamedVarsinVTerm v
     | _ -> []
 
-let collectVarsinEquation terms = 
-  List.concat (List.map (fun t ->
-    match t with
-      | Equat e -> 
+let getVtermsinEterm e =
+  match e with
+    | Equation (_, v1, v2) -> (v1,v2)
+
+let getVtermsinTerm t = 
+  match t with
+    | Equat e -> getVtermsinEterm e
+    | Noneq e -> getVtermsinEterm e
+
+let rec preProcessTerms varsSet terms =
+  match terms with
+    | [] -> varsSet, [], []
+    | t :: terms_ ->
+        let v1, v2 = getVtermsinTerm t in
+        let vars = List.concat (List.map getNamedVarsinVTerm [v1;v2]) in
+        if List.length vars = 1 then 
+          begin
+            let newset = StringSet.add (string_of_var (getSingleElem vars)) varsSet in
+            let resset, handled, unhandled = preProcessTerms newset terms_ in
+            (resset, t :: handled, unhandled)
+          end
+        else 
+          begin
+            let resset, handled, unhandled = preProcessTerms varsSet terms_ in
+            (resset, handled, t :: unhandled)
+          end
+
+let isEqualEquat t =
+  match t with
+    | Equat e -> 
         begin
           match e with
-            | Equation (_, v1, v2) -> (getNamedVarsinVTerm v1) @ (getNamedVarsinVTerm v2)
+            | Equation (s, _, _) -> if s = "=" then true else false
         end
-      | Noneq e ->
-        begin
-          match e with
-            | Equation (_, v1, v2) -> (getNamedVarsinVTerm v1) @ (getNamedVarsinVTerm v2)
-        end
-      | _ -> raise (FuseErr "there should be only equations when collecting")
-  ) terms)
+    | Noneq _ -> false
+    | _ -> raise (EnvErr "Only Equations in value binding")
+
+let rec bfs varSet terms =
+  match terms with
+    | [] -> ([], [], [])
+    | t :: terms_ ->
+        let v1, v2 = getVtermsinTerm t in
+        let leftVars = List.map string_of_var (getNamedVarsinVTerm v1) in
+        let rightVars = List.map string_of_var (getNamedVarsinVTerm v2) in
+        if List.exists (fun v -> not (StringSet.mem v varSet)) leftVars then
+          begin
+            if List.exists (fun v -> not (StringSet.mem v varSet)) rightVars then 
+              begin
+                (* 两边都有未明确赋值的变量 *)
+                let vars, handled, unhandled = bfs varSet terms_ in
+                (vars, handled, t :: unhandled)
+              end
+            else
+              begin
+                (* 右边没有未明确赋值的变量 *)
+                let vars, handled, unhandled = bfs varSet terms_ in
+                let newVars = List.filter (fun v -> not (StringSet.mem v varSet)) leftVars in
+                (vars @ newVars, t :: handled, unhandled)
+              end
+          end
+        else
+          if List.exists (fun v -> not (StringSet.mem v varSet)) rightVars then 
+            begin
+              (* 左边没有未明确赋值的变量 *)
+              let vars, handled, unhandled = bfs varSet terms_ in
+              let newVars = List.filter (fun v -> not (StringSet.mem v varSet)) rightVars in
+              (vars @ newVars, t :: handled, unhandled)
+            end
+          else
+            (* 左右两边都没有未明确赋值的变量 *)
+            let vars, handled, unhandled = bfs varSet terms_ in
+            (vars, t :: handled, unhandled)
+
+let rec findAllAssignedVars varSet terms =
+  let newVars, handled, unhandled = bfs varSet terms in
+  if is_empty newVars then (varSet, handled, unhandled)
+  else
+    begin
+      let newVarSet = addElems2StringSet newVars varSet in
+      let finalSet, finalHandled, finalUnhandled = findAllAssignedVars newVarSet unhandled in
+      (finalSet, (handled @ finalHandled), finalUnhandled)
+    end
+
+let collectVarsinEquation varsNeedtobeTested terms = 
+  let empty_set = StringSet.empty in
+  let equalEquat, negEquat = List.partition (isEqualEquat) terms in
+  let varSet, termsHandled, termsUnhandled = preProcessTerms empty_set equalEquat in
+  let finalSet, finalHandled, finalUnhandled = findAllAssignedVars varSet termsUnhandled in
+  let handledNegs = List.filter (fun e -> not (List.exists (fun v -> not (StringSet.mem (string_of_var v) finalSet)) (List.concat (List.map getNamedVarsinVTerm (let v1, v2 = getVtermsinTerm e in [v1;v2]))))) negEquat in
+  (finalSet, termsHandled @ finalHandled @ handledNegs)
 
 let removeDupVars varlist =
   List.fold_left (fun acc x ->
@@ -255,34 +330,57 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
   let equalityBinding = mkEqualityBinding vars updatedVars in
   (* 第一条规则和第二条规则都能执行 也就是说他们的执行条件不冲突 *)
   let contradictoryRule = (contradictoryRTerm, newb1 @ newoldb2 @ equalityBinding) in
-  let varsinValBinding = removeDupVars (collectVarsinEquation (newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding)) in
-  let valBindingRTerm = Pred ("valbinding", varsinValBinding) in
-  let valBindingRule = (valBindingRTerm, newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
-  let testValBindingExpr = { expr with
-    rules = [valBindingRule]
-  } in
-  let checkValBindingCode = genValBindingCode testValBindingExpr valBindingRTerm in
-  let exitcodeVal, messageVal = verify_fo_lean true 120 checkValBindingCode in
-  if exitcodeVal = 0 then []
+  let varSet, assignments = collectVarsinEquation varsNeedtobeTested (newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
+  if is_empty assignments then 
+    begin
+      let contradictoryExpr = { expr with
+        rules = contradictoryRule :: allInterRules
+      } in
+      let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
+      let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
+      if exitcode = 0 then 
+        begin
+          print_string (String.concat "," updatedVars);
+          print_string "\n";
+          print_string (string_of_rule (h1, b1));
+          print_string (string_of_rule (oldh2, oldb2));
+          print_string (string_of_rule contradictoryRule);
+          print_string "\n\n";
+          []
+        end
+      else []
+    end
   else
-  begin
-    let contradictoryExpr = { expr with
-      rules = contradictoryRule :: allInterRules
-    } in
-    let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
-    let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
-    if exitcode = 0 then 
+    begin
+      let varsinValBinding = List.map (fun v -> NamedVar v) (StringSet.elements varSet) in
+      let valBindingRTerm = Pred ("valbinding", varsinValBinding) in
+      let valBindingRule = (valBindingRTerm, assignments) in
+      let testValBindingExpr = { expr with
+        rules = [valBindingRule]
+      } in
+      let checkValBindingCode = genValBindingCode testValBindingExpr valBindingRTerm in
+      let exitcodeVal, messageVal = verify_fo_lean true 120 checkValBindingCode in
+      if exitcodeVal = 0 then []
+      else
       begin
-        print_string (String.concat "," updatedVars);
-        print_string "\n";
-        print_string (string_of_rule (h1, b1));
-        print_string (string_of_rule (oldh2, oldb2));
-        print_string (string_of_rule contradictoryRule);
-        print_string "\n\n";
-        []
+        let contradictoryExpr = { expr with
+          rules = contradictoryRule :: allInterRules
+        } in
+        let checkContradictoryCode = genContradictoryCode contradictoryExpr contradictoryRTerm in
+        let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
+        if exitcode = 0 then 
+          begin
+            print_string (String.concat "," updatedVars);
+            print_string "\n";
+            print_string (string_of_rule (h1, b1));
+            print_string (string_of_rule (oldh2, oldb2));
+            print_string (string_of_rule contradictoryRule);
+            print_string "\n\n";
+            []
+          end
+        else []
       end
-    else []
-  end
+    end
   (* let rule1 = (queryRTerm1, newDeltab1 @ [Rel newh1] @ newDeltaoldb2 @ [Rel newoldh2] @ newvalBindingb1 @ newvalBindingoldb2 @ equalityBinding) in
   let rule2 = (queryRTerm2, newDeltab1 @ newDeltab2 @ [Rel newh1; Not newh2] @ newvalBindingb1 @ newvalBindingb2 @ equalityBinding)
   in

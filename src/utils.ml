@@ -752,3 +752,19 @@ let preProcessProg prog =
   let rules = List.map addPreofDelta prog.rules in
   let newRules = List.map (addPreofPK prog.sources prog.primary_keys) rules in
   { prog with rules = newRules }
+
+module StringElem = struct
+  type t = string
+  let compare = String.compare
+end
+
+(* 使用 Set.Make 函子创建一个新的 Set 模块 *)
+module StringSet = Set.Make(StringElem)
+
+let getSingleElem l =
+  match l with
+    | e :: [] -> e
+    | _ -> raise (EnvErr "The list is not a single element list")
+
+let addElems2StringSet lst set =
+  List.fold_left (fun s elem -> StringSet.add elem s) set lst
