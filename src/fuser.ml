@@ -291,6 +291,67 @@ let removeDupVars varlist =
     if List.exists (fun y -> (string_of_var x) = (string_of_var y)) acc then acc else x :: acc
   ) [] varlist
 
+let rec removeELems pred lst =
+  match lst with
+    | [] -> []
+    | t :: lst_ -> if t = pred then removeELems pred lst_ else t :: (removeELems pred lst_)
+
+let unpack_rterm r =
+  match r with
+    | Pred (n, vars) -> (n, vars)
+    | Deltainsert (n, vars) -> (n, vars)
+    | Deltadelete (n, vars) -> (n, vars)
+
+let getPKForm sources pks =
+  let sourcesNeedProcess = List.concat (List.concat (List.map (fun (n, pk) -> List.map (fun (name, vars) -> if n = name then [(name, vars, pk)] else []) sources) pks)) in
+  List.map (fun (name, vars, pk) -> let varandAnon = List.map (fun (n, _) -> if List.mem n pk then (NamedVar n) else AnonVar) vars in (name, varandAnon)) sourcesNeedProcess
+
+let getPKRTerm (n, vars) pkPreds =
+  try
+    let (_, vs) = List.find (fun (name, vs) -> name = n) pkPreds in
+    let newVars = List.map (fun (x, y) -> 
+      match y with 
+        | AnonVar -> y
+        | _ -> x
+      ) (List.combine vars vs) in
+    [(n, newVars)]
+  with
+    Not_found -> []
+
+let tryDelNormalDel t pks =
+  match t with
+    | Not r -> 
+        begin
+          match r with
+            | Pred (n, vars) ->
+                try
+                  let (_, vs) = List.find (fun (name, _) -> name = n) pks in
+                  if List.exists (fun (x, y) -> 
+                      begin
+                        match y with
+                          | AnonVar -> false
+                          | _ -> not (x = y)
+                      end
+                    ) (List.combine vars vs) then [t] else []
+                with
+                  Not_found -> [t]
+            | _ -> []
+        end
+    | _ -> [t]
+
+let fusePreds delta1 delta2 b1 b2 sources pks =
+  let pkPreds = getPKForm sources pks in
+  let ins1, del1 = List.partition isInsertDelta (List.map unpack_term delta1) in
+  let ins2, del2 = List.partition isInsertDelta (List.map unpack_term delta2) in
+  let handleInsb2 = List.fold_left (fun acc a -> let (n, vars) = unpack_rterm a in let t = Rel (Pred (n, vars)) in if List.mem t acc then removeELems t acc else acc) b2 ins1 in
+  let ins1anddel2 = List.fold_left (fun acc a -> let (n, vars) = unpack_rterm a in let t = Deltadelete (n, vars) in if List.mem t acc then removeELems t acc else a :: acc) del2 ins1 in
+  let handleInsandDelb2 = List.fold_left (fun acc a -> let (n, vars) = unpack_rterm a in let t = Not (Pred (n, vars)) in if List.mem t acc then removeELems t acc else acc) handleInsb2 del1 in
+  let delwithPKs = List.concat (List.map (fun d -> let (n, vars) = unpack_rterm d in getPKRTerm (n, vars) pkPreds) del1) in
+  let handleDelPK = List.fold_left (fun acc a -> let (n, vars) = a in let t = Not (Pred (n, vars)) in if List.mem t acc then removeELems t acc else acc) handleInsandDelb2 delwithPKs in
+  let handleNormalDel = List.concat (List.map (fun t -> tryDelNormalDel t delwithPKs) handleDelPK) in
+  let del1andins2 = List.fold_left (fun acc a -> let (n, vars) = unpack_rterm a in let t = Deltainsert (n, vars) in if List.mem t acc then removeELems t acc else a :: acc) ins2 del1 in
+  (List.map (fun d -> Rel d) (ins1anddel2 @ del1andins2)) @ b1 @ handleNormalDel
+
 let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2) =
   let deltab1, nondeltab1 = List.partition isDeltaTerm b1 in
   let deltaoldb2, nondeltaoldb2 = List.partition isDeltaTerm oldb2 in
@@ -340,13 +401,18 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
       let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
       if exitcode = 0 then 
         begin
-          print_string (String.concat "," updatedVars);
+          let newoldb2 = List.map (renamePredVars oldh2vars updatedVars) nondeltaoldb2 in
+          let posDelta1 = List.filter isPosDelta newDeltab1 in
+          let posDelta2 = List.filter isPosDelta newDeltaoldb2 in
+          let fusedBody = fusePreds posDelta1 posDelta2 newb1 newoldb2 expr.sources expr.primary_keys in
+          [([newh1; newoldh2], fusedBody @ equalityBinding)]
+          (* print_string (String.concat "," updatedVars);
           print_string "\n";
           print_string (string_of_rule (h1, b1));
           print_string (string_of_rule (oldh2, oldb2));
           print_string (string_of_rule contradictoryRule);
           print_string "\n\n";
-          []
+          [] *)
         end
       else []
     end
@@ -359,7 +425,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
         rules = [valBindingRule]
       } in
       let checkValBindingCode = genValBindingCode testValBindingExpr valBindingRTerm in
-      let exitcodeVal, messageVal = verify_fo_lean true 120 checkValBindingCode in
+      let exitcodeVal, messageVal = verify_fo_lean false 120 checkValBindingCode in
       if exitcodeVal = 0 then []
       else
       begin
@@ -370,13 +436,18 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
         let exitcode, message = verify_fo_lean false 300 checkContradictoryCode in
         if exitcode = 0 then 
           begin
-            print_string (String.concat "," updatedVars);
+            let newoldb2 = List.map (renamePredVars oldh2vars updatedVars) nondeltaoldb2 in
+            let posDelta1 = List.filter isPosDelta newDeltab1 in
+            let posDelta2 = List.filter isPosDelta newDeltaoldb2 in
+            let fusedBody = fusePreds posDelta1 posDelta2 newb1 newoldb2 expr.sources expr.primary_keys in
+            [([newh1; newoldh2], fusedBody @ equalityBinding)]
+            (* print_string (String.concat "," updatedVars);
             print_string "\n";
             print_string (string_of_rule (h1, b1));
             print_string (string_of_rule (oldh2, oldb2));
             print_string (string_of_rule contradictoryRule);
             print_string "\n\n";
-            []
+            [] *)
           end
         else []
       end
@@ -425,6 +496,10 @@ let print_rulePairs rulePairs =
   List.map (fun (r1, r2) -> print_string (string_of_rule r1);print_string (string_of_rule r2);print_string "\n") rulePairs;
   print_string "end rulepairs\n"
 
+let simplifyCRule (h, b) =
+  let nb = List.rev (List.fold_left (fun acc a -> if List.mem a acc then acc else a :: acc) [] b) in
+  (h, nb)
+
 let fuseRules expr =
   let viewSchema = match expr.view with
     | Some v -> v
@@ -450,7 +525,7 @@ let fuseRules expr =
     let verifyAndFuse ((h1, b1), ((oldh2, oldb2), (h2, b2))) = 
       List.concat (List.map (fun updatedVars -> tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)) combinedVars) 
     in
-    List.concat (List.map verifyAndFuse rulePairs)
+    List.map simplifyCRule (List.concat (List.map verifyAndFuse rulePairs))
   (* 对每一个pair 中间规则的两个版本+重命名新的pair的两个rule+新规则 尝试不同的变量组合 翻译成lean验证 *)
 
 
