@@ -59,6 +59,7 @@ type inistate = rule list
 
 type expr = {
   rules: rule list;
+  get_rules: rule list;
   facts: fact list;
   query: query option;
   sources: source list;
@@ -76,6 +77,7 @@ let get_empty_pred = Pred ("⊥", [])
 
 let get_empty_expr = {
   rules= [];
+  get_rules= [];
   facts= [];
   query= None;
   sources= [];
@@ -88,6 +90,7 @@ let get_empty_expr = {
 
 type stt =
   | Stt_Rule of rule
+  | Stt_Get of rule list
   | Stt_Fact of fact
   | Stt_Query of query
   | Stt_Source of source (* the predicate of edb relation which is Source relation want to update *)
@@ -105,6 +108,7 @@ type stt =
 
 let add_stt stt expr = match stt with
   | Stt_Rule rule -> { expr with rules= rule :: expr.rules }
+  | Stt_Get rules -> { expr with get_rules = rules }
   | Stt_Fact fact -> { expr with facts= fact :: expr.facts }
   | Stt_Query query -> begin match expr.query with
       | Some _ -> invalid_arg "Query should appear at most once"
@@ -441,8 +445,13 @@ let string_of_inistate is =
 
 (* let string_of_rg (is, rs) = (string_of_inistate is) ^ (List.fold_right (^) (List.map string_of_rule rs) "" ) *)
 
+let string_of_get_rules get_rules = 
+  match get_rules with
+    | [] -> ""
+    | _ -> "GET: [" ^ (List.fold_right (^) (List.map string_of_rule get_rules) "") ^ "]\n"
+
 (** smart stringify for AST *)
-let to_string { rules;facts; query; sources; view; constraints; primary_keys; initial_state; } = 
+let to_string { rules;get_rules; facts; query; sources; view; constraints; primary_keys; initial_state; } = 
   (List.fold_right (^) (List.map string_of_source sources) "") ^
   (match view with
       | Some v -> string_of_view v
@@ -451,13 +460,14 @@ let to_string { rules;facts; query; sources; view; constraints; primary_keys; in
       | Some v -> string_of_query v
       | None -> "")  ^
   (string_of_inistate initial_state) ^ 
+  (string_of_get_rules get_rules) ^
   (List.fold_right (^) (List.map string_of_pk primary_keys) "") ^
   (List.fold_right (^) (List.map string_of_constraint constraints) "") ^
   (List.fold_right (^) (List.map string_of_fact facts) "") ^
   (* (List.fold_right (^) (List.map string_of_rg rule_groups) "") *)
   (List.fold_right (^) (List.map string_of_rule rules) "")
 
-let to_birds_string { rules;facts; query; sources; view; constraints; primary_keys; initial_state; } = 
+let to_birds_string { rules;get_rules;facts; query; sources; view; constraints; primary_keys; initial_state; } = 
   (List.fold_right (^) (List.map string_of_source sources) "") ^
   (match view with
       | Some v -> string_of_view v

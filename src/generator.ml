@@ -179,11 +179,13 @@ let getvn view =
     | None -> raise (GenerationErr "No view definition")
 
 let genGetRules expr fuserules =
-  let (vn, varlist) = getvn expr.view in
-  let rules = expr.rules @ (List.concat (List.map crule2rules fuserules)) in
-  let getPrimeRules = replaceSAndDelta rules in
-  [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
-  ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
+  if is_empty expr.get_rules then
+    let (vn, varlist) = getvn expr.view in
+    let rules = expr.rules @ (List.concat (List.map crule2rules fuserules)) in
+    let getPrimeRules = replaceSAndDelta rules in
+    [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
+    ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
+  else expr.get_rules
 
 let rec findDelta ls =
   match ls with
@@ -220,25 +222,41 @@ let replaceV2IniDelta (h, b) =
       | _ -> p
   ) h, b)
 
+let renameV2Ini r = 
+  match r with
+    | Pred (n, var) -> Pred (n ^ "_ini", var)
+    | _ -> raise (GenerationErr "Only view can be head of get rules")
+
 let genPutdeltaRules expr fuserules = 
-  let (vn, varlist) = getvn expr.view in
-  let viniRules =
-    [ (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
-    ; (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"_ins", varlist))])]
-  in
-  let viniDeltaRules =
-    [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
-    ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
-  in
-  let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ fuserules) in
-  let invRules = genInvRules rules (vn, varlist) in
-  let unpackedRules = List.concat (List.map crule2rules invRules) in
-  viniRules @ viniDeltaRules @ unpackedRules
+  if is_empty expr.get_rules then
+    let (vn, varlist) = getvn expr.view in
+    let viniRules =
+      [ (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
+      ; (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"_ins", varlist))])]
+    in
+    let viniDeltaRules =
+      [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
+      ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
+    in
+    let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ fuserules) in
+    let invRules = genInvRules rules (vn, varlist) in
+    let unpackedRules = List.concat (List.map crule2rules invRules) in
+    viniRules @ viniDeltaRules @ unpackedRules
+  else
+    let (vn, varlist) = getvn expr.view in
+    let viniRules = List.map (fun (h, b) -> (renameV2Ini h, b)) expr.get_rules in
+    let viniDeltaRules =
+      [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
+      ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
+    in
+    let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ fuserules) in
+    let invRules = genInvRules rules (vn, varlist) in
+    let unpackedRules = List.concat (List.map crule2rules invRules) in
+    viniRules @ viniDeltaRules @ unpackedRules
+
 
 let genIniRelation rs =
   List.map (fun (name, attrs)->(name ^ "0", attrs)) rs
-
-(* has_get definition *)
 
 let genCode expr fuserules = 
   let v = match expr.view with

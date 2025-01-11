@@ -49,6 +49,7 @@
         "primarykey", PK;
         "IS", INISTATE;
         "is", INISTATE;
+        "GET", GETRULES;
         ]
 (*		exception Eof
 *)

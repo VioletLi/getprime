@@ -23,7 +23,7 @@
 %token NE LE GE LT GT
 %token PLUS MINUS TIMES DIVIDE CONCAT
 %token LPAREN RPAREN LBRACKET RBRACKET SEP
-%token INISTATE
+%token INISTATE GETRULES
 %token EOP
 %token EOF
 %token ANONVAR /* anonymous variable */
@@ -74,6 +74,7 @@
 
   expr:
   | primary_key          { Stt_Pk (fst $1, snd $1) }
+  | get_rule             { Stt_Get $1 }
   | integrity_constraint { Stt_Constraint (fst $1, snd $1) }
   | rule                 { Stt_Rule (fst $1, snd $1) }
   | source               { Stt_Source (fst $1, snd $1) }
@@ -84,6 +85,9 @@
   // | rule_group           { Stt_Rg (fst $1, snd $1) }
   | error                { spec_parse_error "invalid syntax for a rule or a declaration of query/source/view/constraint" 1; }
   ;
+
+  get_rule:
+  | GETRULES TYPING LBRACKET rule_list RBRACKET DOT { $4 }
 
   // rule_group:
   // | initial_state rule_list { ($1, $2) }
