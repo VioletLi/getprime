@@ -192,23 +192,26 @@ let rec findDelta ls =
       | [] -> ([], [])
       | t :: ts -> 
           let (deltas, nondeltas) = findDelta ts in
-          let unpackTerm = 
-            match t with
-                | Rel rt -> rt
-                | _ -> Pred ("", [])
-          in
-          match unpackTerm with
-              | Deltainsert (name, varlist) -> (unpackTerm :: deltas, (Not (Pred (name, varlist))) :: nondeltas)
-              | Deltadelete (name, varlist) -> (unpackTerm :: deltas, (Rel (Pred (name, varlist))) :: nondeltas)
-              | _ -> (deltas, t :: nondeltas)
+          match t with
+            | Rel rt -> 
+                begin
+                  match rt with
+                    | Pred _ -> (deltas, t :: nondeltas)
+                    | _ -> (t :: deltas, nondeltas)
+                end
+            | Not rt ->
+                begin
+                  match rt with
+                    | Pred _ -> (deltas, t :: nondeltas)
+                    | _ -> (deltas, nondeltas)
+                end
+            | _ -> (deltas, t :: nondeltas)
 
 let getInvRule (vn, varlist) (head, body) =
   let (deltas, remain) = findDelta body in
   match deltas with
       | [] -> (head, body)
-      | _  -> 
-        let diffDelta = [] in
-        (deltas, (List.map (fun h -> Rel h) head) @ diffDelta @ remain)
+      | _  -> (deltas, head @ remain)
   (* canUpdate中每一个key是一个view中的变量 如果可以被update就置为true 如果这条规则的head只有一个操作那么在swap之后要把对应位为true的变量置为匿名变量并加not 这样的反操作加到里面 *)
 
 let genInvRules fuserules (vn, varlist) =
@@ -217,9 +220,20 @@ let genInvRules fuserules (vn, varlist) =
 let replaceV2IniDelta (h, b) =
   (List.map (fun p ->
     match p with
-      | Deltainsert (vn, attrs) -> Pred (vn ^ "_ini_ins", attrs)
-      | Deltadelete (vn, attrs) -> Pred (vn ^ "_ini_del", attrs)
-      | _ -> p
+      | Rel x ->
+        begin
+          match x with
+            | Deltainsert (vn, attrs) -> Rel (Pred (vn ^ "_ini_ins", attrs))
+            | Deltadelete (vn, attrs) -> Rel (Pred (vn ^ "_ini_del", attrs))
+            | _ -> p
+        end
+      | Not x ->
+        begin
+          match x with
+            | Deltainsert (vn, attrs) -> Not (Pred (vn ^ "_ini_ins", attrs))
+            | Deltadelete (vn, attrs) -> Not (Pred (vn ^ "_ini_del", attrs))
+            | _ -> p
+        end
   ) h, b)
 
 let renameV2Ini r = 
@@ -227,7 +241,18 @@ let renameV2Ini r =
     | Pred (n, var) -> Pred (n ^ "_ini", var)
     | _ -> raise (GenerationErr "Only view can be head of get rules")
 
+let diffVDelta rules fuserules =
+  if is_empty fuserules then List.map rule2crule rules
+  else
+    let vdeltaRules, other = List.partition isDeltaRule rules in
+    let vdeltas = List.map (fun (h, _) -> h) fuserules in
+    let startList = List.map (fun _ -> true) (get_rterm_varlist (unpack_term (List.nth (List.nth vdeltas 0) 0))) in
+    let insDiff = List.fold_left (fun acc a -> let var1 = get_rterm_varlist (unpack_term (List.nth a 0)) in let var2 = get_rterm_varlist (unpack_term (List.nth a 1)) in let update = List.map (fun (a, b) -> a = b) (List.combine var1 var2) in List.map (fun (a, b) -> a && b) (List.combine acc update)) startList vdeltas in
+    let diffRules = List.map (fun (h, b) -> let varlist = get_rterm_varlist h in let newvarlist = List.map (fun (a, b) -> if b then a else AnonVar) (List.combine varlist insDiff) in let newhead = if isInsertDelta h then Not (Deltadelete (getDeltaRelationName h, newvarlist)) else Not (Deltainsert (getDeltaRelationName h, newvarlist)) in ([Rel h; newhead], b)) vdeltaRules in
+    diffRules @ (List.map rule2crule other) @ fuserules
+
 let genPutdeltaRules expr fuserules = 
+  let ruleswithDeltaDiff = diffVDelta expr.rules fuserules in
   if is_empty expr.get_rules then
     let (vn, varlist) = getvn expr.view in
     let viniRules =
@@ -238,7 +263,7 @@ let genPutdeltaRules expr fuserules =
       [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
       ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
     in
-    let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ fuserules) in
+    let rules =  List.map replaceV2IniDelta ruleswithDeltaDiff in
     let invRules = genInvRules rules (vn, varlist) in
     let unpackedRules = List.concat (List.map crule2rules invRules) in
     viniRules @ viniDeltaRules @ unpackedRules
@@ -249,7 +274,7 @@ let genPutdeltaRules expr fuserules =
       [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
       ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
     in
-    let rules =  List.map replaceV2IniDelta ((List.map rule2crule expr.rules) @ fuserules) in
+    let rules =  List.map replaceV2IniDelta ruleswithDeltaDiff in
     let invRules = genInvRules rules (vn, varlist) in
     let unpackedRules = List.concat (List.map crule2rules invRules) in
     viniRules @ viniDeltaRules @ unpackedRules

@@ -20,11 +20,6 @@ let renameRule (h, b) =
   let nh = renameRterm h in
   (nh, nb)
 
-let isDeltaRule (h, b) =
-  match h with
-    | Pred _ -> false
-    | _ -> true
-
 let isInsertRule (h, b) =
   match h with
     | Deltainsert _ -> true
@@ -405,7 +400,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
           let posDelta1 = List.filter isPosDelta newDeltab1 in
           let posDelta2 = List.filter isPosDelta newDeltaoldb2 in
           let fusedBody = fusePreds posDelta1 posDelta2 newb1 newoldb2 expr.sources expr.primary_keys in
-          [([newh1; newoldh2], fusedBody @ equalityBinding)]
+          [([Rel newh1; Rel newoldh2], fusedBody @ equalityBinding)]
           (* print_string (String.concat "," updatedVars);
           print_string "\n";
           print_string (string_of_rule (h1, b1));
@@ -440,7 +435,7 @@ let tryFuse expr vars updatedVars allInterRules (h1, b1) (oldh2, oldb2) (h2, b2)
             let posDelta1 = List.filter isPosDelta newDeltab1 in
             let posDelta2 = List.filter isPosDelta newDeltaoldb2 in
             let fusedBody = fusePreds posDelta1 posDelta2 newb1 newoldb2 expr.sources expr.primary_keys in
-            [([newh1; newoldh2], fusedBody @ equalityBinding)]
+            [([Rel newh1; Rel newoldh2], fusedBody @ equalityBinding)]
             (* print_string (String.concat "," updatedVars);
             print_string "\n";
             print_string (string_of_rule (h1, b1));

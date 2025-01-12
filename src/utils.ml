@@ -638,12 +638,15 @@ let rec get_pairs lst =
       let pairs = List.map (fun y -> (x, y)) xs in
       pairs @ (get_pairs xs)
 
-type crule = (rterm list) * term list
+type crule = (term list) * (term list)
 
-let rule2crule (h, b) = ([h], b)
+let rule2crule (h, b) = ([Rel h], b)
 
 let crule2rules (h, b) =
-  List.map (fun x -> (x, b)) h
+  List.concat (List.map (fun x -> match x with 
+    | Not _ -> []
+    | Rel y -> [(y, b)]
+    | _ -> raise (FuseErr "Only relations can be head")) h)
 
 let rterm2noDelta r =
   match r with
@@ -705,6 +708,11 @@ let isPosInsDelta t =
           | _ -> false
       end
     | _ -> false
+
+let isDeltaRule (h, b) =
+  match h with
+    | Pred _ -> false
+    | _ -> true
 
 let getPreofDelta d =
   match d with
