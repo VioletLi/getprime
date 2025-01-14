@@ -13,24 +13,28 @@ let _ =
   try
     let expr = preProcessProg prog in
     let disjointCode = genDisjointCode expr in
-    let vc1 = open_out "/home/code/disjoint.lean" in
-    Printf.fprintf vc1 "%s\n" disjointCode;
-    close_out vc1;
-    let injectiveCode = genInjectiveCode expr in
-    let vc2 = open_out "/home/code/injective.lean" in
-    Printf.fprintf vc2 "%s\n" injectiveCode;
-    close_out vc2;
-    let fusedrule = fuseRules expr in
-    let fusecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules fusedrule))) in
-    let vc3 = open_out "/home/code/fuse.dl" in
-    Printf.fprintf vc3 "%s\n" fusecode;
-    close_out vc3;
-    let code = genCode expr fusedrule in
-    let _ = print_string "Generation finished\n" in
-    let oc = open_out "/home/code/temp.dl" in
-    Printf.fprintf oc "%s\n" code;
-    close_out oc;
-    Sys.command "birds -f /home/code/temp.dl -v -o result.sql";
+    let exitcode1, message1 = verify_fo_lean false 300 disjointCode in
+    if exitcode1 = 0 then
+      begin
+        let injectiveCode = genInjectiveCode expr in
+        let exitcode2, message2 = verify_fo_lean false 300 injectiveCode in
+        if exitcode2 = 0 then
+          begin
+            let fusedrule = fuseRules expr in
+            let fusecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules fusedrule))) in
+            let vc3 = open_out "/home/code/fuse.dl" in
+            Printf.fprintf vc3 "%s\n" fusecode;
+            close_out vc3;
+            let code = genCode expr fusedrule in
+            let _ = print_string "Generation finished\n" in
+            let oc = open_out "/home/code/temp.dl" in
+            Printf.fprintf oc "%s\n" code;
+            close_out oc;
+            Sys.command "birds -f /home/code/temp.dl -v -o result.sql";
+          end
+        else raise (VerificationErr ("This program is not injective, the message from lean is: " ^ message2))
+      end
+    else raise (VerificationErr ("This program is not disjoint, the message from lean is: " ^ message1))
     (* Sys.command "rm /home/code/temp.dl"; *)
   with
     | VerificationErr s -> print_string ("Verification Error: " ^ s); exit 0;
