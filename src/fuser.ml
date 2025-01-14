@@ -74,7 +74,7 @@ let isDeltaTerm t =
 
 let find_index elem lst =
   let rec f i = function
-    | [] -> raise (FuseErr "No element in list")
+    | [] -> -1
     | x::xs -> if x = elem then i else f (i + 1) xs
   in
   f 0 lst
@@ -83,8 +83,11 @@ let renameVar vars updatedVars var =
   match var with
     | NamedVar n -> 
         let index = find_index n vars in
-        let newName = List.nth updatedVars index in
-        NamedVar newName
+        if index = -1 then var else
+          begin
+            let newName = List.nth updatedVars index in
+            NamedVar newName
+          end
     | _ -> var
 
 let renameDeltaVars vars updatedVars term =
