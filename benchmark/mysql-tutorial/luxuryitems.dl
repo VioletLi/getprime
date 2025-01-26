@@ -1,0 +1,8 @@
+source items('ID':int, 'NAME':string, 'PRICE':real).
+view luxuryitems('ID':int, 'NAME':string, 'PRICE':real).
+
+% view constraints
+_|_ :- luxuryitems(ID, NAME, PRICE), PRICE <= 700.0.
+
++luxuryitems(ID, N, P) :- +items(ID, N, P), not items(ID, N, P), P > 700.0.
+-luxuryitems(ID, N, P) :- -items(ID, N, P), items(ID, N, P), P > 700.0.
