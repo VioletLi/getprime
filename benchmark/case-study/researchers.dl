@@ -1,0 +1,14 @@
+source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
+source ced('EMP_NAME':string, 'DEPT_NAME':string).
+view researchers('EMP_NAME':string).
+
+IS:[
+    residents0(E, B, G) :- residents(E, B, G).
+    ced0(E, D) :- ced(E, D).
+    researchers0(E) :- residents0(E, _, _), ced0(E, D), D = 'Research'.
+].
+
++researchers(E) :- +residents(E, B, G), not residents(E, _, _), ced(E, D), B = '0001-01-01', G = 'unknown', D = 'Research'.
++researchers(E) :- +ced(E, D), residents(E, _, _), not ced(E, D), D = 'Research'.
++researchers(E) :- +residents(E, B, G), +ced(E, D), not residents(E, _, _), not ced(E, D), B = '0001-01-01', G = 'unknown', D = 'Research'.
+-researchers(E) :- -ced(E, D), ced(E, D), residents(E, _, _), D = 'Research'.
