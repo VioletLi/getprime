@@ -9,13 +9,13 @@ IS:
     ced0(E, D) :- ed0(E, D), not eed0(E, D).
 ].
 
-GET:
-[
-    ced(E, D) :- ed(E, D), not eed(E, D).
-].
+% GET:
+% [
+%     ced(E, D) :- ed(E, D), not eed(E, D).
+% ].
 
 +ced(E, D) :- +ed(E, D), not ed(E, D), not eed(E, D).
-+ced(E, D) :- -eed(E, D), ed(E, D), eed(E, D).
++ced(E, D) :- -eed(E, D), not -ed(E, D) , ed(E, D), eed(E, D).
 +ced(E, D) :- +ed(E, D), -eed(E, D), not ed(E, D), eed(E, D).
 -ced(E, D) :- +eed(E, D), ed(E, D), not eed(E, D).
 
@@ -24,3 +24,6 @@ GET:
 % +eed(E, D) :- ed(E, D), NOT ced(E, D), NOT eed(E, D).
 
 % ced(E, D) :- ed(E, D), not eed(E, D).
+
+% In the second rule of get prime, we add `not -ed(E, D)`, which seems wired 
+% because we only allow not to appear in source table...
