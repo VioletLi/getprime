@@ -1,11 +1,13 @@
 source s('X': string, 'Y': string).
 view v('X': string).
 
+PK(s, ['X']).
+
 IS:
 [
-    s0(X, Y) :- s(X, Y).
+    s0(X, Y) :- s(X, Y), not Y = 'A'.
     v0(X) :- s0(X, Y).
 ].
 
-+v(X) :- +s(X, Y), not s(X, Y), Y = 'A', not s(X, _).
++v(X) :- +s(X, Y), not s(X, Y), Y = 'A'.
 -v(X) :- -s(X, Y), s(X, Y).
