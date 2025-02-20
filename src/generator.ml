@@ -178,13 +178,18 @@ let getvn view =
     | Some (vn, attrs) -> (vn, List.map (fun (n, _) -> NamedVar n) attrs)
     | None -> raise (GenerationErr "No view definition")
 
+let checkDeltas rules =
+  let ins, del = List.partition isInsertDelta (List.map (fun (h, _) -> h) rules) in
+  (is_empty ins, is_empty del)
+
 let genGetRules expr fuserules =
   if is_empty expr.get_rules then
     let (vn, varlist) = getvn expr.view in
     let rules = expr.rules @ (List.concat (List.map crule2rules fuserules)) in
-    let getPrimeRules = replaceSAndDelta rules in
-    [ (Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
-    ; (Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
+    let (insFlag, delFlag) = checkDeltas expr.rules in
+    let delRule = if delFlag then [(Pred (vn, varlist), [Rel (Pred (vn^"0", varlist))])] else [(Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])] in
+    let insRule = if insFlag then [] else [(Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] in
+    let getPrimeRules = replaceSAndDelta rules in delRule @ insRule @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
   else expr.get_rules
 
 let rec findDelta ls =
@@ -255,10 +260,10 @@ let genPutdeltaRules expr fuserules =
   let ruleswithDeltaDiff = diffVDelta expr.rules fuserules in
   if is_empty expr.get_rules then
     let (vn, varlist) = getvn expr.view in
-    let viniRules =
-      [ (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])
-      ; (Pred (vn^"_ini", varlist), [Rel (Pred (vn^"_ins", varlist))])]
-    in
+    let (insFlag, delFlag) = checkDeltas expr.rules in
+    let delRule = if delFlag then [(Pred (vn^"_ini", varlist), [Rel (Pred (vn^"0", varlist))])] else [(Pred (vn^"_ini", varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])] in
+    let insRule = if insFlag then [] else [(Pred (vn^"_ini", varlist), [Rel (Pred (vn^"_ins", varlist))])] in
+    let viniRules = delRule @ insRule in
     let viniDeltaRules =
       [ (Pred (vn^"_ini_ins", varlist), [Rel (Pred (vn, varlist)); Not (Pred (vn^"_ini", varlist))])
       ; (Pred (vn^"_ini_del", varlist), [Rel (Pred (vn^"_ini", varlist)); Not (Pred (vn, varlist))])]
