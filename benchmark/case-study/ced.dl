@@ -2,22 +2,14 @@ source ed('EMP_NAME':string,'DEPT_NAME':string).
 source eed('EMP_NAME':string,'DEPT_NAME':string).
 view ced('EMP_NAME':string, 'DEPT_NAME':string).
 
-IS:
-[
-    ed0(E, D) :- ed(E, D).
-    eed0(E, D) :- eed(E, D).
-    ced0(E, D) :- ed0(E, D), not eed0(E, D).
-].
 
-% GET:
-% [
-%     ced(E, D) :- ed(E, D), not eed(E, D).
-% ].
 
-+ced(E, D) :- +ed(E, D), not ed(E, D), not eed(E, D).
-+ced(E, D) :- -eed(E, D), not -ed(E, D) , ed(E, D), eed(E, D).
-+ced(E, D) :- +ed(E, D), -eed(E, D), not ed(E, D), eed(E, D).
--ced(E, D) :- +eed(E, D), ed(E, D), not eed(E, D).
+
+
++ced(E, D) :- +ed(E, D), not eed(E, D).
++ced(E, D) :- -eed(E, D), ed(E, D).
++ced(E, D) :- +ed(E, D), -eed(E, D).
+-ced(E, D) :- +eed(E, D), ed(E, D).
 
 % +ed(E, D) :- ced(E, D), NOT ed(E, D).
 % -eed(E, D) :- ced(E, D), eed(E, D).

@@ -14,7 +14,7 @@ GET:
     v(X, Y, Z) :- s1(X, Y), not s2(X, _), Z = 'null'.
 ].
 
-+v(X, Y, Z) :- +s1(X, Y), +s2(X, Z), not s1(X, Y), not s2(X, Z), not Z = 'null'.
-+v(X, Y, Z) :- +s1(X, Y), not s1(X, Y), not s2(X, _), Z = 'null'.
--v(X, Y, Z) :- -s1(X, Y), -s2(X, Z), s1(X, Y), s2(X, Z), not Z = 'null'.
--v(X, Y, Z) :- -s1(X, Y), s1(X, Y), not s2(X, _), Z = 'null'.
++v(X, Y, Z) :- +s1(X, Y), +s2(X, Z), not Z = 'null'.
++v(X, Y, Z) :- +s1(X, Y), not s2(X, _), Z = 'null'.
+-v(X, Y, Z) :- -s1(X, Y), -s2(X, Z), not Z = 'null'.
+-v(X, Y, Z) :- -s1(X, Y), not s2(X, _), Z = 'null'.

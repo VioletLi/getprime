@@ -67,6 +67,7 @@ type expr = {
   constraints: constraint' list;
   primary_keys: primary_key list;
   initial_state: inistate;
+  ori_rules: rule list;
   (* rule_groups: rule_group list; *)
 }
 
@@ -85,6 +86,7 @@ let get_empty_expr = {
   constraints= [];
   primary_keys= [];
   initial_state= [];
+  ori_rules= [];
   (* rule_groups= []; *)
 }
 
@@ -451,7 +453,7 @@ let string_of_get_rules get_rules =
     | _ -> "GET: [" ^ (List.fold_right (^) (List.map string_of_rule get_rules) "") ^ "]\n"
 
 (** smart stringify for AST *)
-let to_string { rules;get_rules; facts; query; sources; view; constraints; primary_keys; initial_state; } = 
+let to_string { rules;get_rules; facts; query; sources; view; constraints; primary_keys; initial_state; ori_rules} = 
   (List.fold_right (^) (List.map string_of_source sources) "") ^
   (match view with
       | Some v -> string_of_view v
@@ -467,7 +469,7 @@ let to_string { rules;get_rules; facts; query; sources; view; constraints; prima
   (* (List.fold_right (^) (List.map string_of_rg rule_groups) "") *)
   (List.fold_right (^) (List.map string_of_rule rules) "")
 
-let to_birds_string { rules;get_rules;facts; query; sources; view; constraints; primary_keys; initial_state; } = 
+let to_birds_string { rules;get_rules;facts; query; sources; view; constraints; primary_keys; initial_state; ori_rules} = 
   (List.fold_right (^) (List.map string_of_source sources) "") ^
   (match view with
       | Some v -> string_of_view v
