@@ -9,7 +9,7 @@ IS:[
     v0(X, Y) :- s20(X, Y).
 ].
 
-+v(X, Y) :- +s1(X, Y), not s1(X, Y), not s2(X, Y), Y = 'A'.
++v(X, Y) :- +s1(X, Y), not s2(X, Y), Y = 'A'.
 -v(X, Y) :- -s1(X, Y), not s2(X, Y), Y = 'A'.
 -v(X, Y) :- -s2(X, Y), not s1(X, Y), Y = 'A'.
 -v(X, Y) :- -s1(X, Y), -s2(X, Y), Y = 'A'.

@@ -759,7 +759,8 @@ let addPreofPK sources pks (h, b) =
 let preProcessProg prog = 
   let rules = List.map addPreofDelta prog.rules in
   let newRules = List.map (addPreofPK prog.sources prog.primary_keys) rules in
-  { prog with rules = newRules }
+  let newprog = { prog with ori_rules = prog.rules } in
+  { newprog with rules = newRules }
 
 module StringElem = struct
   type t = string

@@ -152,14 +152,14 @@ let replaceSAndDelta rules =
               match r with
                 | Deltainsert (sn, varlist) -> Rel (Pred (sn^"_ins", varlist))
                 | Deltadelete (sn, varlist) -> Rel (Pred (sn^"_del", varlist))
-                | Pred (sn, varlist)        -> Rel (Pred (sn^"0", varlist))
+                | Pred (sn, varlist)        -> Rel r
             end
         | Not r ->
           begin
             match r with
               | Deltainsert (sn, varlist) -> Not (Pred (sn^"_ins", varlist))
               | Deltadelete (sn, varlist) -> Not (Pred (sn^"_del", varlist))
-              | Pred (sn, varlist)        -> Not (Pred (sn^"0", varlist))
+              | Pred (sn, varlist)        -> Not r
           end
         | _ -> t
     ) body)
@@ -185,8 +185,8 @@ let checkDeltas rules =
 let genGetRules expr fuserules =
   if is_empty expr.get_rules then
     let (vn, varlist) = getvn expr.view in
-    let rules = expr.rules @ (List.concat (List.map crule2rules fuserules)) in
-    let (insFlag, delFlag) = checkDeltas expr.rules in
+    let rules = expr.ori_rules @ (List.concat (List.map crule2rules fuserules)) in
+    let (insFlag, delFlag) = checkDeltas expr.ori_rules in
     let delRule = if delFlag then [(Pred (vn, varlist), [Rel (Pred (vn^"0", varlist))])] else [(Pred (vn, varlist), [Rel (Pred (vn^"0", varlist)); Not (Pred (vn^"_del", varlist))])] in
     let insRule = if insFlag then [] else [(Pred (vn, varlist), [Rel (Pred (vn^"_ins", varlist))])] in
     let getPrimeRules = replaceSAndDelta rules in delRule @ insRule @ (genDelta expr.sources) @ (replaceVDelta getPrimeRules)
