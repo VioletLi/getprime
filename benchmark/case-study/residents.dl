@@ -12,9 +12,9 @@ IS:[
     residents0(E, B, G) :- others0(E, B, G).
 ].
 
-+residents(E, B, G) :- +male(E, B), not male(E, B), not others(E, B, G), G = 'M'.
-+residents(E, B, G) :- +female(E, B), not female(E, B), not others(E, B, G), G = 'F'.
-+residents(E, B, G) :- +others(E, B, G), not G = 'M', not G = 'F', not others(E, B, G).
++residents(E, B, G) :- +male(E, B), not others(E, B, G), G = 'M'.
++residents(E, B, G) :- +female(E, B), not others(E, B, G), G = 'F'.
++residents(E, B, G) :- +others(E, B, G), not G = 'M', not G = 'F'.
 -residents(E, B, G) :- -male(E, B), not others(E, B, G), G = 'M'.
 -residents(E, B, G) :- -female(E, B), not others(E, B, G), G = 'F'.
 -residents(E, B, G) :- -male(E, B), -others(E, B, G), G = 'M'.
