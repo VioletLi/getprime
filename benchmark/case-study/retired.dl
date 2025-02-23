@@ -8,7 +8,7 @@ IS:[
     retired0(E) :- residents0(E, B, G), not ced0(E, _).
 ].
 
-+retired(E) :- -ced(E, D), ced(E, D), residents(E, B, G).
++retired(E) :- -ced(E, D), residents(E, B, G).
 +retired(E) :- +residents(E, B, G), not ced(E, _), not residents(E, _, _), B = '0001-01-01', G = 'unknown'.
 +retired(E) :- +residents(E, B, G), -ced(E, D), ced(E, D), not residents(E, _, _), B = '0001-01-01', G = 'unknown'.
 -retired(E) :- +ced(E, D), not ced(E, _), residents(E, _, _), D = 'unknown'.
