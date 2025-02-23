@@ -9,5 +9,5 @@ IS:[
     residents19620(E, B, G) :- residents0(E, B, G), B >= '1962-01-01', B <= '1962-12-31'.
 ].
 
-+residents1962(E, B, G) :- +residents(E, B, G), not residents(E, B, G), B >= '1962-01-01', B <= '1962-12-31'.
--residents1962(E, B, G) :- -residents(E, B, G), residents(E, B, G), not B < '1962-01-01', not B > '1962-12-31'.
++residents1962(E, B, G) :- +residents(E, B, G), B >= '1962-01-01', B <= '1962-12-31'.
+-residents1962(E, B, G) :- -residents(E, B, G), not B < '1962-01-01', not B > '1962-12-31'.
