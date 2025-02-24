@@ -1,0 +1,38 @@
+% left join
+
+source person_detail('PID':real, 'PNAME':string).
+source person_job('PID':real, 'JOB':string).
+view person_detail_job_vw('PID':real, 'PNAME':string, 'JOB':string).
+
+
+IS : [
+    person_detail0(PID, PNAME) :- person_detail(PID, PNAME).
+    person_job0(PID, PNAME) :- person_job(PID, PNAME).
+    person_detail_job_vw0(PID, PNAME, JOB) :- person_detail0(PID, PNAME), person_job0(PID, JOB).
+    person_detail_job_vw0(PID, PNAME, 'None') :- person_detail(PID, PNAME), not person_job(PID, _).
+].
+
+
+% constraints
+% PK
+PK(person_detail, ['PID']).
+PK(person_job, ['PID']).
+PK(person_detail_job_vw, ['PID']).
+% FK
+_|_ :- person_job(PID, _), not person_detail(PID, _).
+% no job called "None"
+_|_ :- person_job(_, JOB), JOB='None'.
+
+
+% get prime
++person_detail_job_vw(PID, PNAME, JOB) :- +person_detail(PID, PNAME), +person_job(PID, JOB), not JOB = 'None'.
++person_detail_job_vw(PID, PNAME, JOB) :- +person_detail(PID, PNAME), not person_job(PID, _), JOB = 'None'.
+% +person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, JOB), person_detail(PID, PNAME).
+
+-person_detail_job_vw(PID, PNAME, JOB) :- -person_detail(PID, PNAME), -person_job(PID, JOB), not JOB = 'None'.
+-person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, _), person_detail(PID, PNAME), JOB = 'None'.
+
+
+% view definition
+% person_detail_job_vw(PID, PNAME, JOB) :- person_detail(PID, PNAME), person_job(PID, JOB).
+% person_detail_job_vw(PID, PNAME, 'None') :- person_detail(PID, PNAME), not person_job(PID, _).
