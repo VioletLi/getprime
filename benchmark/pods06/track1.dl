@@ -13,7 +13,11 @@ PK(tracks1, ['TRACK']).
 _|_ :- tracks(_, _, _, ALBUM), not albums(ALBUM, _).
 
 % constraints:
-⊥ :- tracks1(T,D,R,A,_), tracks1(_,_,_,A,Q), not tracks1(T,D,R,A,Q).
+_|_ :- tracks1(T,D,R,A,_), tracks1(_,_,_,A,Q), not tracks1(T,D,R,A,Q).
+
+GET : [
+    tracks1(T,D,R,A,Q) :- tracks(T,D,R,A), albums(A,Q).
+].
 
 IS : [
     tracks0(T,DTE,R,A) :- tracks(T,D,R,A).
@@ -25,4 +29,4 @@ IS : [
 +tracks1(T,D,R,A,Q) :- +tracks(T,D,R,A), albums(A,Q).
 +tracks1(T,D,R,A,Q) :- +tracks(T,D,R,A), +albums(A,Q).
 
--tracks1(T,D,R,A,Q) :- -tracks(T,D,R,A), tracks(T,D,R,A), albums(A,Q).
+-tracks1(T,D,R,A,Q) :- -tracks(T,D,R,A), albums(A,Q).

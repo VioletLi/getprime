@@ -12,6 +12,11 @@ _|_ :- all_cars(_,_,BRAND_ID,BRAND_NAME1), all_cars(_,_,BRAND_ID,BRAND_NAME2), B
 _|_ :- cars(_, _, BRAND_ID), not brands(BRAND_ID, _).
 
 
+GET : [
+    all_cars(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- cars(CAR_ID, CAR_NAME, BRAND_ID), brands(BRAND_ID, BRAND_NAME).
+].
+
+
 IS : [
     brands0(BRAND_ID, BRAND_NAME) :- brands(BRAND_ID, BRAND_NAME).
     cars0(CAR_ID, CAR_NAME, BRAND_ID) :- cars(CAR_ID, CAR_NAME, BRAND_ID).
