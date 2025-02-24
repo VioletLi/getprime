@@ -9,7 +9,7 @@ IS : [
     person_detail0(PID, PNAME) :- person_detail(PID, PNAME).
     person_job0(PID, PNAME) :- person_job(PID, PNAME).
     person_detail_job_vw0(PID, PNAME, JOB) :- person_detail0(PID, PNAME), person_job0(PID, JOB).
-    person_detail_job_vw0(PID, PNAME, 'None') :- person_detail(PID, PNAME), not person_job(PID, _).
+    person_detail_job_vw0(PID, PNAME, 'None') :- person_detail0(PID, PNAME), not person_job0(PID, _).
 ].
 
 
@@ -24,13 +24,19 @@ _|_ :- person_job(PID, _), not person_detail(PID, _).
 _|_ :- person_job(_, JOB), JOB='None'.
 
 
+GET : [
+    person_detail_job_vw(PID, PNAME, JOB) :- person_detail(PID, PNAME), person_job(PID, JOB).
+    person_detail_job_vw(PID, PNAME, 'None') :- person_detail(PID, PNAME), not person_job(PID, _).
+].
+
 % get prime
 +person_detail_job_vw(PID, PNAME, JOB) :- +person_detail(PID, PNAME), +person_job(PID, JOB), not JOB = 'None'.
 +person_detail_job_vw(PID, PNAME, JOB) :- +person_detail(PID, PNAME), not person_job(PID, _), JOB = 'None'.
 % +person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, JOB), person_detail(PID, PNAME).
 
 -person_detail_job_vw(PID, PNAME, JOB) :- -person_detail(PID, PNAME), -person_job(PID, JOB), not JOB = 'None'.
--person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, _), person_detail(PID, PNAME), JOB = 'None'.
+-person_detail_job_vw(PID, PNAME, JOB) :- -person_detail(PID, PNAME), not person_job(PID, _), JOB = 'None'.
+% -person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, _), person_detail(PID, PNAME), JOB = 'None'.
 
 
 % view definition
