@@ -1,0 +1,42 @@
+# Experiments
+## Benchmarks
+- [ ] textbook.1/activestudents
+- [ ] textbook.1/bstudents
+- [ ] textbook.1/goodstudents
+- [ ] textbook.2/paramountmovies
+- [ ] textbook.3/newpc
+- [x] mysql-tutorial/officeinfo
+- [x] mysql-tutorial/luxuryitems
+- [x] oracle-tutorial/car_master
+- [x] oracle-tutorial/all_cars          
+- [x] oracle-tutorial.2/vw_customers  
+- [ ] oracle-tutorial.2/vw_customers.2  **error: 02 not disjoint**
+- [ ] postgres-tutorial/emp_view
+- [ ] postgres-tutorial.2/usa_city
+- [ ] postgres-sharding/measurement
+- [ ] sqlserver-tutorial/vw_brands
+- [ ] sqlserver-tutorial/vw_brands.2
+- [x] pods06/tracks1    
+- [x] pods06/tracks2    **warning: 01 cannot implement strategies in putdelta, which may cause non-injective**
+- [ ] pods06/tracks3
+- [x] case-study/residents
+- [x] case-study/ced
+- [x] case-study/residents1962
+- [x] case-study/employees
+- [x] case-study/researchers
+- [x] case-study/retired
+- [ ] stackexchange/ukaz_lok
+- [ ] stackexchange.2/purchaseview
+- [ ] stackexchange.2/purchaseview.2
+- [ ] stackexchange.3/message
+- [ ] stackexchange.4/outstanding_task
+- [ ] stackexchange.4/outstanding_task.2
+- [ ] stackexchange.4/outstanding_task.3
+- [ ] stackexchange.5/products
+- [ ] stackexchange.6/poi_view
+- [ ] stackoverflow/VW_COMPANY_PHONELIST
+- [ ] stackoverflow.2/vehicle_view
+- [ ] stackoverflow.3/vwEmployees
+- [ ] stackoverflow.4/Koncerty
+- [ ] stackoverflow.5/AverageByGroup
+- [x] personalblog/person_detail_job_vw 
