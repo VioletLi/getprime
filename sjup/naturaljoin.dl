@@ -23,3 +23,12 @@ GET:
 +v(X, Y, Z) :- +s1(X, Y), s2(Y, Z).
 +v(X, Y, Z) :- +s1(X, Y), +s2(Y, Z).
 -v(X, Y, Z) :- -s1(X, Y), s2(Y, Z).
+
+% view definition
+% v(X, Y, Z) :- s1(X, Y), s2(Y, Z).
+
+% putdelta
+% +s1(X, Y) :- v(X, Y, _).
+% +s2(Y, Z) :- v(_, Y, Z).
+% -s1(X, Y) :- not v(X, Y, _), s1(X, Y).
+% -s2(Y, Z) :- v(_, Y, _), not v(_, Y, Z), s2(Y, Z).
