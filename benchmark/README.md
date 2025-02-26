@@ -8,25 +8,25 @@
 - [x] mysql-tutorial/officeinfo
 - [x] mysql-tutorial/luxuryitems
 - [x] oracle-tutorial/car_master
-- [x] oracle-tutorial/all_cars          
+- [x] oracle-tutorial/all_cars  **error: 03 putget is not validated, natural join**   
 - [x] oracle-tutorial.2/vw_customers  
-- [ ] oracle-tutorial.2/vw_customers.2  **error: 02 not disjoint**
-- [ ] postgres-tutorial/emp_view
-- [ ] postgres-tutorial.2/usa_city
-- [ ] postgres-sharding/measurement
-- [ ] sqlserver-tutorial/vw_brands
-- [ ] sqlserver-tutorial/vw_brands.2
+- [x] oracle-tutorial.2/vw_customers.2  **error: 02 not disjoint, if only left deletion rule, then the putget is not validated**
+- [x] postgres-tutorial/emp_view    **warning: 02 not implemented in birds**
+- [x] postgres-tutorial.2/usa_city
+- [x] postgres-sharding/measurement
+- [x] sqlserver-tutorial/vw_brands
+- [x] sqlserver-tutorial/vw_brands.2    **error: 03 putget is not validated**  
 - [x] pods06/tracks1    
 - [x] pods06/tracks2    **warning: 01 cannot implement strategies in putdelta, which may cause non-injective**
-- [ ] pods06/tracks3
+- [x] pods06/tracks3
 - [x] case-study/residents
 - [x] case-study/ced
 - [x] case-study/residents1962
 - [x] case-study/employees
 - [x] case-study/researchers
 - [x] case-study/retired
-- [ ] stackexchange/ukaz_lok
-- [ ] stackexchange.2/purchaseview
+- [x] stackexchange/ukaz_lok
+- [x] stackexchange.2/purchaseview  **error: 03 putget is not validated, natural join**  
 - [ ] stackexchange.2/purchaseview.2
 - [ ] stackexchange.3/message
 - [ ] stackexchange.4/outstanding_task
