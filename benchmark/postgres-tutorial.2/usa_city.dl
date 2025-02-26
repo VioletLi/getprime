@@ -1,0 +1,24 @@
+% projection + selection
+
+% describe the schema of sources and views
+source city('CITY_ID':int, 'CITY':string, 'COUNTRY_ID':int, 'LAST_UPDATE':string).
+view usa_city('CITY_ID':int, 'CITY':string, 'COUNTRY_ID':int).
+
+
+% constraint
+_|_ :- usa_city(CITY_ID, CITY, COUNTRY_ID), COUNTRY_ID <> 103.
+
+
+%% getprime begin
+
+% rule for insertion to view
++usa_city(CITY_ID, CITY, COUNTRY_ID) :- +city(CITY_ID, CITY, COUNTRY_ID, LAST_UPDATE), not city(CITY_ID, CITY, COUNTRY_ID, _), COUNTRY_ID = 103, LAST_UPDATE = '2019-10-01'.
+
+
+% rule for deletion to view
+-usa_city(CITY_ID, CITY, COUNTRY_ID) :- -city(CITY_ID, CITY, COUNTRY_ID, LAST_UPDATE), COUNTRY_ID = 103.
+
+%% getprime end
+
+% view definition
+% usa_city(CITY_ID, CITY, COUNTRY_ID) :- city(CITY_ID, CITY, COUNTRY_ID, _), COUNTRY_ID = 103.
