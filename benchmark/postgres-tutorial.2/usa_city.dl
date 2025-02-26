@@ -8,6 +8,11 @@ view usa_city('CITY_ID':int, 'CITY':string, 'COUNTRY_ID':int).
 % constraint
 _|_ :- usa_city(CITY_ID, CITY, COUNTRY_ID), COUNTRY_ID <> 103.
 
+IS : [
+    city0(CITY_ID, CITY, COUNTRY_ID, LAST_UPDATE) :- city(CITY_ID, CITY, COUNTRY_ID, LAST_UPDATE).
+    usa_city0(CITY_ID, CITY, COUNTRY_ID) :- city0(CITY_ID, CITY, COUNTRY_ID, _), COUNTRY_ID = 103.
+].
+
 
 %% getprime begin
 
