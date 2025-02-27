@@ -7,7 +7,8 @@ view vw_brands('BRAND_NAME':string, 'APPROVAL_STATUS':string).
 
 
 % constraints that allow only insert tuples with APPROVAL_STATUS = 'Pending Approval'
-_|_ :- vw_brands(BRAND_NAME, APPROVAL_STATUS), not brands(BRAND_ID, BRAND_NAME), not APPROVAL_STATUS = 'Pending Approval'. 
+_|_ :- vw_brands(BRAND_NAME, APPROVAL_STATUS), not APPROVAL_STATUS = 'Approved', not APPROVAL_STATUS = 'Pending Approval'.
+_|_ :- vw_brands(BRAND_NAME, APPROVAL_STATUS), not brands(_, BRAND_NAME), not APPROVAL_STATUS = 'Pending Approval'. 
 
 
 IS : [
