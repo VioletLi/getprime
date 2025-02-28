@@ -1,0 +1,67 @@
+% ...
+
+% describe the schema of sources and views
+source task('ID':int, 'PARENT_TASK_ID':int, 'VENUE_ID':int).
+view outstanding_task('ID':int, 'PARENT_TASK_ID':int, 'VENUE_ID':int).
+
+
+% constraint 
+% PK
+PK(outstanding_task,['ID']).
+PK(task,['ID']).
+
+% FK
+% if PARENT_TASK_ID is not -1, then there must be a task having this ID = PARENT_TASK_ID
+_|_ :- task(ID, PARENT_TASK_ID, _), not PARENT_TASK_ID = -1, not task(PARENT_TASK_ID, _, _).
+
+% no key -1
+_|_ :- task(ID, PARENT_TASK_ID, VENUE_ID), ID = -1.
+_|_ :- outstanding_task(ID, PARENT_TASK_ID, VENUE_ID), ID = -1.
+_|_ :- outstanding_task(ID, PARENT_TASK_ID, VENUE_ID), PARENT_TASK_ID = -1.
+
+
+GET : [
+    outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+        :- task(ID, PARENT_TASK_ID, VENUE_ID), 
+        ,  task(PARENT_TASK_ID, _, _).
+].
+
+
+% getprime begin, allow only one ID in task
+
+% rule for insertion to view { add a new task, if not parent task then add a new parent task, if remove a view task then change the parent task id}
++outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+    :- +task(ID, PARENT_TASK_ID, VENUE_ID)
+    ,  not task(ID, _, _)
+    ,  task(PARENT_TASK_ID, _, _).
++outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+    :- +task(ID, PARENT_TASK_ID, VENUE_ID)
+    ,  +task(PARENT_TASK_ID, -1, -1)
+    ,  not task(ID, _, _)
+    ,  not task(PARENT_TASK_ID, _, _).
++outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+    :- +task(ID, PARENT_TASK_ID, VENUE_ID)
+    ,  -task(ID, PARENT_TASK_ID_1, VENUE_ID_1)
+    ,  task(ID, PARENT_TASK_ID_1, VENUE_ID_1)
+    ,  task(PARENT_TASK_ID, _, _).
++outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+    :- +task(ID, PARENT_TASK_ID, VENUE_ID)
+    ,  +task(PARENT_TASK_ID, -1, -1)
+    ,  -task(ID, PARENT_TASK_ID_1, VENUE_ID_1)
+    ,  task(ID, PARENT_TASK_ID_1, VENUE_ID_1)
+    ,  not task(PARENT_TASK_ID, _, _).    
+
+
+% rule for deletion to view
+-outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+    :- -task(ID, PARENT_TASK_ID, VENUE_ID)
+    ,  +task(ID, -1, VENUE_ID)
+    ,  task(PARENT_TASK_ID, _, _).
+
+% getprime end 
+
+
+% view definition
+% outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+%    :- task(ID, PARENT_TASK_ID, VENUE_ID), 
+%    ,  task(PARENT_TASK_ID, _, _).
