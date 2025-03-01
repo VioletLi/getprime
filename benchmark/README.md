@@ -1,23 +1,23 @@
 # Experiments
 ## Benchmarks
-- [ ] textbook.1/activestudents
-- [ ] textbook.1/bstudents
-- [ ] textbook.1/goodstudents
-- [ ] textbook.2/paramountmovies
-- [ ] textbook.3/newpc
+- [ ] textbook.1/activestudents **natural join**
+- [x] textbook.1/bstudents  **error: 03 putget is not validated, natural join**
+- [x] textbook.1/goodstudents
+- [x] textbook.2/paramountmovies
+- [x] textbook.3/newpc  **error: 03 putget is not validated, natural join without primary key**, 68 lines
 - [x] mysql-tutorial/officeinfo
 - [x] mysql-tutorial/luxuryitems
 - [x] oracle-tutorial/car_master
 - [x] oracle-tutorial/all_cars  **error: 03 putget is not validated, natural join**   
 - [x] oracle-tutorial.2/vw_customers  
 - [x] oracle-tutorial.2/vw_customers.2  **error: 02 not disjoint, if only left deletion rule, then the putget is not validated**
-- [x] postgres-tutorial/emp_view    **warning: 02 not implemented in birds**
+- [x] postgres-tutorial/emp_view
 - [x] postgres-tutorial.2/usa_city
 - [x] postgres-sharding/measurement
 - [x] sqlserver-tutorial/vw_brands
-- [x] sqlserver-tutorial/vw_brands.2    **error: 03 putget is not validated**  
-- [x] pods06/tracks1    
-- [x] pods06/tracks2    **warning: 01 cannot implement strategies in putdelta, which may cause non-injective**
+- [x] sqlserver-tutorial/vw_brands.2
+- [x] pods06/tracks1    **error: 03 putget is not validated, natural join**  
+- [x] pods06/tracks2
 - [x] pods06/tracks3
 - [x] case-study/residents
 - [x] case-study/ced
@@ -27,16 +27,24 @@
 - [x] case-study/retired
 - [x] stackexchange/ukaz_lok
 - [x] stackexchange.2/purchaseview  **error: 03 putget is not validated, natural join**  
-- [ ] stackexchange.2/purchaseview.2
-- [ ] stackexchange.3/message
-- [ ] stackexchange.4/outstanding_task
-- [ ] stackexchange.4/outstanding_task.2
-- [ ] stackexchange.4/outstanding_task.3
-- [ ] stackexchange.5/products
-- [ ] stackexchange.6/poi_view
-- [ ] stackoverflow/VW_COMPANY_PHONELIST
-- [ ] stackoverflow.2/vehicle_view
-- [ ] stackoverflow.3/vwEmployees
-- [ ] stackoverflow.4/Koncerty
-- [ ] stackoverflow.5/AverageByGroup
+- [x] stackexchange.2/purchaseview.2    **error: 03 putget is not validated, natural join**  
+- [x] stackexchange.3/message   
+- [x] stackexchange.4/outstanding_task  **error: 03 putget is not validated**
+- [x] stackexchange.4/outstanding_task.2    **error: 03 putget is not validated**
+- [x] stackexchange.4/outstanding_task.3    **error: 03 putget is not validated**
+- [x] stackexchange.5/products  **error: 03 putget is not validated**
+- [x] stackexchange.6/poi_view  **error: 01 time out for 1h in birds**
+- [x] stackoverflow/VW_COMPANY_PHONELIST
+- [x] stackoverflow.2/vehicle_view  **error: 03 putget is not validated, natural join**
+- [x] stackoverflow.3/vwEmployees   **error: 01 time out for 1h in birds, 123 lines of temp.dl generated, natural join**
+- [x] stackoverflow.4/Koncerty  **error: 01 time out for 1h in birds, 457 lines of temp.dl generated, natural join**
+- [x] stackoverflow.5/AverageByGroup
 - [x] personalblog/person_detail_job_vw 
+
+## note: 
+- original sources have too many columns that do not affect the result of verfication but make it very slow, so we remove those unimportant columns, like `stackexchange.3/message`
+- cannot implement strategies in putdelta, which may cause non-injective, like `pods06/tracks2`
+- the putdelta(s) correspond to the same get', like `stackexchange.4/outstanding_task.2` and `stackexchange.4/outstanding_task.3`
+- next_xxx_id(ID) may be multiple, but is simplified in our experiments
+- some examples are not implemented in birds, like `postgres-tutorial/emp_view` and `stackoverflow.5/AverageByGroup`
+- the putdelta which has complicated relationship between source and veiw is too complex to be converted into get', like all projections and `textbook.3/newpc`
