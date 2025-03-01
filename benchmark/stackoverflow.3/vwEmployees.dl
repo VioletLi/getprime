@@ -1,0 +1,41 @@
+% natural join with PK
+
+% describe the schema of sources and views
+source persons('PERSONID':int, 'FIRSTNAME':string, 'LASTNAME':string).
+source employees('EMPLOYEEID':int, 'PERSONID':int, 'TITLE':string).
+view vwemployees('PERSONID':int, 'EMPLOYEEID':int, 'FIRSTNAME':string, 'LASTNAME':string, 'TITLE':string).
+
+
+% constraints
+PK(persons,['PERSONID']).
+PK(employees, ['EMPLOYEEID']).
+PK(vwemployees, ['PERSONID']).
+% foreign key
+_|_ :- employees(_, PERSONID, _), not persons(PERSONID, _, _).
+
+
+GET : [
+    vwemployees(PERSONID, EMPLOYEEID, FIRSTNAME, LASTNAME, TITLE) :- employees(EMPLOYEEID, PERSONID, TITLE), persons(PERSONID, FIRSTNAME, LASTNAME).
+].
+
+IS : [
+    persons0(PERSONID, FIRSTNAME, LASTNAME) :- persons(PERSONID, FIRSTNAME, LASTNAME).
+    employees0(EMPLOYEEID, PERSONID, TITLE) :- employees(EMPLOYEEID, PERSONID, TITLE).
+    vwemployees0(PERSONID, EMPLOYEEID, FIRSTNAME, LASTNAME, TITLE) :- employees0(EMPLOYEEID, PERSONID, TITLE), persons0(PERSONID, FIRSTNAME, LASTNAME).
+].
+
+
+% getprime begin
+
+% rule for insertion to view
++vwemployees(PID,EID,FN,LN,T) :- +employees(EID,PID,T), persons(PID,FN,LN).
++vwemployees(PID,EID,FN,LN,T) :- +employees(EID,PID,T), +persons(PID,FN,LN).
+
+% rule for deletion to view
+-vwemployees(PID,EID,FN,LN,T) :- -employees(EID,PID,T), persons(PID,FN,LN).
+
+% getprime end
+
+
+% view defintion
+% vwemployees(PERSONID, EMPLOYEEID, FIRSTNAME, LASTNAME, TITLE) :- employees(EMPLOYEEID, PERSONID, TITLE), persons(PERSONID, FIRSTNAME, LASTNAME).
