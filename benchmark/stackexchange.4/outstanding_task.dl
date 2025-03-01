@@ -17,6 +17,20 @@ _|_ :- outstanding_task(ID, PARENT_TASK_ID, VENUE_ID), ID = -1.
 _|_ :- outstanding_task(ID, PARENT_TASK_ID, VENUE_ID), PARENT_TASK_ID = -1.
 
 
+GET : [
+    outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
+       :- task(ID, PARENT_TASK_ID, VENUE_ID)
+       ,  task(PARENT_TASK_ID, _, _).
+].
+
+IS : [
+    task0(ID, PARENT_TASK_ID, VENUE_ID) :- task(ID, PARENT_TASK_ID, VENUE_ID). 
+    outstanding_task0(ID, PARENT_TASK_ID, VENUE_ID) 
+       :- task0(ID, PARENT_TASK_ID, VENUE_ID)
+       ,  task0(PARENT_TASK_ID, _, _).
+].
+
+
 % getprime begin: allow multiple ID in task
 
 % rule for insertion to view { add a new task, if not parent task then add a new parent task, if remove a view task then change the parent task id}
@@ -39,5 +53,5 @@ _|_ :- outstanding_task(ID, PARENT_TASK_ID, VENUE_ID), PARENT_TASK_ID = -1.
 
 % view definition
 % outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
-%    :- task(ID, PARENT_TASK_ID, VENUE_ID), 
+%    :- task(ID, PARENT_TASK_ID, VENUE_ID)
 %    ,  task(PARENT_TASK_ID, _, _).

@@ -1,0 +1,42 @@
+% union(distinct)
+
+% describe the schema of sources and views
+source customer('customerid':int, 'customernumber':string, 'customerlastname':string, 'customerfirstname':string, 'phoneno':string).
+source supplier('supplierid':int, 'suppliernumber':string, 'supplierlastname':string, 'supplierfirstname':string, 'phoneno':string).
+source vendor('vendorid':int, 'vendornumber':string, 'vendorlastname':string, 'vendorfirstname':string, 'phoneno':string).
+view vw_company_phonelist('src':string, 'id':int, 'number':string, 'lastname':string, 'fistname':string, 'phoneno':string).
+
+
+% constraints
+_|_ :- vw_company_phonelist(_SOURCE, ID, NUMBER, LASTNAME, FISTNAME, PHONENO), _SOURCE <> 'Customer', _SOURCE <> 'Supplier', _SOURCE <> 'Vendor'.
+
+
+IS : [
+    customer0(ID, N, LN, FN, PN) :- customer(ID, N, LN, FN, PN).
+    supplier0(ID, N, LN, FN, PN) :- supplier(ID, N, LN, FN, PN).
+    vendor0(ID, N, LN, FN, PN) :- vendor(ID, N, LN, FN, PN).
+    vw_company_phonelist0(S, ID, N, LN, FN, PN) :- customer0(ID, N, LN, FN, PN), S = 'Customer'. 
+    vw_company_phonelist0(S, ID, N, LN, FN, PN) :- supplier0(ID, N, LN, FN, PN), S = 'Supplier'.
+    vw_company_phonelist0(S, ID, N, LN, FN, PN) :- vendor0(ID, N, LN, FN, PN), S = 'Vendor'.
+].
+
+
+% getprime begin
+
+% rule for insertion to view
++vw_company_phonelist(S, ID, N, LN, FN, PN) :- +customer(ID, N, LN, FN, PN), S = 'Customer'.
++vw_company_phonelist(S, ID, N, LN, FN, PN) :- +supplier(ID, N, LN, FN, PN), S = 'Supplier'.
++vw_company_phonelist(S, ID, N, LN, FN, PN) :- +vendor(ID, N, LN, FN, PN), S = 'Vendor'.
+
+% rule for deletion to view
+-vw_company_phonelist(S, ID, N, LN, FN, PN) :- -customer(ID, N, LN, FN, PN), S = 'Customer'.
+-vw_company_phonelist(S, ID, N, LN, FN, PN) :- -supplier(ID, N, LN, FN, PN), S = 'Supplier'.
+-vw_company_phonelist(S, ID, N, LN, FN, PN) :- -vendor(ID, N, LN, FN, PN), S = 'Vendor'.
+
+% getprime end
+
+
+% view definition
+% vw_company_phonelist('Customer', ID, NUMBER, LASTNAME, FISTNAME, PHONENO) :- customer(ID, NUMBER, LASTNAME, FISTNAME, PHONENO).
+% vw_company_phonelist('Supplier', ID, NUMBER, LASTNAME, FISTNAME, PHONENO) :- supplier(ID, NUMBER, LASTNAME, FISTNAME, PHONENO).
+% vw_company_phonelist('Vendor', ID, NUMBER, LASTNAME, FISTNAME, PHONENO) :- vendor(ID, NUMBER, LASTNAME, FISTNAME, PHONENO).
