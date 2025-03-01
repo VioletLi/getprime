@@ -1,0 +1,52 @@
+% left join
+
+% describe the schema of sources and views
+source products_raw('ID':int, 'TITLE':string, 'DESCRIPTION':string, 'MANUFACTURER_ID':int, 'CREATED_AT':string, 'UPDATED_AT':string, 'MPN':string, 'VISIBLE':bool).
+source subscriptions('ID':int, 'PRODUCT_ID':int, 'USER_ID':int, 'CREATED_AT':string, 'UPDATED_AT':string).
+source subscriptions_agg('PRODUCT_ID':int, 'SUBSCRIPTIONS_COUNT':int).
+view products('ID':int, 'TITLE':string, 'DESCRIPTION':string, 'MANUFACTURER_ID':int, 'CREATED_AT':string, 'UPDATED_AT':string, 'MPN':string, 'VISIBLE':bool, 'SUBSCRIPTIONS_COUNT':int).
+
+% constraint
+_|_ :- subscriptions_agg(ID, SUBSCRIPTIONS_COUNT), SUBSCRIPTIONS_COUNT=0.
+% FK
+_|_ :- subscriptions_agg(ID, _), not products_raw(ID, _, _, _, _, _, _, _).
+
+
+% constraint
+PK(products_raw, ['ID']).
+PK(subscriptions, ['ID']).
+PK(subscriptions_agg, ['PRODUCT_ID']).
+PK(products, ['ID']).
+
+
+GET : [
+    products(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE, SUBSCRIPTIONS_COUNT) 
+        :- products_raw(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE)
+        , subscriptions_agg(ID, SUBSCRIPTIONS_COUNT).
+    products(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE, 0) 
+        :- products_raw(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE)
+        , not subscriptions_agg(ID, _).
+].
+
+
+% getprime begin
+
+% rule for insertion to view
++products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- +products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), +subscriptions_agg(ID,SC), not SC = 0.
++products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- +products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), not subscriptions_agg(ID,_), SC = 0.
+
+% rule for deletion to view
++products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- -products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), -subscriptions_agg(ID,SC), not SC = 0.
++products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- -products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), not subscriptions_agg(ID,_), SC = 0.
+
+
+% getprime end
+
+
+% view definition
+% products(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE, SUBSCRIPTIONS_COUNT) 
+%    :- products_raw(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE)
+%    , subscriptions_agg(ID, SUBSCRIPTIONS_COUNT).
+% products(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE, 0) 
+%    :- products_raw(ID, TITLE, DESCRIPTION, MANUFACTURER_ID, CREATED_AT, UPDATED_AT, MPN, VISIBLE)
+%    , not subscriptions_agg(ID, _).
