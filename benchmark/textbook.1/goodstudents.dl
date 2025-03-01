@@ -1,0 +1,30 @@
+% selection + projection
+
+% describe the schema of sources and views
+source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
+view goodstudents('SID':int, 'GPA':real).
+
+
+% constraints
+_|_ :- goodstudents(SID, GPA), GPA <= 3.0.
+
+
+IS : [
+    students0(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA).
+    goodstudents0(SID, GPA) :- students0(SID, _, _, _, GPA), GPA > 3.0.
+].
+
+
+% getprime begin
+
+% rule for insertion to view
++goodstudents(SID, GPA) :- +students(SID, SNAME, LOGIN, AGE, GPA), not students(SID, _, _, _, GPA), SNAME = 'unknown', LOGIN = 'unknown', AGE = 0, GPA > 3.0.
+
+% rule for deletion to view
+-goodstudents(SID, GPA) :- -students(SID, SNAME, LOGIN, AGE, GPA), GPA > 3.0.
+
+% getprime end
+
+
+% view definition
+% goodstudents(SID, GPA) :- students(SID, _, _, _, GPA), GPA > 3.0.

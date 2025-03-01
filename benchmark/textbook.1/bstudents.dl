@@ -1,0 +1,41 @@
+% selection + join on PK
+
+% describe the schema of sources and views
+source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
+source enrolled('SID':int, 'CID':string, 'GRADE':string).
+view bstudents('NAME':string, 'SID':int, 'COURSE':string).
+
+
+% constraints
+% primary key
+PK(students,['SID']).
+PK(enrolled,['SID']).
+PK(bstudents,['SID']).
+
+
+IS : [
+    students0(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA).
+    enrolled0(SID, COURSE, GRADE) :- enrolled(SID, COURSE, GRADE).
+    bstudents0(NAME, SID, COURSE) :- students0(SID, NAME, LOGIN, AGE, GPA), enrolled0(SID, COURSE, GRADE), GRADE='B'.
+].
+
+GET : [
+    bstudents(NAME, SID, COURSE) :- students(SID, NAME, LOGIN, AGE, GPA), enrolled(SID, COURSE, GRADE), GRADE='B'.
+].
+
+
+% getprime begin
+
+% rule for insertion to view
++bstudents(SNAME, SID, COURSE) :- +students(SID, SNAME, LOGIN, AGE, GPA), +enrolled(SID, COURSE, GRAGE), LOGIN = '', AGE = 0, GPA = 0.0, GRAGE = 'B'. 
++bstudents(SNAME, SID, COURSE) :- +students(SID, SNAME, LOGIN, AGE, GPA),  enrolled(SID, COURSE, GRAGE), LOGIN = '', AGE = 0, GPA = 0.0, GRAGE = 'B'. 
++bstudents(SNAME, SID, COURSE) :-  students(SID, SNAME, LOGIN, AGE, GPA), +enrolled(SID, COURSE, GRAGE), GRAGE = 'B'. 
+
+% rule for deletion to view
+-bstudents(SNAME, SID, COURSE) :-  -students(SID, SNAME, LOGIN, AGE, GPA), -enrolled(SID, COURSE, GRAGE), GRAGE = 'B'. 
+
+% getprime end
+
+
+% view definition
+% bstudents(NAME, SID, COURSE) :- students(SID, NAME, LOGIN, AGE, GPA), enrolled(SID, COURSE, GRADE), GRADE='B'.
