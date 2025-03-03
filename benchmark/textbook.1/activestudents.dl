@@ -1,0 +1,50 @@
+% selection + projection + join on non-pk attr + projection 
+
+% describe the schema of sources and views
+source clubs('CNAME':string, 'JYEAR':string, 'MNAME':string).
+source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
+view activestudents('NAME':string, 'LOGIN':string, 'CLUB':string, 'SINCE':string).
+source students_next_sid('SID':int).
+
+% primary key
+PK(clubs, ['CNAME', 'JYEAR', 'MNAME']).
+PK(students,['SID']).
+PK(students, ['SNAME, LOGIN']).
+
+% join depedencies
+_|_ :- activestudents(NAME, LOGIN, _, _), activestudents(NAME, _, CLUB, SINCE), not activestudents(NAME, LOGIN, CLUB, SINCE).
+
+% students_next_sid
+_|_ :- students(SID,_,_,_,_), students_next_sid(SID).
+_|_ :- students_next_sid(SID1), students_next_sid(SID2), SID1 <> SID2.
+_|_ :- not students_next_sid(_).
+
+
+IS : [
+    clubs0(C,J,M) :- clubs(C,J,M).
+    students0(SID,N,L,A,G) :- students(SID,N,L,A,G).
+    students_next_sid0(SID) :- students_next_sid(SID).
+    activestudents0(N,L,C,S) :- students0(SID,N,L,A,G), clubs0(C,J,M), G > 3.0.
+].
+
+
+GET : [
+    activestudents(NAME, LOGIN, CLUB, SINCE) :- students(SID, NAME, LOGIN, AGE, GPA), clubs(CLUB, SINCE, NAME), GPA > 3.0.
+].
+
+
+% getprime begin
+
+% rule for insertion to view
++activestudents(N,L,C,S) :- +students(SID,N,L,A,G), +clubs(C,S,N), students_next_sid(SID), A=0, G=4.0, not students(_,N,L,_,G1), G1 > 3.0, not clubs(C,S,N).
++activestudents(N,L,C,S) :-  students(_,N,L,_,G), +clubs(C,S,N), G > 3.0, not clubs(C,S,N).
++activestudents(N,L,C,S) :- +students(SID,N,L,A,G), clubs(C,S,N), students_next_sid(SID), A=0, G=4.0, not students(_,N,L,_,G1), G1 > 3.0.
+
+% rule for insertion to view
+-activestudents(N,L,C,S) :- students(_,N,L,_,G), -clubs(C,S,N), G > 3.0.
+
+% getprime end
+
+
+% view definition
+% activestudents(NAME, LOGIN, CLUB, SINCE) :- students(SID, NAME, LOGIN, AGE, GPA), clubs(CLUB, SINCE, NAME), GPA > 3.0.

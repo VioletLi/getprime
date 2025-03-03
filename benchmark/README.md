@@ -1,6 +1,6 @@
 # Experiments
 ## Benchmarks
-- [ ] textbook.1/activestudents **natural join**
+- [ ] textbook.1/activestudents **error: 02 not disjoint, natural join**
 - [x] textbook.1/bstudents  **error: 03 putget is not validated, natural join**
 - [x] textbook.1/goodstudents
 - [x] textbook.2/paramountmovies
@@ -44,6 +44,7 @@
 ## note: 
 - original sources have too many columns that do not affect the result of verfication but make it very slow, so we remove those unimportant columns, like `stackexchange.3/message`
 - cannot implement strategies in putdelta, which may cause non-injective, like `pods06/tracks2`
+- cannot implement strategies in putdelta, which is too complex to express in our syntax, like `textbook.1/activestudents`
 - the putdelta(s) correspond to the same get', like `stackexchange.4/outstanding_task.2` and `stackexchange.4/outstanding_task.3`
 - next_xxx_id(ID) may be multiple, but is simplified in our experiments
 - some examples are not implemented in birds, like `postgres-tutorial/emp_view` and `stackoverflow.5/AverageByGroup`
