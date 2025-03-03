@@ -1,10 +1,10 @@
-% selection
+%% selection
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source tracks2('TRACK':string,'RATING':int,'ALBUM':string,'QUANTITY':int).
 view tracks3('TRACK':string,'RATING':int,'ALBUM':string,'QUANTITY':int).
 
-% constraints:
+%% constraints:
 _|_ :- tracks3(T,R,A,Q), NOT Q>2.
 
 
@@ -19,5 +19,5 @@ _|_ :- tracks3(T,R,A,Q), NOT Q>2.
 %% getprime end
 
 
-% view definition:
+%% view definition:
 % tracks3(T,R,A,Q) :- tracks2(T,R,A,Q),Q > 2.

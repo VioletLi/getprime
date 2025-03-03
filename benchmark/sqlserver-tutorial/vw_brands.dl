@@ -1,12 +1,12 @@
-% union(distinct) + projection
+%% union(distinct) + projection
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source brands('BRAND_ID':int, 'BRAND_NAME':string).
 source brand_approvals('BRAND_ID':int, 'BRAND_NAME':string).
 view vw_brands('BRAND_NAME':string, 'APPROVAL_STATUS':string).
 
 
-% constraints
+%% constraints
 _|_ :- vw_brands(BRAND_NAME, APPROVAL_STATUS), not APPROVAL_STATUS = 'Approved', not APPROVAL_STATUS = 'Pending Approval'.
 
 
@@ -30,6 +30,6 @@ IS : [
 %% getprime end
 
 
-% view definition
+%% view definition
 % vw_brands(BRAND_NAME, 'Approved') :- brands(BRAND_ID, BRAND_NAME).
 % vw_brands(BRAND_NAME, 'Pending Approval') :- brand_approvals(BRAND_ID, BRAND_NAME).

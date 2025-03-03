@@ -1,6 +1,6 @@
-% projection with multiple attributes
+%% projection with multiple attributes
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source tracks1('TRACK':string,'DATE':int,'RATING':int,'ALBUM':string,'QUANTITY':int).
 view tracks2('TRACK':string,'RATING':int,'ALBUM':string,'QUANTITY':int).
 
@@ -22,5 +22,5 @@ IS : [
 %% getprime end
 
 
-% view definition:
+%% view definition:
 % tracks2(T,R,A,Q) :- tracks1(T,_,R,A,Q).

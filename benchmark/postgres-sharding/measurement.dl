@@ -1,11 +1,11 @@
-% union
+%% union
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source measurement_y2006m02('CITY_ID':int, 'LOGDATE':int, 'PEAKTEMP':int, 'UNITSALES':int).
 source measurement_y2006m03('CITY_ID':int, 'LOGDATE':int, 'PEAKTEMP':int, 'UNITSALES':int).
 view measurement('CITY_ID':int, 'LOGDATE':int, 'PEAKTEMP':int, 'UNITSALES':int).
 
-% constraint
+%% constraint
 % non-overlapping table constraints
 _|_ :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES), LOGDATE < 20060201.
 _|_ :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES), LOGDATE >= 20060301.
@@ -28,5 +28,5 @@ _|_ :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES), not measurem
 %% getprime end
 
 
-% view definition
+%% view definition
 % measurement(C,L,P,U) :- measurement_y2006m02(C,L,P,U), measurement_y2006m03(C,L,P,U).
