@@ -44,6 +44,7 @@
 ## summary table
 
 
+
 | Benchmark Name                     | view type                                                    | LOC in BIRDS | LOC in our tool |      Generated LOC      |            Correctness             | Generation  & Verification Time (s) |
 | :--------------------------------- | ------------------------------------------------------------ | :----------: | :-------------: | :---------------------: | :--------------------------------: | :---------------------------------: |
 | textbook.1/activestudents          | selection + projection + **join** on non-pk attr + projection |      19      |       24        | **error**: not disjoint |                 -                  |                  -                  |
@@ -72,27 +73,40 @@
 | case-study/researchers             | projection + selection + intersection                        |      6       |       12        |           25            |                 √                  |               13.900                |
 | case-study/retired                 | projection + complement                                      |      6       |       12        |           25            |                 √                  |               13.031                |
 | stackexchange/ukaz_lok             | identity                                                     |      6       |        6        |           20            |                 √                  |               241.192               |
-| stackexchange.2/purchaseview       | **join** with PK                                             |      19      |       24        |                         | **error**: putget is not validated |                                     |
-| stackexchange.2/purchaseview.2     | **join** with PK                                             |      15      |       24        |                         | **error**: putget is not validated |                                     |
+| stackexchange.2/purchaseview       | **join** with PK                                             |      19      |       24        |           48            | **error**: putget is not validated |               352.441               |
+| stackexchange.2/purchaseview.2     | **join** with PK                                             |      15      |       24        |           31            | **error**: putget is not validated |               31.632                |
 | stackexchange.3/message            | union(distinct)                                              |      8       |        8        |           28            |                 √                  |               261.168               |
-| stackexchange.4/outstanding_task   | **join** without PK+ projection                              |      10      |       28        |                         | **error**: putget is not validated |                                     |
-| stackexchange.4/outstanding_task.2 | **join** with PK+ projection                                 |      15      |       43        |                         | **error**: putget is not validated |                                     |
-| stackexchange.4/outstanding_task.3 | **join** with PK+ projection                                 |      13      |       43        |                         | **error**: putget is not validated |                                     |
+| stackexchange.4/outstanding_task   | **join** without PK+ projection                              |      10      |       28        |           29            | **error**: putget is not validated |               53.939                |
+| stackexchange.4/outstanding_task.2 | **join** with PK+ projection                                 |      15      |       43        |           120           | **error**: putget is not validated |               119.271               |
+| stackexchange.4/outstanding_task.3 | **join** with PK+ projection                                 |      13      |       43        |           120           | **error**: putget is not validated |               118.466               |
 | stackexchange.5/products           | left join                                                    |      16      |       22        |                         |                 √                  |                                     |
-| stackexchange.6/poi_view           | projection + **join**                                        |      12      |       18        |                         | **error**: putget is not validated |                                     |
+| stackexchange.6/poi_view           | projection + **join**                                        |      12      |       18        |           117           |     **error**: time out for 1h     |             **over 1h**             |
 | stackoverflow/VW_COMPANY_PHONELIST | union(distinct)                                              |      11      |       19        |           35            |                 √                  |              2424.871               |
-| stackoverflow.2/vehicle_view       | **join** with PK + projection                                |      20      |       23        |                         | **error**: putget is not validated |                                     |
-| stackoverflow.3/vwEmployees        | **join** with PK                                             |      12      |       18        |                         | **error**: putget is not validated |                                     |
-| stackoverflow.4/Koncerty           | **join** with PK (three db)                                  |      17      |       27        |                         | **error**: putget is not validated |                                     |
-| personalblog/person_detail_job_vw  | left join                                                    |      14      |       22        |                         |                 √                  |                                     |
+| stackoverflow.2/vehicle_view       | **join** with PK + projection                                |      20      |       23        |           47            | **error**: putget is not validated |               49.032                |
+| stackoverflow.3/vwEmployees        | **join** with PK                                             |      12      |       18        |           123           |     **error**: time out for 1h     |             **over 1h**             |
+| stackoverflow.4/Koncerty           | **join** with PK (three db)                                  |      17      |       27        |           457           |     **error**: time out for 1h     |             **over 1h**             |
+| personalblog/person_detail_job_vw  | left join                                                    |      14      |       22        |           42            |                 √                  |               232.831               |
 
-## 
+| Indicator                                                   | Number |  Rate  | Avg     | Max      | Min    |
+| :---------------------------------------------------------- | :----: | :----: | ------- | -------- | ------ |
+| Total benchmarks                                            |   39   |   -    |         |          |        |
+| Passed benchmarks                                           |   23   | 58.97% | 195.608 | 2424.871 | 11.201 |
+| Timeout benchmark for 1h                                    |   4    | 10.26% | -       | -        | -      |
+| Failed verification benchmarks, all related to natural join |   10   | 25.64% | 227.943 | 1114.708 | 31.632 |
+| Failed generation benchmarks, all related to natural join   |   2    | 5.13%  | -       | -        | -      |
 
-## note: 
-- original sources have too many columns that do not affect the result of verfication but make it very slow, so we remove those unimportant columns, like `stackexchange.3/message`
-- cannot implement strategies in putdelta, which may cause non-injective, like `pods06/tracks2`
-- cannot implement strategies in putdelta, which is too complex to express in our syntax, like `textbook.1/activestudents`
-- the putdelta(s) correspond to the same get', like `stackexchange.4/outstanding_task.2` and `stackexchange.4/outstanding_task.3`
-- next_xxx_id(ID) may be multiple, but is simplified in our experiments
-- some examples are not implemented in birds, like `postgres-tutorial/emp_view` and `stackoverflow.5/AverageByGroup`
-- the putdelta which has complicated relationship between source and veiw is too complex to be converted into get', like all projections and `textbook.3/newpc`
+
+
+
+
+## note:
+
+1. Two cases are not implemented in BIRDS: `postgres-tutorial/emp_view` ; `stackoverflow.5/AverageByGroup`.s
+2. generated **LOC** are exp of **original LOC**
+3. generation and verification **time** are exp of **original LOC**, **numbers of column** 
+4. to speed up the generation and verification, we specify the **GET** for those run slow.
+5. original sources have too many columns that do not affect the result of verfication but make it very slow, so we remove those unimportant columns, like `stackexchange.3/message`
+6. cannot implement strategies in putdelta, which may cause non-injective, like `pods06/tracks2`
+7. cannot implement strategies in putdelta, which is too complex to express in our syntax, like `textbook.1/activestudents`, `textbook.3/newpc`
+8. next_xxx_id(ID) may be multiple, but is simplified in our experiments
+
