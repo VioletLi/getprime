@@ -36,8 +36,8 @@ GET : [
 +products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- +products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), not subscriptions_agg(ID,_), SC = 0.
 
 % rule for deletion to view
-+products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- -products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), -subscriptions_agg(ID,SC), not SC = 0.
-+products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- -products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), not subscriptions_agg(ID,_), SC = 0.
+-products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- -products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), -subscriptions_agg(ID,SC), not SC = 0.
+-products(ID,T,DESC,MID,CA,UA,MPN,VIS,SC) :- -products_raw(ID,T,DESC,MID,CA,UA,MPN,VIS), not subscriptions_agg(ID,_), SC = 0.
 
 
 %% getprime end
