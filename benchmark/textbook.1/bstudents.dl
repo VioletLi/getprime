@@ -1,12 +1,12 @@
-% selection + join on PK
+%% selection + join on PK + projection
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
 source enrolled('SID':int, 'CID':string, 'GRADE':string).
 view bstudents('NAME':string, 'SID':int, 'COURSE':string).
 
 
-% constraints
+%% constraints
 % primary key
 PK(students,['SID']).
 PK(enrolled,['SID']).
@@ -24,7 +24,7 @@ GET : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +bstudents(SNAME, SID, COURSE) :- +students(SID, SNAME, LOGIN, AGE, GPA), +enrolled(SID, COURSE, GRAGE), LOGIN = '', AGE = 0, GPA = 0.0, GRAGE = 'B'. 
@@ -34,8 +34,8 @@ GET : [
 % rule for deletion to view
 -bstudents(SNAME, SID, COURSE) :-  -students(SID, SNAME, LOGIN, AGE, GPA), -enrolled(SID, COURSE, GRAGE), GRAGE = 'B'. 
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % bstudents(NAME, SID, COURSE) :- students(SID, NAME, LOGIN, AGE, GPA), enrolled(SID, COURSE, GRADE), GRADE='B'.

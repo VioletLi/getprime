@@ -1,6 +1,6 @@
-% selection + projection + join on non-pk attr + projection 
+%% selection + projection + join on non-pk attr + projection 
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source clubs('CNAME':string, 'JYEAR':string, 'MNAME':string).
 source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
 view activestudents('NAME':string, 'LOGIN':string, 'CLUB':string, 'SINCE':string).
@@ -33,7 +33,7 @@ GET : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +activestudents(N,L,C,S) :- +students(SID,N,L,A,G), +clubs(C,S,N), students_next_sid(SID), A=0, G=4.0, not students(_,N,L,_,G1), G1 > 3.0, not clubs(C,S,N).
@@ -43,8 +43,8 @@ GET : [
 % rule for insertion to view
 -activestudents(N,L,C,S) :- students(_,N,L,_,G), -clubs(C,S,N), G > 3.0.
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % activestudents(NAME, LOGIN, CLUB, SINCE) :- students(SID, NAME, LOGIN, AGE, GPA), clubs(CLUB, SINCE, NAME), GPA > 3.0.

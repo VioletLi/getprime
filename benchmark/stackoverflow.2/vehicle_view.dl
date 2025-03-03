@@ -1,13 +1,13 @@
-% join + projection 
+%% natural join with PK + projection 
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source vehicle('VEHICLE_ID':int, 'SIZE':string, 'BRAND_ID':int).
 source brand('BRAND_ID':int, 'NAME':string).
 source nex_brand_id('BRAND_ID':int).
 view vehicle_view('VEHICLE_ID':int, 'SIZE':string, 'NAME':string).
 
 
-% constraints
+%% constraints
 % PK
 PK(vehicle,['VEHICLE_ID']).
 PK(brand, ['BRAND_ID']).
@@ -35,7 +35,7 @@ GET : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +vehicle_view(VEHICLE_ID, SIZE, NAME) :- +vehicle(VEHICLE_ID, SIZE, BRAND_ID), brand(BRAND_ID, NAME).
@@ -44,8 +44,8 @@ GET : [
 % rule for deletion to view
 -vehicle_view(VEHICLE_ID, SIZE, NAME) :- -vehicle(VEHICLE_ID, SIZE, BRAND_ID), brand(BRAND_ID, NAME).
 
-% getprime end
+%% getprime end
 
 
-% view definition 
+%% view definition 
 % vehicle_view(VEHICLE_ID, SIZE, NAME) :- vehicle(VEHICLE_ID, SIZE, BRAND_ID), brand(BRAND_ID, NAME).

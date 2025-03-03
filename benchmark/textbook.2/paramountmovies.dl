@@ -1,6 +1,6 @@
-% selection + projection
+%% selection + projection
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source movies('TITLE':string, 'YEAR':int, 'LENGTH':int, 'GENRE':string, 'STUDIONAME':string, 'PRODUCERC':int).
 view paramountmovies('TITLE':string, 'YEAR':int).
 
@@ -11,7 +11,7 @@ IS : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +paramountmovies(T,Y) :- +movies(T,Y,L,G,S,P), not movies(T,Y,_,_,S,_), L = 0, G = '', S = 'Paramount', P = 0.
@@ -19,8 +19,8 @@ IS : [
 % rule for deletion to view
 -paramountmovies(T,Y) :- -movies(T,Y,L,G,S,P), S = 'Paramount'.
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % paramountmovies(TITLE, YEAR) :- movies(TITLE, YEAR, _, _, STUDIONAME, _), STUDIONAME='Paramount'.

@@ -1,7 +1,7 @@
-% natural join with PK (three db)
+%% natural join with PK (three db)
 
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source klub('NAZWA':string, 'ADRES':string).
 source zespol('NAZWA':string, 'ILOSC_CZLONKOW':int).
 source koncert('NAZWA':string, 'ZESPOLU':string, 'DATA_WYSTEPU':string).
@@ -32,7 +32,7 @@ IS : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +koncerty(N,A,Z,I,D) :- +koncert(N,Z,D), +klub(N,A), +zespol(Z,I).
@@ -46,8 +46,8 @@ IS : [
 % rule for deletion to view
 -koncerty(N,A,Z,I,D) :- -koncert(N,Z,D), klub(N,A), zespol(Z,I).
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % koncerty(NAZWA, ADRES, ZESPOLU, ILOSC_CZLONKOW, DATA_WYSTEPU) :- koncert(NAZWA, ZESPOLU, DATA_WYSTEPU), klub(NAZWA, ADRES), zespol(ZESPOLU, ILOSC_CZLONKOW).

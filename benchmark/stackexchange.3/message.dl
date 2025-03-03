@@ -1,16 +1,16 @@
-% union(distinct)
+%% union(distinct)
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source messagecentre('TXTMESSAGEID':int, 'MESSAGETYPE':string, 'MESSAGE':string).
 source messagecentreemail('MESSAGEID':int, 'TYPE':string, 'TEXT':string).
 view message('TXTMESSAGEID':int, 'MESSAGETECH':string, 'MESSAGETYPE':string, 'MESSAGE':string).
 
 
-% constraint
+%% constraint
 _|_ :- message(_, MESSAGETECH, _, _), not MESSAGETECH ='S', not MESSAGETECH = 'E'.
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +message(TXTMESSAGEID, MESSAGETECH, MESSAGETYPE, MESSAGE) :- +messagecentre(TXTMESSAGEID, MESSAGETYPE, MESSAGE), MESSAGETECH = 'S'.
@@ -20,9 +20,9 @@ _|_ :- message(_, MESSAGETECH, _, _), not MESSAGETECH ='S', not MESSAGETECH = 'E
 -message(TXTMESSAGEID, MESSAGETECH, MESSAGETYPE, MESSAGE) :- -messagecentre(TXTMESSAGEID, MESSAGETYPE, MESSAGE), MESSAGETECH = 'S'.
 -message(MESSAGEID, MESSAGETECH, TYPE, TEXT) :- -messagecentreemail(MESSAGEID, TYPE, TEXT), MESSAGETECH = 'E'.
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % message(TXTMESSAGEID, MESSAGETECH, MESSAGETYPE, MESSAGE) :- messagecentre(TXTMESSAGEID, MESSAGETYPE, MESSAGE), MESSAGETECH = 'S'.
 % message(MESSAGEID, MESSAGETECH, TYPE, TEXT) :- messagecentreemail(MESSAGEID, TYPE, TEXT), MESSAGETECH = 'E'.

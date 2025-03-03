@@ -1,11 +1,11 @@
-% ...
+%% natural join (self table) + projection
 
 % describe the schema of sources and views
 source task('ID':int, 'PARENT_TASK_ID':int, 'VENUE_ID':int).
 view outstanding_task('ID':int, 'PARENT_TASK_ID':int, 'VENUE_ID':int).
 
 
-% constraint 
+%% constraint 
 
 % FK
 % if PARENT_TASK_ID is not -1, then there must be a task having this ID = PARENT_TASK_ID
@@ -31,7 +31,7 @@ IS : [
 ].
 
 
-% getprime begin: allow multiple ID in task
+%% getprime begin: allow multiple ID in task
 
 % rule for insertion to view { add a new task, if not parent task then add a new parent task, if remove a view task then change the parent task id}
 +outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
@@ -48,10 +48,10 @@ IS : [
     ,  +task(ID, -1, VENUE_ID)
     ,  task(PARENT_TASK_ID, _, _).
 
-% getprime end 
+%% getprime end 
 
 
-% view definition
+%% view definition
 % outstanding_task(ID, PARENT_TASK_ID, VENUE_ID) 
 %    :- task(ID, PARENT_TASK_ID, VENUE_ID)
 %    ,  task(PARENT_TASK_ID, _, _).

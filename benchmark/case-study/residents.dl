@@ -1,3 +1,6 @@
+%% union(distinct)
+
+%% describe the schema of sources and views
 source male('EMP_NAME':string, 'BIRTH_DATE':string).
 source female('EMP_NAME':string, 'BIRTH_DATE':string).
 source others('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
@@ -12,9 +15,15 @@ IS:[
     residents0(E, B, G) :- others0(E, B, G).
 ].
 
+
+%% getprime begin
+
+% rule for insertion to view
 +residents(E, B, G) :- +male(E, B), not others(E, B, G), G = 'M'.
 +residents(E, B, G) :- +female(E, B), not others(E, B, G), G = 'F'.
 +residents(E, B, G) :- +others(E, B, G), not G = 'M', not G = 'F'.
+
+% rule for deletion to view
 -residents(E, B, G) :- -male(E, B), not others(E, B, G), G = 'M'.
 -residents(E, B, G) :- -female(E, B), not others(E, B, G), G = 'F'.
 -residents(E, B, G) :- -male(E, B), -others(E, B, G), G = 'M'.
@@ -22,3 +31,11 @@ IS:[
 -residents(E, B, G) :- -others(E, B, G), not male(E, B), G = 'M'.
 -residents(E, B, G) :- -others(E, B, G), not female(E, B), G = 'F'.
 -residents(E, B, G) :- -others(E, B, G), not G = 'M', not G = 'F'.
+
+%% getprime end
+
+
+%% view definition
+% residents(E, B, G) :- male(E, B), G = 'M'.
+% residents(E, B, G) :- female(E, B), G = 'F'.
+% residents(E, B, G) :- others(E, B, G).

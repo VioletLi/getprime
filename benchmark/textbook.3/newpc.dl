@@ -1,12 +1,12 @@
-% join without PK + selection
+%% join without PK + selection
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source product('MAKER':string, 'MODEL':string, 'TYPE':string).
 source pc('MODEL':string, 'SPEED':real, 'RAM':real, 'HD':real, 'PRICE':real).
 view newpc('MAKER':string, 'MODEL':string, 'SPEED':real, 'RAM':real, 'HD':real, 'PRICE':real).
 
 
-% join depedencies
+%% join depedencies
 _|_ :- newpc(MAKER, MODEL, _, _, _, _), newpc(_, MODEL, SPEED, RAM, HD, PRICE), not newpc(MAKER, MODEL, SPEED, RAM, HD, PRICE).
 
 
@@ -15,7 +15,7 @@ GET : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +newpc(MAKER, MODEL, SPEED, RAM, HD, PRICE) :- +product(MAKER, MODEL, TYPE), +pc(MODEL, SPEED, RAM, HD, PRICE), TYPE = 'pc'.
@@ -25,8 +25,8 @@ GET : [
 % rule for deletion to view
 -newpc(MAKER, MODEL, SPEED, RAM, HD, PRICE) :- -product(MAKER, MODEL, TYPE), -pc(MODEL, SPEED, RAM, HD, PRICE), TYPE = 'pc'.
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % newpc(MAKER, MODEL, SPEED, RAM, HD, PRICE) :- product(MAKER, MODEL, TYPE), pc(MODEL, SPEED, RAM, HD, PRICE), TYPE = 'pc'.

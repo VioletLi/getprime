@@ -1,9 +1,11 @@
+%% selection
+
+%% describe the schema of sources and views
 source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
 source ced('EMP_NAME':string, 'DEPT_NAME':string).
 view employees('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
 
-% view definition
-% constraint
+%% constraint
 _|_ :- employees(E,B,G), not ced(E,_).
 
 IS:
@@ -13,9 +15,14 @@ IS:
     employees0(E, B, G) :- residents0(E, B, G), ced0(E, _).
 ].
 
+
+%% getprime begin
+
 +employees(E, B, G) :- +residents(E, B, G), not residents(E, B, G).
 -employees(E, B, G) :- -residents(E, B, G), residents(E, B, G), ced(E, _).
 
-% update strategy
-% +residents(E,B,G) :- employees(E,B,G), ¬residents(E,B,G).
-% -residents(E,B,G) :- residents(E,B,G), ced(E,_), ¬employees(E,B,G).
+%% getprime end
+
+
+%% view definition
+% employees0(E, B, G) :- residents(E, B, G), ced(E, _).

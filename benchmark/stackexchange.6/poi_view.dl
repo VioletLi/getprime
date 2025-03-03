@@ -1,12 +1,12 @@
-% projection + join 
+%% projection + join 
 
-% describe the schema of sources and views
+%% describe the schema of sources and views
 source poi('POI_ID':int, 'COL_A':int, 'COL_B':int, 'COL_C':int).
 source points('POI_ID':int, 'COL_D':string, 'COL_E':string, 'COL_F':string).
 view poi_view('POI_ID':int, 'COL_A':int, 'COL_B':int, 'COL_D':string, 'COL_E':string).
 
 
-% constraint
+%% constraint
 % PK 
 PK(poi, ['POI_ID']).
 PK(points, ['POI_ID']).
@@ -25,7 +25,7 @@ IS : [
 ].
 
 
-% getprime begin
+%% getprime begin
 
 % rule for insertion to view
 +poi_view(ID,A,B,D,E) :- +poi(ID,A,B,C), +points(ID,D,E,F), not poi(ID,A,B,_), not points(ID,D,E,_), C = 0, F = 'COL_F'.
@@ -35,8 +35,8 @@ IS : [
 % rule for deletion to view
 -poi_view(ID,A,B,D,E) :- -poi(ID,A,B,C), points(ID,D,E,_).
 
-% getprime end
+%% getprime end
 
 
-% view definition
+%% view definition
 % poi_view(POI_ID, COL_A, COL_B, COL_D, COL_E) :- poi(POI_ID, COL_A, COL_B, COL_C), points(POI_ID, COL_D, COL_E, COL_F).
