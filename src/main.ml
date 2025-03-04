@@ -21,16 +21,16 @@ let _ =
         if exitcode2 = 0 then
           begin
             let fusedrule = fuseRules expr in
-            let fusecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules fusedrule))) in
+            (* let fusecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules fusedrule))) in
             let vc3 = open_out "/home/code/fuse.dl" in
             Printf.fprintf vc3 "%s\n" fusecode;
-            close_out vc3;
+            close_out vc3; *)
             let code = genCode expr fusedrule in
             let _ = print_string "Generation finished\n" in
-            let oc = open_out "/home/code/temp.dl" in
+            let oc = open_out "./result.dl" in
             Printf.fprintf oc "%s\n" code;
             close_out oc;
-            Sys.command "birds -f /home/code/temp.dl -v -o result.sql";
+            (* Sys.command "birds -f /home/code/temp.dl -v -o result.sql"; *)
           end
         else raise (VerificationErr ("This program is not injective, the message from lean is: " ^ message2))
       end

@@ -32,6 +32,13 @@ opam switch 4.07.0
 eval `opam config env`
 ```
 
+#### Compile
+
+``` bash
+cd /home/code
+make
+```
+
 #### Compile without makefile
 
 ``` bash
