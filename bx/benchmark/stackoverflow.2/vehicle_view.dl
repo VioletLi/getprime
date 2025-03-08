@@ -1,0 +1,73 @@
+.type int <: number
+.type string <: symbol
+
+.decl brand0(BRAND_ID:number, NAME:symbol)
+.decl vehicle0(VEHICLE_ID:int, SIZE:string, BRAND_ID:int).
+.decl nex_brand_id0(BRAND_ID:int).
+
+.decl brand(BRAND_ID:number, NAME:symbol)
+.decl vehicle(VEHICLE_ID:int, SIZE:string, BRAND_ID:int).
+.decl nex_brand_id(BRAND_ID:int).
+
+
+.decl vehicle_view(VEHICLE_ID:int, SIZE:string, NAME:string)
+
+
+
+
+
+.decl precondition(x:symbol)
+
+
+
+PK(vehicle_view, [VEHICLE_ID]).
+PK(brand, [BRAND_ID]).
+PK(vehicle, [VEHICLE_ID]).
+
+precondition("error") :- ! nex_brand_id(_).
+precondition("error") :- nex_brand_id(BRAND_ID_1) , nex_brand_id(BRAND_ID_2) , BRAND_ID_1 <> BRAND_ID_2.
+precondition("error") :- brand(BRAND_ID, _) , nex_brand_id(BRAND_ID).
+precondition("error") :- vehicle(_, _, BRAND_ID) , ! brand(BRAND_ID, _).
+
+nex_brand_id0(BRAND_ID) :- nex_brand_id(BRAND_ID).
+brand0(BRAND_ID, NAME) :- brand(BRAND_ID, NAME).
+vehicle0(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle(VEHICLE_ID, SIZE, BRAND_ID).
+
+vehicle_view0(VEHICLE_ID, SIZE, NAME) :- vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME).
+
+
+vehicle_view(VEHICLE_ID, SIZE, NAME) :- vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME).
+vehicle_view_ini(VEHICLE_ID, SIZE, NAME) :- vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME).
+vehicle_view_ini_ins(VEHICLE_ID, SIZE, NAME) :- vehicle_view(VEHICLE_ID, SIZE, NAME) , ! vehicle_view_ini(VEHICLE_ID, SIZE, NAME).
+vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) :- vehicle_view_ini(VEHICLE_ID, SIZE, NAME) , ! vehicle_view(VEHICLE_ID, SIZE, NAME).
+
+
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , ! vehicle_view_ini_ins(_, _, _) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID).
++vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_ins(VEHICLE_ID, SIZE, NAME) , ! vehicle_view_ini_del(_, _, _) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID, _, _) , ! brand(BRAND_ID, _).
++brand(BRAND_ID, NAME) :- vehicle_view_ini_ins(VEHICLE_ID, SIZE, NAME) , ! vehicle_view_ini_del(_, _, _) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID, _, _) , ! brand(BRAND_ID, _).
++vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_ins(VEHICLE_ID, SIZE, NAME) , ! vehicle_view_ini_del(_, _, _) , brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! vehicle(VEHICLE_ID, _, _).
++brand(BRAND_ID, NAME1) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! brand(BRAND_ID, _) , ! NAME = NAME1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME) , ! brand(BRAND_ID, _) , ! SIZE = SIZE1.
++vehicle(VEHICLE_ID, SIZE1, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME) , ! brand(BRAND_ID, _) , ! SIZE = SIZE1.
++brand(BRAND_ID, NAME) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME) , ! brand(BRAND_ID, _) , ! SIZE = SIZE1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! brand(BRAND_ID, _) , ! SIZE = SIZE1 , ! NAME = NAME1.
++vehicle(VEHICLE_ID, SIZE1, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! brand(BRAND_ID, _) , ! SIZE = SIZE1 , ! NAME = NAME1.
++brand(BRAND_ID, NAME1) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! brand(BRAND_ID, _) , ! SIZE = SIZE1 , ! NAME = NAME1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1.
++vehicle(VEHICLE_ID1, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1.
++brand(BRAND_ID, NAME) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! NAME = NAME1.
++vehicle(VEHICLE_ID1, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! NAME = NAME1.
++brand(BRAND_ID, NAME1) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME1) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! brand(BRAND_ID, NAME1) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! NAME = NAME1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE1, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! SIZE = SIZE1.
++vehicle(VEHICLE_ID1, SIZE1, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE1, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! SIZE = SIZE1.
++brand(BRAND_ID, NAME) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! brand(_, NAME) , nex_brand_id(BRAND_ID) , ! vehicle(VEHICLE_ID1, SIZE1, BRAND_ID) , ! brand(BRAND_ID, NAME) , ! vehicle(VEHICLE_ID1, _, _) , ! brand(BRAND_ID, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! SIZE = SIZE1.
+vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) :- brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME1) , ! NAME = NAME1.
+vehicle_view_ini_ins(VEHICLE_ID, SIZE, NAME1) :- brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME1) , ! NAME = NAME1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! SIZE = SIZE1.
++vehicle(VEHICLE_ID, SIZE1, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , ! SIZE = SIZE1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME1) , ! SIZE = SIZE1 , ! NAME = NAME1.
++vehicle(VEHICLE_ID, SIZE1, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID, SIZE1, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME1) , ! SIZE = SIZE1 , ! NAME = NAME1.
+-vehicle(VEHICLE_ID, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME1) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! vehicle(VEHICLE_ID1, _, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! NAME = NAME1.
++vehicle(VEHICLE_ID1, SIZE, BRAND_ID) :- vehicle_view_ini_del(VEHICLE_ID, SIZE, NAME) , vehicle_view_ini_ins(VEHICLE_ID1, SIZE, NAME1) , brand(BRAND_ID, NAME) , vehicle(VEHICLE_ID, SIZE, BRAND_ID) , brand(BRAND_ID, NAME1) , ! vehicle(VEHICLE_ID1, SIZE, BRAND_ID) , ! vehicle(VEHICLE_ID1, _, _) , ! VEHICLE_ID = VEHICLE_ID1 , ! NAME = NAME1.
+
