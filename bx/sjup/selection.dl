@@ -1,0 +1,68 @@
+#include "./testcases/selection/testcase1.dl"
+
+.type string <: symbol
+
+.decl s0(X:string, Y:string)
+.decl v0(X:string, Y:string)
+
+.decl s(X:string, Y:string)
+.decl s_del(X:string, Y:string)
+.decl s_ins(X:string, Y:string)
+
+.decl v(X:string, Y:string)
+.decl v_del(X:string, Y:string)
+.decl v_ins(X:string, Y:string)
+
+.decl v_prime(X:string, Y:string)
+.decl v_prime_del(X:string, Y:string)
+.decl v_prime_ins(X:string, Y:string)
+
+.decl s_prime(X:string, Y:string)
+.decl s_prime_del(X:string, Y:string)
+.decl s_prime_ins(X:string, Y:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("error") :- v_prime(_, Y) , ! Y = "default".
+precondition("error") :- s0(_, _).
+precondition("error") :- v0(_, _).
+
+
+// -- initial source and view -- 
+// emtpy
+
+
+// -- get --
+
+v(X, Y) :- v0(X, Y) , ! v_del(X, Y).
+v(X, Y) :- v_ins(X, Y).
+s_ins(X, Y) :- s(X, Y) , ! s0(X, Y).
+s_del(X, Y) :- s0(X, Y) , ! s(X, Y).
+v_del(X, Y) :- s_del(X, Y) , Y = "default".
+v_ins(X, Y) :- s_ins(X, Y) , Y = "default".
+
+
+// -- put --
+
+v_prime_ins(X, Y) :- v_prime(X, Y) , ! v(X, Y).
+v_prime_del(X, Y) :- v(X, Y) , ! v_prime(X, Y).
+
+s_prime_del(X, Y) :- v_prime_del(X, Y) , Y = "default" , s(X, Y).
+s_prime_ins(X, Y) :- v_prime_ins(X, Y) , Y = "default" , ! s(X, Y).
+
+s_prime(X, Y) :- s(X, Y), ! s_prime_del(X, Y).
+s_prime(X, Y) :- s_prime_ins(X, Y).
+
+
+// -- output --
+
+.output precondition
+
+.output s
+.output v_prime
+
+.output v
+.output s_prime

@@ -1,0 +1,87 @@
+#include "./testcases/union/testcase1.dl"
+
+.type string <: symbol
+
+.decl s10(X:string)
+.decl s20(X:string)
+.decl v0(X:string)
+
+.decl s1(X:string)
+.decl s1_del(X:string)
+.decl s1_ins(X:string)
+
+.decl s2(X:string)
+.decl s2_del(X:string)
+.decl s2_ins(X:string)
+
+.decl v(X:string)
+.decl v_del(X:string)
+.decl v_ins(X:string)
+
+.decl s1_prime(X:string)
+.decl s1_prime_del(X:string)
+.decl s1_prime_ins(X:string)
+
+.decl s2_prime(X:string)
+.decl s2_prime_del(X:string)
+.decl s2_prime_ins(X:string)
+
+.decl v_prime(X:string)
+.decl v_prime_del(X:string)
+.decl v_prime_ins(X:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+precondition("error") :- s10(_).
+
+
+// -- initial source and view -- 
+s20(X) :- s2(X).
+v0(X) :- s20(X).
+
+
+// -- get --
+
+v(X) :- v0(X) , ! v_del(X).
+v(X) :- v_ins(X).
+s2_ins(X) :- s2(X) , ! s20(X).
+s2_del(X) :- s20(X) , ! s2(X).
+s1_ins(X) :- s1(X) , ! s10(X).
+s1_del(X) :- s10(X) , ! s1(X).
+v_del(X) :- s1_del(X) , s2_del(X).
+v_del(X) :- s2_del(X) , ! s1(X).
+v_del(X) :- s1_del(X) , ! s2(X).
+v_ins(X) :- s1_ins(X) , ! s2(X).
+
+
+// -- put --
+
+v_prime_ins(X) :- v_prime(X) , ! v(X).
+v_prime_del(X) :- v(X) , ! v_prime(X).
+s1_prime_del(X) :- v_prime_del(X) , s1(X) , s2(X).
+s2_prime_del(X) :- v_prime_del(X) , s1(X) , s2(X).
+s2_prime_del(X) :- v_prime_del(X) , ! s1(X) , s2(X).
+s1_prime_del(X) :- v_prime_del(X) , ! s2(X) , s1(X).
+s1_prime_ins(X) :- v_prime_ins(X) , ! s2(X) , ! s1(X).
+
+
+s1_prime(X) :- s1(X), ! s1_prime_del(X).
+s1_prime(X) :- s1_prime_ins(X).
+
+s2_prime(X) :- s2(X), ! s2_prime_del(X).
+s2_prime(X) :- s2_prime_ins(X).
+
+
+// -- output --
+
+.output precondition
+
+.output s1
+.output s2
+.output v_prime
+
+.output v
+.output s1_prime
+.output s2_prime
