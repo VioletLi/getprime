@@ -1,0 +1,25 @@
+residents("Alice", "1990-01-01", "F").
+residents("Bob", "2000-01-01", "M").
+residents("Charlie", "2010-01-01", "F").
+residents("David", "2020-01-01", "M").
+
+blacklist("Bob").
+
+// Expected view
+
+// good_residents("Alice", "1990-01-01").
+// good_residents("Charlie", "2010-01-01").
+// good_residents("David", "2020-01-01").
+
+good_residents_prime("Charlie", "1990-01-01").
+good_residents_prime("Alice", "2010-01-01").
+good_residents_prime("Eason", "2030-01-01").
+
+// Expected source prime
+
+// residents_prime("Charlie", "1990-01-01", "unknown").
+// residents_prime("Bob", "2000-01-01", "M").
+// residents_prime("Alice", "2010-01-01", "unknown").
+// residents_prime("Eason", "2030-01-01", "unknown").
+
+// blacklist_prime("Bob").

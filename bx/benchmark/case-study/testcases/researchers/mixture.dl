@@ -1,0 +1,28 @@
+residents("Alice", "1990-01-01", "F").
+residents("Bob", "1991-01-01", "M").
+residents("Charlie", "1992-01-01", "M").
+
+ced("Alice", "Research").
+ced("Bob", "Research").
+ced("Charlie", "Engineer").
+
+// Expected view
+
+// researchers("Alice").
+// researchers("Bob").
+
+researchers_prime("Alice").
+researchers_prime("Charlie").
+researchers_prime("Dave").
+
+// Expected source prime
+
+// residents_prime("Alice", "1990-01-01", "F").
+// residents_prime("Bob", "1991-01-01", "M").
+// residents_prime("Charlie", "1992-01-01", "M").
+// residents_prime("Dave", "0001-01-01", "unkonwn").
+
+// ced_prime("Alice", "Research").
+// ced_prime("Charlie", "Research").
+// ced_prime("Charlie", "Engineer").
+// ced_prime("Dave", "Research").
