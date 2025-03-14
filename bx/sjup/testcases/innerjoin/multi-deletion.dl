@@ -1,0 +1,22 @@
+// -- testcase 4 multiple deletion --
+
+s1("x11", "y1").
+s1("x12", "y1").
+
+
+s2("y1", "z1").
+
+// Expected view
+
+// v("x11", "y1", "z1").
+// v("x12", "y1", "z1").
+
+
+v_prime("x11", "y1", "z2").
+
+
+// Expected source prime
+
+// s1_prime("x11", "y1").
+
+// s2_prime("y1", "z2").

@@ -1,0 +1,19 @@
+residents("Alice", "1990-01-01", "F").
+residents("Bob", "2000-01-01", "M").
+
+blacklist("Bob").
+
+// Expected view
+
+// good_residents("Alice", "1990-01-01").
+
+good_residents_prime("Alice", "1990-01-01").
+good_residents_prime("Charlie", "2010-01-01").
+
+// Expected source prime
+
+// residents_prime("Alice", "1990-01-01", "F").
+// residents_prime("Bob", "2000-01-01", "M").
+// residents_prime("Charlie", "2010-01-01", "unknown").
+
+// blacklist_prime("Bob").

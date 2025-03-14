@@ -1,0 +1,70 @@
+// selection + projection
+#include "./testcases/goodstudents/modification.dl"
+
+.type int <: number
+.type real <: float
+.type string <: symbol
+
+.decl students0(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl goodstudents0(SID:int, GPA:real)
+
+.decl students(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_ins(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_del(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+
+.decl goodstudents(SID:int, GPA:real)
+.decl goodstudents_ins(SID:int, GPA:real)
+.decl goodstudents_del(SID:int, GPA:real)
+
+.decl goodstudents_prime(SID:int, GPA:real)
+.decl goodstudents_prime_ins(SID:int, GPA:real)
+.decl goodstudents_prime_del(SID:int, GPA:real)
+
+.decl students_prime(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_prime_ins(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_prime_del(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("error") :- goodstudents(SID, GPA) , GPA <= 3.0.
+
+
+// -- initial source and view --
+
+students0(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA).
+goodstudents0(SID, GPA) :- students0(SID, _, _, _, GPA) , GPA > 3.0.
+
+
+// -- get --
+
+goodstudents(SID, GPA) :- goodstudents0(SID, GPA) , ! goodstudents_del(SID, GPA).
+goodstudents(SID, GPA) :- goodstudents_ins(SID, GPA).
+students_ins(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA) , ! students0(SID, SNAME, LOGIN, AGE, GPA).
+students_del(SID, SNAME, LOGIN, AGE, GPA) :- students0(SID, SNAME, LOGIN, AGE, GPA) , ! students(SID, SNAME, LOGIN, AGE, GPA).
+goodstudents_del(SID, GPA) :- students_del(SID, SNAME, LOGIN, AGE, GPA) , GPA > 3.0.
+goodstudents_ins(SID, GPA) :- students_ins(SID, SNAME, LOGIN, AGE, GPA) , ! students(SID, _, _, _, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0.
+
+
+// -- put --
+
+goodstudents_prime_ins(SID, GPA) :- goodstudents_prime(SID, GPA) , ! goodstudents(SID, GPA).
+goodstudents_prime_del(SID, GPA) :- goodstudents(SID, GPA) , ! goodstudents_prime(SID, GPA).
+students_prime_del(SID, SNAME, LOGIN, AGE, GPA) :- goodstudents_prime_del(SID, GPA) , GPA > 3.0 , students(SID, SNAME, LOGIN, AGE, GPA).
+students_prime_ins(SID, SNAME, LOGIN, AGE, GPA) :- goodstudents_prime_ins(SID, GPA) , ! students(SID, _, _, _, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0 , ! students(SID, SNAME, LOGIN, AGE, GPA).
+
+students_prime(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA), ! students_prime_del(SID, SNAME, LOGIN, AGE, GPA).
+students_prime(SID, SNAME, LOGIN, AGE, GPA) :- students_prime_ins(SID, SNAME, LOGIN, AGE, GPA).
+
+
+// -- output --
+
+.output precondition
+
+.output students
+.output goodstudents_prime
+
+.output goodstudents
+.output students_prime
