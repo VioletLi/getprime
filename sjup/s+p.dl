@@ -3,6 +3,11 @@ view v('X': string).
 
 PK(s, ['X']).
 
+IS : [
+    s0(X, Y) :- s(X, Y), not Y = 'default'.
+    v0(X) :- s0(X, Y), Y = 'default'.
+].
+
 +v(X) :- +s(X, Y), not s(X, _), Y = 'default'.
 +v(X) :- +s(X, Y), -s(X, Y1), Y = 'default', not Y = Y1.
--v(X) :- -s(X, Y), s(X, Y), Y = 'default'.
+-v(X) :- -s(X, Y), Y = 'default'.
