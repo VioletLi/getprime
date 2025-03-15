@@ -731,29 +731,45 @@ let addPreofDelta (h, b) =
   (h, b @ deltaPre)
 
 let addPreofPK sources pks (h, b) =
-  let insDeltas = List.filter isPosInsDelta b in
+  let deltas = List.filter isPosDelta b in
+  let insDeltas, delDeltas = List.partition isPosInsDelta deltas in
   let insRels = List.map (fun d -> getDeltaRelationName (unpack_term d)) insDeltas in
-  let deltasinPK = List.filter (fun d -> let n = getDeltaRelationName (unpack_term d) in List.exists (fun (name, _) -> n = name) pks) insDeltas in
-  let relwithPK = List.filter (fun (n, _) -> List.exists (fun name -> n = name) insRels) pks in
-  let sourcesNeedProcess = List.fold_left (fun acc (str, a_list) ->
+  let delRels = List.map (fun d -> getDeltaRelationName (unpack_term d)) delDeltas in
+  let insdeltasinPK = List.filter (fun d -> let n = getDeltaRelationName (unpack_term d) in List.exists (fun (name, _) -> n = name) pks) insDeltas in
+  let deldeltasinPK = List.filter (fun d -> let n = getDeltaRelationName (unpack_term d) in List.exists (fun (name, _) -> n = name) pks) delDeltas in
+  let insrelwithPK = List.filter (fun (n, _) -> List.exists (fun name -> n = name) insRels) pks in
+  let delrelwithPK = List.filter (fun (n, _) -> List.exists (fun name -> n = name) delRels) pks in
+  let inssourcesNeedProcess = List.fold_left (fun acc (str, a_list) ->
     match List.find_opt (fun (s, _) -> s = str) sources with
     | Some (_, b_list) -> (str, a_list, b_list) :: acc
     | None -> acc
-  ) [] relwithPK
+  ) [] insrelwithPK
+  in
+  let delsourcesNeedProcess = List.fold_left (fun acc (str, a_list) ->
+    match List.find_opt (fun (s, _) -> s = str) sources with
+    | Some (_, b_list) -> (str, a_list, b_list) :: acc
+    | None -> acc
+  ) [] delrelwithPK
   in
   (* (name, varinPK, sourceVars) *)
   (* 对sourceVars中的变量挨个匹配，如果存在在varinPK里就返回一个namedvar，否则返回anonvar *)
-  let sourceProcessed = List.map (fun (n, varinPK, sourceVars) -> 
+  let inssourceProcessed = List.map (fun (n, varinPK, sourceVars) -> 
       (n, List.map (fun (name, _) -> if List.exists (fun varName -> name = varName) varinPK then name else "_") sourceVars)
-    ) sourcesNeedProcess 
+    ) inssourcesNeedProcess 
+  in 
+  let delsourceProcessed = List.map (fun (n, varinPK, sourceVars) -> 
+    (n, List.map (fun (name, _) -> if List.exists (fun varName -> name = varName) varinPK then name else "_") sourceVars)
+  ) delsourcesNeedProcess 
   in 
   (* 找到insdelta中的有pk约束的内容，做匹配，该位置如果是namedvar那么就返回原来的namedvar，否则变成anonvar *)
-  let terms = List.map (fun d ->
+  let terms = List.concat (List.map (fun d ->
     let name = getDeltaRelationName (unpack_term d) in
-    let (_, varlist) = List.find (fun (n, _) -> n = name) sourceProcessed in
-    let vars = List.map (fun (v, varName) -> if varName = "_" then AnonVar else v) (List.combine (get_rterm_varlist (unpack_term d)) varlist) in
-    Not (Pred (name, vars))
-  ) deltasinPK in
+    let (n, varlist) = List.find (fun (n, _) -> n = name) inssourceProcessed in
+    match List.find_opt (fun (n_, varlist_) -> n = n_ && varlist = varlist_) delsourceProcessed with
+      | Some _ -> []
+      | None -> let vars = List.map (fun (v, varName) -> if varName = "_" then AnonVar else v) (List.combine (get_rterm_varlist (unpack_term d)) varlist) in
+          [Not (Pred (name, vars))]
+  ) insdeltasinPK) in
   (h, b @ terms)
 
 let preProcessProg prog = 
