@@ -6,14 +6,6 @@ source person_job('PID':real, 'JOB':string).
 view person_detail_job_vw('PID':real, 'PNAME':string, 'JOB':string).
 
 
-IS : [
-    person_detail0(PID, PNAME) :- person_detail(PID, PNAME).
-    person_job0(PID, PNAME) :- person_job(PID, PNAME).
-    person_detail_job_vw0(PID, PNAME, JOB) :- person_detail0(PID, PNAME), person_job0(PID, JOB).
-    person_detail_job_vw0(PID, PNAME, 'None') :- person_detail0(PID, PNAME), not person_job0(PID, _).
-].
-
-
 %% constraints
 % PK
 PK(person_detail, ['PID']).
@@ -25,22 +17,15 @@ _|_ :- person_job(PID, _), not person_detail(PID, _).
 _|_ :- person_job(_, JOB), JOB='None'.
 
 
-GET : [
-    person_detail_job_vw(PID, PNAME, JOB) :- person_detail(PID, PNAME), person_job(PID, JOB).
-    person_detail_job_vw(PID, PNAME, 'None') :- person_detail(PID, PNAME), not person_job(PID, _).
-].
-
 %% getprime begin
 
 % rule for insertion to view
 +person_detail_job_vw(PID, PNAME, JOB) :- +person_detail(PID, PNAME), +person_job(PID, JOB), not JOB = 'None'.
 +person_detail_job_vw(PID, PNAME, JOB) :- +person_detail(PID, PNAME), not person_job(PID, _), JOB = 'None'.
-% +person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, JOB), person_detail(PID, PNAME).
 
 % rule for deletion to view
 -person_detail_job_vw(PID, PNAME, JOB) :- -person_detail(PID, PNAME), -person_job(PID, JOB), not JOB = 'None'.
 -person_detail_job_vw(PID, PNAME, JOB) :- -person_detail(PID, PNAME), not person_job(PID, _), JOB = 'None'.
-% -person_detail_job_vw(PID, PNAME, JOB) :- +person_job(PID, _), person_detail(PID, PNAME), JOB = 'None'.
 
 %% getprime end
 
