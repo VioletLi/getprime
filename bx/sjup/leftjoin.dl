@@ -37,10 +37,6 @@
 
 // -- constraints --
 
-precondition("error2") :- s10(_, _).
-precondition("error1") :- s20(_, _).
-precondition("error3") :- v0(_, _, _).
-
 precondition("error5") :- s1(X, Y1), s1(X, Y2), Y1 != Y2.
 precondition("error4") :- s2(X, Y1), s2(X, Y2), Y1 != Y2.
 

@@ -30,9 +30,7 @@
 
 // -- constraints --
 
-precondition("error1") :- _prime(ID, NAME, PRICE) , PRICE <= 700.0.
-precondition("error2") :- items0(_, _, _).
-precondition("error3") :- luxuryitems0(_, _, _).
+precondition("error1") :- luxuryitems_prime(ID, NAME, PRICE) , PRICE <= 700.0.
 
 
 // -- initial source and view --

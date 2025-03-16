@@ -40,7 +40,7 @@ precondition("sourceErrPK1") :- brands(BRAND_ID_1, BRAND_NAME) , brands(BRAND_ID
 precondition("sourceErrPK2") :- brand_approvals(BRAND_ID_1, BRAND_NAME) , brand_approvals(BRAND_ID_2, BRAND_NAME) , !BRAND_ID_1 = BRAND_ID_2.
 precondition("error1") :- brands(_, BRAND_NAME) , brand_approvals(_, BRAND_NAME).
 
-precondition("viewErrPK") :- vw_brands(BRAND_NAME, APPROVAL_STATUS_1) , vw_brands(BRAND_NAME, APPROVAL_STATUS_2) , !APPROVAL_STATUS_1 = APPROVAL_STATUS_2.
+precondition("viewErrPK") :- vw_brands_prime(BRAND_NAME, APPROVAL_STATUS_1) , vw_brands_prime(BRAND_NAME, APPROVAL_STATUS_2) , !APPROVAL_STATUS_1 = APPROVAL_STATUS_2.
 precondition("error2") :- vw_brands_prime(BRAND_NAME, APPROVAL_STATUS) , ! APPROVAL_STATUS = "Approved" , ! APPROVAL_STATUS = "Pending Approval".
 
 

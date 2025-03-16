@@ -37,7 +37,7 @@
 
 // -- constraints --
 
-precondition("error") :- good_residents(NAME, BIRTH_DATE) , blacklist(NAME).
+precondition("error") :- good_residents_prime(NAME, BIRTH_DATE) , blacklist(NAME).
 
 
 // -- initial source and view --    

@@ -36,7 +36,6 @@
 // -- constraints --
 
 precondition("err1") :- v_prime(X, Y) , ! Y = "A".
-precondition("err2") :- s10(_, _).
 
 
 // -- initial source and view -- 

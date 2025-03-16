@@ -27,8 +27,6 @@
 // -- constraints --
 
 precondition("error") :- v_prime(_, Y) , ! Y = "default".
-precondition("error") :- s0(_, _).
-precondition("error") :- v0(_, _).
 
 
 // -- initial source and view -- 

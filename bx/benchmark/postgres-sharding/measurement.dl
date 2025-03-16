@@ -47,10 +47,6 @@ precondition("error6") :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITS
 precondition("error7") :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE >= 20060301.
 precondition("error8") :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE < 20060201.
 
-precondition("error9") :- measurement_y2006m030(_, _, _, _).
-precondition("error10") :- measurement_y2006m020(_, _, _, _).
-precondition("error11") :- measurement0(_, _, _, _).
-
 
 // -- initial source and view --
 // empty

@@ -34,8 +34,7 @@
 
 
 // -- constraints --
-precondition("error") :- s10(_).
-
+// emtpy
 
 // -- initial source and view -- 
 s20(X) :- s2(X).

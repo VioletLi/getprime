@@ -34,7 +34,7 @@ precondition("sourcePKError3") :- students(SID, _, _, AGE, _) , students(SID, _,
 precondition("sourcePKError4") :- students(SID, _, _, _, GPA) , students(SID, _, _, _, GPA1), ! GPA = GPA1.
 precondition("viewPKError") :- goodstudents_prime(SID, GPA) , goodstudents_prime(SID, GPA1), ! GPA = GPA1.
 
-precondition("error") :- goodstudents(SID, GPA) , GPA <= 3.0.
+precondition("error") :- goodstudents_prime(SID, GPA) , GPA <= 3.0.
 
 
 // -- initial source and view --
