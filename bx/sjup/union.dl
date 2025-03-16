@@ -1,4 +1,4 @@
-#include "./testcases/union/testcase1.dl"
+#include "./testcases/union/mixture.dl"
 
 .type string <: symbol
 
@@ -34,8 +34,7 @@
 
 
 // -- constraints --
-precondition("error") :- s10(_).
-
+// emtpy
 
 // -- initial source and view -- 
 s20(X) :- s2(X).

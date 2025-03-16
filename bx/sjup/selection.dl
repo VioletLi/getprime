@@ -1,4 +1,4 @@
-#include "./testcases/selection/testcase1.dl"
+#include "./testcases/selection/mixture.dl"
 
 .type string <: symbol
 
@@ -27,8 +27,6 @@
 // -- constraints --
 
 precondition("error") :- v_prime(_, Y) , ! Y = "default".
-precondition("error") :- s0(_, _).
-precondition("error") :- v0(_, _).
 
 
 // -- initial source and view -- 

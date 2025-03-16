@@ -1,0 +1,90 @@
+// union
+#include "./testcases/measurement/deletion.dl"
+
+.type int <: number
+.type string <: symbol
+
+
+.decl measurement_y2006m020(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m030(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement0(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl measurement_y2006m02(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m02_ins(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m02_del(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl measurement_y2006m03(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m03_ins(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m03_del(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl measurement(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_ins(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_ini(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl measurement_prime(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_prime_ins(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_prime_del(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl measurement_y2006m02_prime(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m02_prime_ins(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m02_prime_del(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl measurement_y2006m03_prime(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m03_prime_ins(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+.decl measurement_y2006m03_prime_del(CITY_ID:int, LOGDATE:int, PEAKTEMP:int, UNITSALES:int)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("error1") :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+precondition("error2") :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+precondition("error3") :- measurement_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE >= 20060401.
+precondition("error4") :- measurement_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE < 20060201.
+precondition("error5") :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE >= 20060401.
+precondition("error6") :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE < 20060301.
+precondition("error7") :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE >= 20060301.
+precondition("error8") :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , LOGDATE < 20060201.
+
+
+// -- initial source and view --
+// empty
+
+
+// -- get --
+
+measurement(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement0(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_ins(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m03_ins(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_y2006m030(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m03_del(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m030(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m02_ins(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_y2006m020(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m02_del(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m020(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_ins(C, L, P, U) :- measurement_y2006m03_ins(C, L, P, U) , L >= 20060301 , L < 20060401.
+measurement_ins(C, L, P, U) :- measurement_y2006m02_ins(C, L, P, U) , L >= 20060201 , L < 20060301.
+
+
+// -- put --
+
+measurement_prime_ins(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_prime_del(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) , ! measurement_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+
+measurement_y2006m03_prime_ins(C, L, P, U) :- measurement_prime_ins(C, L, P, U) , L >= 20060301 , L < 20060401 , ! measurement_y2006m03(C, L, P, U).
+measurement_y2006m02_prime_ins(C, L, P, U) :- measurement_prime_ins(C, L, P, U) , L >= 20060201 , L < 20060301 , ! measurement_y2006m02(C, L, P, U).
+
+measurement_y2006m02_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m02(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES), ! measurement_y2006m02_prime_del(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m02_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m02_prime_ins(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m03_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m03(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES), ! measurement_y2006m03_prime_del(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+measurement_y2006m03_prime(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES) :- measurement_y2006m03_prime_ins(CITY_ID, LOGDATE, PEAKTEMP, UNITSALES).
+
+// -- output --
+
+.output precondition
+
+.output measurement_y2006m02
+.output measurement_y2006m03
+.output measurement_prime
+
+.output measurement
+.output measurement_y2006m02_prime
+.output measurement_y2006m03_prime

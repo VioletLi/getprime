@@ -1,0 +1,24 @@
+s1("x1", "y1").
+s1("x2", "y1").
+s1("x3", "y2").
+
+s2("x1", "z1").
+
+// Expected view
+
+// v("x1", "y1", "z1").
+// v("x2", "y1", "null").
+// v("x3", "y2", "null").
+
+v_prime("x1", "y1", "z2").
+v_prime("x2", "y2", "z2").
+v_prime("x3", "y3", "null").
+
+// Expected source prime
+
+// s1_prime("x1", "y1").
+// s1_prime("x2", "y2").
+// s1_prime("x3", "y3").
+
+// s2_prime("x1", "z2").
+// s2_prime("x2", "z2").

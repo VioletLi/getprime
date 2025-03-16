@@ -1,4 +1,4 @@
-#include "./testcases/u+s/testcase1.dl"
+#include "./testcases/u+s/deletion.dl"
 
 .type string <: symbol
 
@@ -36,7 +36,6 @@
 // -- constraints --
 
 precondition("err1") :- v_prime(X, Y) , ! Y = "A".
-precondition("err2") :- s10(_, _).
 
 
 // -- initial source and view -- 
