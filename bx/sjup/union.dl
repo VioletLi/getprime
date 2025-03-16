@@ -1,4 +1,4 @@
-#include "./testcases/union/testcase1.dl"
+#include "./testcases/union/mixture.dl"
 
 .type string <: symbol
 

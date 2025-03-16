@@ -1,0 +1,93 @@
+// semijoin + projection + differentiate
+#include "./testcases/retired/mixture.dl"
+
+.type string <: symbol
+
+
+.decl ced0(EMP_NAME:string, DEPT_NAME:string)
+.decl residents0(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl retired0(EMP_NAME:string)
+
+.decl ced(EMP_NAME:string, DEPT_NAME:string)
+.decl ced_ins(EMP_NAME:string, DEPT_NAME:string)
+.decl ced_del(EMP_NAME:string, DEPT_NAME:string)
+
+.decl residents(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_ins(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_del(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+
+.decl retired(EMP_NAME:string)
+.decl retired_ins(EMP_NAME:string)
+.decl retired_del(EMP_NAME:string)
+
+.decl retired_prime(EMP_NAME:string)
+.decl retired_prime_ins(EMP_NAME:string)
+.decl retired_prime_del(EMP_NAME:string)
+
+.decl ced_prime(EMP_NAME:string, DEPT_NAME:string)
+.decl ced_prime_ins(EMP_NAME:string, DEPT_NAME:string)
+.decl ced_prime_del(EMP_NAME:string, DEPT_NAME:string)
+
+.decl residents_prime(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_prime_ins(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_prime_del(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("sourceErrPK1") :- ced(E, D), ced(E, D1), ! D = D1.
+precondition("sourceErrPK2") :- residents(E, B, _), residents(E, B1, _), ! B = B1.
+precondition("sourceErrPK3") :- residents(E, _, G), residents(E, _, G1), ! G = G1.
+
+
+// -- initial source and view --
+
+ced0(E, D) :- ced(E, D).
+residents0(E, B, G) :- residents(E, B, G).
+retired0(E) :- residents0(E, B, G) , ! ced0(E, _).
+
+
+// -- get --
+
+retired(EMP_NAME) :- retired0(EMP_NAME) , ! retired_del(EMP_NAME).
+retired(EMP_NAME) :- retired_ins(EMP_NAME).
+ced_ins(EMP_NAME, DEPT_NAME) :- ced(EMP_NAME, DEPT_NAME) , ! ced0(EMP_NAME, DEPT_NAME).
+ced_del(EMP_NAME, DEPT_NAME) :- ced0(EMP_NAME, DEPT_NAME) , ! ced(EMP_NAME, DEPT_NAME).
+residents_ins(EMP_NAME, BIRTH_DATE, GENDER) :- residents(EMP_NAME, BIRTH_DATE, GENDER) , ! residents0(EMP_NAME, BIRTH_DATE, GENDER).
+residents_del(EMP_NAME, BIRTH_DATE, GENDER) :- residents0(EMP_NAME, BIRTH_DATE, GENDER) , ! residents(EMP_NAME, BIRTH_DATE, GENDER).
+retired_del(E) :- ced_ins(E, D) , residents(E, _, _) , D = "unknown".
+retired_ins(E) :- residents_ins(E, B, G) , ced_del(E, D) , B = "0001-01-01" , G = "unknown".
+retired_ins(E) :- residents_ins(E, B, G) , ! ced(E, _) , B = "0001-01-01" , G = "unknown".
+retired_ins(E) :- ced_del(E, D) , residents(E, B, G).
+
+
+// -- put --
+
+retired_prime_ins(EMP_NAME) :- retired_prime(EMP_NAME) , ! retired(EMP_NAME).
+retired_prime_del(EMP_NAME) :- retired(EMP_NAME) , ! retired_prime(EMP_NAME).
+
+ced_prime_ins(E, D) :- retired_prime_del(E) , residents(E, _, _) , D = "unknown" , ! ced(E, D) , ! ced(E, _).
+residents_prime_ins(E, B, G) :- retired_prime_ins(E) , B = "0001-01-01" , G = "unknown" , ! residents(E, B, G) , ced(E, D) , ! residents(E, _, _).
+ced_prime_del(E, D) :- retired_prime_ins(E) , B = "0001-01-01" , G = "unknown" , ! residents(E, B, G) , ced(E, D) , ! residents(E, _, _).
+residents_prime_ins(E, B, G) :- retired_prime_ins(E) , ! ced(E, _) , B = "0001-01-01" , G = "unknown" , ! residents(E, B, G) , ! residents(E, _, _).
+ced_prime_del(E, D) :- retired_prime_ins(E) , residents(E, B, G) , ced(E, D).
+
+ced_prime(E, D) :- ced(E, D) , ! ced_prime_del(E, D).
+ced_prime(E, D) :- ced_prime_ins(E, D).
+residents_prime(E, B, G) :- residents(E, B, G) , ! residents_prime_del(E, B, G).
+residents_prime(E, B, G) :- residents_prime_ins(E, B, G).
+
+
+// output
+
+.output precondition
+
+.output ced
+.output residents
+.output retired_prime
+
+.output retired
+.output ced_prime
+.output residents_prime

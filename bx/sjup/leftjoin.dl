@@ -1,4 +1,4 @@
-#include "./testcases/leftjoin/testcase1.dl"
+#include "./testcases/leftjoin/replacement.dl"
 
 .type int <: number
 .type string <: symbol

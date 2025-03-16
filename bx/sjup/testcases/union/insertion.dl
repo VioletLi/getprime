@@ -20,16 +20,23 @@ s2("common_x2").
 // v("common_x2").
 
 v_prime("x11").
+v_prime("x12").
 v_prime("x21").
+v_prime("x22").
 v_prime("x23").
 v_prime("common_x1").
+v_prime("common_x2").
 
 // Expected source prime
 
 // s1_prime("x11").
+// s1_prime("x12").
 // s1_prime("common_x1").
+// s1_prime("common_x2").
 // s1_prime("x23").
 
 
 // s2_prime("x21").
+// s2_prime("x22").
 // s2_prime("common_x1").
+// s1_prime("common_x2").

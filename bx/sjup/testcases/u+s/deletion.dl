@@ -1,5 +1,3 @@
-// -- testcase 1 --
-
 s1("common1", "A").
 s1("common2", "B").
 s1("x11", "a").
@@ -16,22 +14,13 @@ s2("x22", "A").
 // v("x12", "A").
 // v("x22", "A").
 
-v_prime("common2", "A").
-v_prime("x11", "A").
 v_prime("x12", "A").
-v_prime("x21", "A").
-v_prime("x3", "A").
 
 // Expected source prime
 
-// s1_prime("common2", "A").
 // s1_prime("common2", "B").
 // s1_prime("x11", a").
-// s1_prime("x11", A").
-// s1_prime("x21", A").
-// s1_prime("x3", A").
-
+// s1_prime("x12", A").
 
 // s2_prime("common2", "B").
 // s2_prime("x21", "a").
-

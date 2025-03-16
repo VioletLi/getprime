@@ -1,4 +1,4 @@
-#include "./testcases/u+s/testcase1.dl"
+#include "./testcases/u+s/deletion.dl"
 
 .type string <: symbol
 

@@ -1,4 +1,4 @@
-#include "./testcases/projection/testcase1.dl"
+#include "./testcases/projection/insertion.dl"
 
 .type int <: number
 .type string <: symbol
@@ -27,7 +27,8 @@
 
 // -- constraints --
 
-precondition("error") :- s(X, Y1), s(X, Y2), Y1 != Y2.
+precondition("sErrPK") :- s(X, Y1), s(X, Y2), ! Y1 = Y2.
+precondition("error") :- s(X, Y1), s(X, Y2), ! Y1 = Y2.
 
 
 // -- initial source and view -- 

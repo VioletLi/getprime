@@ -18,6 +18,5 @@ goodstudents_prime(5, 4.0).
 
 // students_prime(1, "Alice", "alice", 20, 3.5).
 // students_prime(2, "unknown", "unknown", 0, 3.3).
-// students_prime(2, "Bob", "bob", 21, 2.5).
 // students_prime(4, "David", "david", 23, 2.0).
 // students_prime(5, "unknown", "unknown", 0, 4.0).
