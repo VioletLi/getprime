@@ -5,6 +5,9 @@ source brands('BRAND_ID':int, 'BRAND_NAME':string).
 source brand_approvals('BRAND_ID':int, 'BRAND_NAME':string).
 view vw_brands('BRAND_NAME':string, 'APPROVAL_STATUS':string).
 
+PK(brands,['BRAND_NAME']).
+PK(brand_approvals,['BRAND_NAME']).
+PK(vw_brands,['BRAND_NAME']).
 
 %% constraints
 _|_ :- vw_brands(BRAND_NAME, APPROVAL_STATUS), not APPROVAL_STATUS = 'Approved', not APPROVAL_STATUS = 'Pending Approval'.
@@ -20,8 +23,8 @@ IS : [
 %% getprime begin
 
 % rule for insertion to view
-+vw_brands(BRAND_NAME, APPROVAL_STATUS) :- +brands(BRAND_ID, BRAND_NAME), not brands(_, BRAND_NAME), BRAND_ID = 10000000, APPROVAL_STATUS = 'Approved'.
-+vw_brands(BRAND_NAME, APPROVAL_STATUS) :- +brand_approvals(BRAND_ID, BRAND_NAME), not brand_approvals(_, BRAND_NAME), BRAND_ID = 10000000, APPROVAL_STATUS = 'Pending Approval'.
++vw_brands(BRAND_NAME, APPROVAL_STATUS) :- +brands(BRAND_ID, BRAND_NAME), BRAND_ID = 10000000, APPROVAL_STATUS = 'Approved'.
++vw_brands(BRAND_NAME, APPROVAL_STATUS) :- +brand_approvals(BRAND_ID, BRAND_NAME), BRAND_ID = 10000000, APPROVAL_STATUS = 'Pending Approval'.
 
 % rule for deletion to view
 -vw_brands(BRAND_NAME, APPROVAL_STATUS) :- -brands(BRAND_ID, BRAND_NAME), APPROVAL_STATUS = 'Approved'.

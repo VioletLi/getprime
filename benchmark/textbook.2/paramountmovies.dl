@@ -5,8 +5,14 @@ source movies('TITLE':string, 'YEAR':int, 'LENGTH':int, 'GENRE':string, 'STUDION
 view paramountmovies('TITLE':string, 'YEAR':int).
 
 
+%% constraints
+
+% primary key
+PK(movies, ['TITLE', 'YEAR']).
+
+
 IS : [
-    movies0(T,Y,L,G,S,P) :- movies(T,Y,L,G,S,P).
+    movies0(T,Y,L,G,S,P) :- movies(T,Y,L,G,S,P), not L = 0, not G = '', not P = 0.
     paramountmovies0(T,Y) :- movies0(T,Y,_,_,S,_), S = 'Paramount'.
 ].
 

@@ -1,4 +1,4 @@
-%% selection + projection
+%% projection + selection
 
 %% describe the schema of sources and views
 source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
@@ -6,6 +6,12 @@ view goodstudents('SID':int, 'GPA':real).
 
 
 %% constraints
+
+% primary key
+PK(students, ['SID']).
+PK(goodstudents, ['SID']).
+
+% selection constraint on view
 _|_ :- goodstudents(SID, GPA), GPA <= 3.0.
 
 
@@ -18,10 +24,13 @@ IS : [
 %% getprime begin
 
 % rule for insertion to view
-+goodstudents(SID, GPA) :- +students(SID, SNAME, LOGIN, AGE, GPA), not students(SID, _, _, _, GPA), SNAME = 'unknown', LOGIN = 'unknown', AGE = 0, GPA > 3.0.
++goodstudents(SID, GPA) :- +students(SID, SNAME, LOGIN, AGE, GPA), SNAME = 'unknown', LOGIN = 'unknown', AGE = 0, GPA > 3.0.
++goodstudents(SID, GPA) :- +students(SID, SNAME, LOGIN, AGE, GPA), -students(SID, SNAME1, LOGIN1, AGE1, GPA2)
+                        ,  SNAME = 'unknown', LOGIN = 'unknown', AGE = 0, GPA > 3.0
+                        ,  not SNAME1 = SNAME, not LOGIN1 = LOGIN, not AGE1 = AGE, GPA2 <= 3.0.
 
 % rule for deletion to view
--goodstudents(SID, GPA) :- -students(SID, SNAME, LOGIN, AGE, GPA), GPA > 3.0.
+-goodstudents(SID, GPA1) :- -students(SID, SNAME1, LOGIN1, AGE1, GPA1), GPA1 > 3.0.
 
 %% getprime end
 
