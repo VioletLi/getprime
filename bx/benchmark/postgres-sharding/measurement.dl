@@ -1,5 +1,5 @@
 // union
-#include "./testcases/measurement/deletion.dl"
+#include "./testcases/measurement/insertion.dl"
 
 .type int <: number
 .type string <: symbol
