@@ -1,4 +1,4 @@
-%% union(distinct)
+%% union
 
 %% describe the schema of sources and views
 source messagecentre('TXTMESSAGEID':int, 'MESSAGETYPE':string, 'MESSAGE':string).

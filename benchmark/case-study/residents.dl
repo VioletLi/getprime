@@ -1,4 +1,4 @@
-%% union(distinct)
+%% union
 
 %% describe the schema of sources and views
 source male('EMP_NAME':string, 'BIRTH_DATE':string).

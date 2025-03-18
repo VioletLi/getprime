@@ -1,4 +1,4 @@
-%% identity
+%% selection
 
 %% describe the schema of sources and views
 source lokalita('KOD_LOK':string, 'NAZEV':string, 'KATASTR':string, 'PRESNOST':int).

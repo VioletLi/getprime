@@ -1,4 +1,4 @@
-%% union(distinct) + projection
+%% union + projection
 
 %% describe the schema of sources and views
 source brands('BRAND_ID':int, 'BRAND_NAME':string).

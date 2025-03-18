@@ -1,4 +1,4 @@
-%% complement
+%% set difference
 
 %% describe the schema of sources and views
 source ed('EMP_NAME':string,'DEPT_NAME':string).
