@@ -5,16 +5,23 @@ source cars('CAR_ID':real, 'CAR_NAME':string, 'BRAND_ID':real).
 view cars_master('CAR_ID':real, 'CAR_NAME':string).
 
 
+%% constraints
+
+% primary key
+PK(cars, ['CAR_ID']).
+PK(cars_master, ['CAR_ID']).
+
+
 IS:[
-    cars0(CAR_ID, CAR_NAME, BRAND_ID) :- cars(CAR_ID, CAR_NAME, BRAND_ID).
+    cars0(CAR_ID, CAR_NAME, BRAND_ID) :- cars(CAR_ID, CAR_NAME, BRAND_ID), not BRAND_ID = 1.0.
     cars_master0(CAR_ID, CAR_NAME) :- cars0(CAR_ID, CAR_NAME, BRAND_ID).
 ].
 
 
 %% getprime begin
 
-+cars_master(CAR_ID, CAR_NAME) :- +cars(CAR_ID, CAR_NAME, BRAND_ID), not cars(CAR_ID, CAR_NAME, _), BRAND_ID = 1.0.
--cars_master(CAR_ID, CAR_NAME) :- -cars(CAR_ID, CAR_NAME, BRAND_ID).
++cars_master(CAR_ID, CAR_NAME) :- +cars(CAR_ID, CAR_NAME, BRAND_ID), BRAND_ID = 1.0.
+-cars_master(CAR_ID1, CAR_NAME1) :- -cars(CAR_ID1, CAR_NAME1, BRAND_ID1).
 
 %% getprime end
 

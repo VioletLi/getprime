@@ -1,10 +1,12 @@
-%% union(distinct) + projection
+%% union + projection
 
 %% describe the schema of sources and views
 source brands('BRAND_ID':int, 'BRAND_NAME':string).
 source brand_approvals('BRAND_ID':int, 'BRAND_NAME':string).
 view vw_brands('BRAND_NAME':string, 'APPROVAL_STATUS':string).
 
+PK(brands,['BRAND_NAME']).
+PK(brand_approvals,['BRAND_NAME']).
 
 %% constraints that allow only insert tuples with APPROVAL_STATUS = 'Pending Approval'
 _|_ :- vw_brands(BRAND_NAME, APPROVAL_STATUS), not APPROVAL_STATUS = 'Approved', not APPROVAL_STATUS = 'Pending Approval'.
