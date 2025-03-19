@@ -12,7 +12,7 @@ PK(movies, ['TITLE', 'YEAR']).
 
 
 IS : [
-    movies0(T,Y,L,G,S,P) :- movies(T,Y,L,G,S,P), not L = 0, not G = '', not P = 0.
+    movies0(T,Y,L,G,S,P) :- movies(T,Y,L,G,S,P).
     paramountmovies0(T,Y) :- movies0(T,Y,_,_,S,_), S = 'Paramount'.
 ].
 
@@ -20,7 +20,8 @@ IS : [
 %% getprime begin
 
 % rule for insertion to view
-+paramountmovies(T,Y) :- +movies(T,Y,L,G,S,P), not movies(T,Y,_,_,S,_), L = 0, G = '', S = 'Paramount', P = 0.
++paramountmovies(T,Y) :- +movies(T,Y,L,G,S,P), L = 0, G = '', S = 'Paramount', P = 0.
++paramountmovies(T,Y) :- +movies(T,Y,L,G,S,P), -movies(T,Y,L1,G1,S1,P1), L = 0, G = '', S = 'Paramount', P = 0, not S1 = S.
 
 % rule for deletion to view
 -paramountmovies(T,Y) :- -movies(T,Y,L,G,S,P), S = 'Paramount'.
