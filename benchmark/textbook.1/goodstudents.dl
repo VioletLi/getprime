@@ -20,6 +20,10 @@ IS : [
     goodstudents0(SID, GPA) :- students0(SID, _, _, _, GPA), GPA > 3.0.
 ].
 
+GET : [
+    goodstudents(SID, GPA) :- students(SID, _, _, _, GPA), GPA > 3.0.
+].
+
 
 %% getprime begin
 

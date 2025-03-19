@@ -1,4 +1,4 @@
-%% projection + complement
+%% semijoin + projection + set difference
 
 %% describe the schema of sources and views
 source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).

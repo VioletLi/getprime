@@ -1,4 +1,4 @@
-%% selection + projection + join on non-pk attr + projection 
+%% innerjoin + projection + selection
 
 %% describe the schema of sources and views
 source clubs('CNAME':string, 'JYEAR':string, 'MNAME':string).

@@ -1,4 +1,4 @@
-%% selection + join on PK + projection
+%% innerjoin + projection + selection
 
 %% describe the schema of sources and views
 source students('SID':int, 'SNAME':string, 'LOGIN':string, 'AGE':int, 'GPA':real).
