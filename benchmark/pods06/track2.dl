@@ -1,12 +1,19 @@
-%% projection with multiple attributes
+%% projection
 
 %% describe the schema of sources and views
 source tracks1('TRACK':string,'DATE':int,'RATING':int,'ALBUM':string,'QUANTITY':int).
 view tracks2('TRACK':string,'RATING':int,'ALBUM':string,'QUANTITY':int).
 
 
+%% constraints
+
+% primary key
+PK(tracks1, ['TRACK']).
+PK(tracks2, ['TRACK']).
+
+
 IS : [
-    tracks10(T,D,R,A,Q) :- tracks1(T,D,R,A,Q).
+    tracks10(T,D,R,A,Q) :- tracks1(T,D,R,A,Q), not D = 2018.
     tracks20(T,R,A,Q) :- tracks10(T,_,R,A,Q).
 ].
 
@@ -14,10 +21,10 @@ IS : [
 %% get prime begin
 
 % rule for insertion to view 
-+tracks2(T,R,A,Q) :- +tracks1(T,D,R,A,Q), not tracks1(T,_,R,A,Q), DATE = 2018.
++tracks2(T,R,A,Q) :- +tracks1(T,D,R,A,Q), not tracks1(T,_,R,A,Q), D = 2018.
 
 % rule for deletion to view
--tracks2(T,R,A,Q) :- -tracks1(T,D,R,A,Q).
+-tracks2(T1,R1,A1,Q1) :- -tracks1(T1,D1,R1,A1,Q1).
 
 %% getprime end
 

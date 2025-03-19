@@ -1,4 +1,4 @@
-%% selection
+%% semijoin + projection
 
 %% describe the schema of sources and views
 source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
@@ -18,8 +18,8 @@ IS:
 
 %% getprime begin
 
-+employees(E, B, G) :- +residents(E, B, G), not residents(E, B, G).
--employees(E, B, G) :- -residents(E, B, G), residents(E, B, G), ced(E, _).
++employees(E, B, G) :- +residents(E, B, G).
+-employees(E, B, G) :- -residents(E, B, G), ced(E, _).
 
 %% getprime end
 

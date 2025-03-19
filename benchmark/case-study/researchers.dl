@@ -5,6 +5,14 @@ source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
 source ced('EMP_NAME':string, 'DEPT_NAME':string).
 view researchers('EMP_NAME':string).
 
+
+%% constraints
+
+% primary key
+PK(residents, ['EMP_NAME']).
+PK(ced, ['EMP_NAME']).
+
+
 IS:[
     residents0(E, B, G) :- residents(E, B, G).
     ced0(E, D) :- ced(E, D).
@@ -15,12 +23,15 @@ IS:[
 %% getprime begin
 
 % rule for insertion to tracks3
-+researchers(E) :- +residents(E, B, G), not residents(E, _, _), ced(E, D), B = '0001-01-01', G = 'unknown', D = 'Research'.
-+researchers(E) :- +ced(E, D), residents(E, _, _), not ced(E, D), D = 'Research'.
-+researchers(E) :- +residents(E, B, G), +ced(E, D), not residents(E, _, _), not ced(E, D), B = '0001-01-01', G = 'unknown', D = 'Research'.
++researchers(E) :- +residents(E, B, G), ced(E, D), B = '0001-01-01', G = 'unknown', D = 'Research'.
++researchers(E) :- +residents(E, B, G), +ced(E, D), B = '0001-01-01', G = 'unknown', D = 'Research'.
++researchers(E) :- +ced(E, D), residents(E, _, _), D = 'Research'.
++researchers(E) :- +ced(E, D), -ced(E, D1), residents(E, _, _), D = 'Research', not D = D1.
++researchers(E) :- +ced(E, D), -ced(E, D1), +residents(E, B, G), D = 'Research', not D = D1, B = '0001-01-01', G = 'unknown'.
+
 
 % rule for deletion to tracks3
--researchers(E) :- -ced(E, D), ced(E, D), residents(E, _, _), D = 'Research'.
+-researchers(E) :- -ced(E, D), residents(E, _, _), D = 'Research'.
 
 %% getprime end
 

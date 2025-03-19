@@ -1,4 +1,4 @@
-%% projection + complement
+%% semijoin + projection
 
 %% describe the schema of sources and views
 source blacklist('EMP_NAME':string).
@@ -7,7 +7,13 @@ view good_residents('EMP_NAME':string, 'BIRTH_DATE':string).
 
 
 %% constraint
-_|_ :- good_residents(NAME,BIRTH_DATE), blacklist(NAME) .
+
+% primary key
+PK(residents, ['EMP_NAME']).
+PK(good_residents, ['EMP_NAME']).
+
+% customer constraint
+_|_ :- good_residents(NAME,BIRTH_DATE), blacklist(NAME).
 
 
 IS:
@@ -20,8 +26,11 @@ IS:
 
 %% getprime begin
 
-+good_residents(E, B) :- +residents(E, B, G), G = 'unknown', not residents(E, B, _).
--good_residents(E, B) :- -residents(E, B, G), residents(E, B, G), not blacklist(E).
+% rule for insertion to view
++good_residents(E, B) :- +residents(E, B, G), G = 'unknown', not blacklist(E).
+
+% rule for deletion to view
+-good_residents(E1, B1) :- -residents(E1, B1, G1), not blacklist(E1).
 
 %% getprime end
 
