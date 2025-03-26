@@ -1,9 +1,11 @@
 # getprime
 
+We implement a tool supporting derivatived-based bidirectional programming. 
+
 ### Run docker container
 
 ``` bash
-docker run -it --name "devgetprime" -ti -p 5432:5432 -p 3010:3010 -v /Users/lizi/Desktop/pl/getprime:/home/code dangtv/birds:0.0.5 
+docker run -it --name "name" -ti -p 5432:5432 -p 3010:3010 -v /the/path/to/code/in/host:/the/path/to/code/in/docker dangtv/birds:0.0.5 
 ```
 
 ### Make
@@ -25,33 +27,27 @@ opam install num.1.0
 opam install postgresql
 ```
 
-#### Before compiling
+#### Before Compiling
+
+Remember to switch to Ocaml v4.07.0 before compiling.
 
 ``` bash
 opam switch 4.07.0
 eval `opam config env`
 ```
 
-#### Compile
+#### Compile in Docker
 
 ``` bash
-cd /home/code
+cd /the/path/to/code/in/docker
 make
 ```
 
-#### Compile without makefile
-
+#### Run
 ``` bash
-ocamlc -c expr.ml
-ocamlc -c utils.ml
-ocamlyacc parser.mly
-ocamlc -c parser.mli
-ocamlc -c parser.ml
-ocamllex lexer.mll
-ocamlc -c lexer.ml
-ocamlc -c verifier.ml
-ocamlc -c fuser.ml
-ocamlc -c generator.ml
-ocamlc -c main.ml
-ocamlc -o f str.cma expr.cmo utils.cmo parser.cmo lexer.cmo verifier.cmo fuser.cmo generator.cmo main.cmo
+/the/path/to/code/in/docker/bin/devbx /the/path/to/scripts
 ```
+The tool will verify the injectivity and non-contradiction of get' and construct the bidirectional transformation, which can be verified by BIRDS. 
+
+#### Evaluation
+The examples are in the benchmarks.
