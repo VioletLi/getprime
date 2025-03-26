@@ -1,0 +1,24 @@
+person_detail(1, "Alice").
+person_detail(2, "Bob").
+person_detail(3, "Charlie").
+
+person_job(1, "Software Engineer"). 
+
+// Expected view
+
+// person_detail_job_vw(1, "Alice", "Software Engineer").
+// person_detail_job_vw(2, "Bob", "None").
+// person_detail_job_vw(3, "Charlie", "None").
+
+person_detail_job_vw_prime(3, "Cleer", "Software Enginner").
+person_detail_job_vw_prime(4, "David", "Software Engineer").
+person_detail_job_vw_prime(5, "Eve", "None").
+
+// Expected source prime
+
+// person_detail(3, "Cleer").
+// person_detail(4, "David").
+// person_detail(5, "Eve").
+
+// person_job(3, "Software Engineer").
+// person_job(4, "Software Engineer").

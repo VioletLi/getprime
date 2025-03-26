@@ -1,19 +1,39 @@
+%% semijoin + projection
+
+%% describe the schema of sources and views
 source blacklist('EMP_NAME':string).
 source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
 view good_residents('EMP_NAME':string, 'BIRTH_DATE':string).
 
-_|_ :- good_residents(NAME,BIRTH_DATE), blacklist(NAME) .
+
+%% constraint
+
+% primary key
+PK(residents, ['EMP_NAME']).
+PK(good_residents, ['EMP_NAME']).
+
+% customer constraint
+_|_ :- good_residents(NAME,BIRTH_DATE), blacklist(NAME).
+
 
 IS:
 [
     blacklist0(E) :- blacklist(E).
     residents0(E, B, G) :- residents(E, B, G).
-    good_residents0(E, B) :- residents(E, B, _), not blacklist(E).
+    good_residents0(E, B) :- residents0(E, B, _), not blacklist0(E).
 ].
 
-+good_residents(E, B) :- +residents(E, B, G), G = 'unknown', not residents(E, B, _).
--good_residents(E, B) :- -residents(E, B, G), residents(E, B, G), not blacklist(E).
 
-% +residents(E,B,G) :- good_residents(E,B), G='unknown',  ¬ residents(E,B,_).
-% -residents(E,B,G) :- residents(E,B,G), not blacklist(E), ¬ good_residents(E,B).
+%% getprime begin
 
+% rule for insertion to view
++good_residents(E, B) :- +residents(E, B, G), G = 'unknown', not blacklist(E).
+
+% rule for deletion to view
+-good_residents(E1, B1) :- -residents(E1, B1, G1), not blacklist(E1).
+
+%% getprime end
+
+
+%% view definition
+% good_residents(E, B) :- residents(E, B, _), not blacklist(E).

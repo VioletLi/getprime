@@ -1,0 +1,69 @@
+#include "./testcases/projection/insertion.dl"
+
+.type int <: number
+.type string <: symbol
+
+.decl s0(X:string, Y:string)
+.decl v0(X:string)
+
+.decl s(X:string, Y:string)
+.decl s_del(X:string, Y:string)
+.decl s_ins(X:string, Y:string)
+
+.decl v(X:string)
+.decl v_del(X:string)
+.decl v_ins(X:string)
+
+.decl v_prime(X:string)
+.decl v_prime_del(X:string)
+.decl v_prime_ins(X:string)
+
+.decl s_prime(X:string, Y:string)
+.decl s_prime_del(X:string, Y:string)
+.decl s_prime_ins(X:string, Y:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("sErrPK") :- s(X, Y1), s(X, Y2), ! Y1 = Y2.
+precondition("error") :- s(X, Y1), s(X, Y2), ! Y1 = Y2.
+
+
+// -- initial source and view -- 
+
+s0(X, Y) :- s(X, Y) , ! Y = "A".
+v0(X) :- s0(X, Y).
+
+
+// -- get --
+
+v(X) :- v0(X) , ! v_del(X).
+v(X) :- v_ins(X).
+s_ins(X, Y) :- s(X, Y) , ! s0(X, Y).
+s_del(X, Y) :- s0(X, Y) , ! s(X, Y).
+v_del(X) :- s_del(X, Y).
+v_ins(X) :- s_ins(X, Y) , Y = "A".
+
+
+// -- put --
+
+v_prime_ins(X) :- v_prime(X) , ! v(X).
+v_prime_del(X) :- v(X) , ! v_prime(X).
+s_prime_del(X, Y) :- v_prime_del(X) , s(X, Y).
+s_prime_ins(X, Y) :- v_prime_ins(X) , Y = "A" , ! s(X, Y) , ! s(X, _).
+
+s_prime(X, Y) :- s(X, Y), ! s_prime_del(X, Y).
+s_prime(X, Y) :- s_prime_ins(X, Y).
+
+
+// -- output --
+
+.output precondition
+
+.output s
+.output v_prime
+
+.output v
+.output s_prime

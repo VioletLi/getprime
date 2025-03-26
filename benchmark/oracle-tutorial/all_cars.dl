@@ -1,0 +1,43 @@
+%% natural join with PK
+
+%% describe the schema of sources and views
+source brands('BRAND_ID':real, 'BRAND_NAME':string).
+source cars('CAR_ID':real, 'CAR_NAME':string, 'BRAND_ID':real).
+view all_cars('CAR_ID':real, 'CAR_NAME':string, 'BRAND_ID':real, 'BRAND_NAME':string).
+
+% primary key
+PK(brands,['BRAND_ID']).
+PK(cars, ['CAR_ID']).
+PK(all_cars, ['CAR_ID']).
+_|_ :- all_cars(_,_,BRAND_ID,BRAND_NAME1), all_cars(_,_,BRAND_ID,BRAND_NAME2), BRAND_NAME1 <> BRAND_NAME2.
+
+% foreign key
+_|_ :- cars(_, _, BRAND_ID), not brands(BRAND_ID, _).
+
+
+GET : [
+    all_cars(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- cars(CAR_ID, CAR_NAME, BRAND_ID), brands(BRAND_ID, BRAND_NAME).
+].
+
+
+IS : [
+    brands0(BRAND_ID, BRAND_NAME) :- brands(BRAND_ID, BRAND_NAME).
+    cars0(CAR_ID, CAR_NAME, BRAND_ID) :- cars(CAR_ID, CAR_NAME, BRAND_ID).
+    all_cars0(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- cars0(CAR_ID, CAR_NAME, BRAND_ID), brands0(BRAND_ID, BRAND_NAME).
+].
+
+
+%% getprime begin
+
+% rule for insertion to view
++all_cars(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- +cars(CAR_ID, CAR_NAME, BRAND_ID), brands(BRAND_ID, BRAND_NAME).
++all_cars(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- +cars(CAR_ID, CAR_NAME, BRAND_ID), +brands(BRAND_ID, BRAND_NAME).
+
+% rule for deletion to view
+-all_cars(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- -cars(CAR_ID, CAR_NAME, BRAND_ID), brands(BRAND_ID, BRAND_NAME).
+
+%% getprime end
+
+
+%% view definition
+% all_cars(CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) :- cars(CAR_ID, CAR_NAME, BRAND_ID), brands(BRAND_ID, BRAND_NAME).

@@ -1,0 +1,88 @@
+#include "./testcases/u+s/deletion.dl"
+
+.type string <: symbol
+
+.decl s10(X:string, Y:string)
+.decl s20(X:string, Y:string)
+.decl v0(X:string, Y:string)
+
+.decl s1(X:string, Y:string)
+.decl s1_del(X:string, Y:string)
+.decl s1_ins(X:string, Y:string)
+
+.decl s2(X:string, Y:string)
+.decl s2_del(X:string, Y:string)
+.decl s2_ins(X:string, Y:string)
+
+.decl v(X:string, Y:string)
+.decl v_del(X:string, Y:string)
+.decl v_ins(X:string, Y:string)
+
+.decl v_prime(X:string, Y:string)
+.decl v_prime_del(X:string, Y:string)
+.decl v_prime_ins(X:string, Y:string)
+
+.decl s1_prime(X:string, Y:string)
+.decl s1_prime_del(X:string, Y:string)
+.decl s1_prime_ins(X:string, Y:string)
+
+.decl s2_prime(X:string, Y:string)
+.decl s2_prime_del(X:string, Y:string)
+.decl s2_prime_ins(X:string, Y:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("err1") :- v_prime(X, Y) , ! Y = "A".
+
+
+// -- initial source and view -- 
+
+s20(X, Y) :- s2(X, Y) , Y = "A".
+v0(X, Y) :- s20(X, Y).
+
+
+// -- get --
+
+v(X, Y) :- v0(X, Y) , ! v_del(X, Y).
+v(X, Y) :- v_ins(X, Y).
+s2_ins(X, Y) :- s2(X, Y) , ! s20(X, Y).
+s2_del(X, Y) :- s20(X, Y) , ! s2(X, Y).
+s1_ins(X, Y) :- s1(X, Y) , ! s10(X, Y).
+s1_del(X, Y) :- s10(X, Y) , ! s1(X, Y).
+v_del(X, Y) :- s1_del(X, Y) , s2_del(X, Y) , Y = "A".
+v_del(X, Y) :- s2_del(X, Y) , ! s1(X, Y) , Y = "A".
+v_del(X, Y) :- s1_del(X, Y) , ! s2(X, Y) , Y = "A".
+v_ins(X, Y) :- s1_ins(X, Y) , ! s2(X, Y) , Y = "A".
+
+
+// -- put --
+
+v_prime_ins(X, Y) :- v_prime(X, Y) , ! v(X, Y).
+v_prime_del(X, Y) :- v(X, Y) , ! v_prime(X, Y).
+s1_prime_del(X, Y) :- v_prime_del(X, Y) , Y = "A" , s1(X, Y) , s2(X, Y).
+s2_prime_del(X, Y) :- v_prime_del(X, Y) , Y = "A" , s1(X, Y) , s2(X, Y).
+s2_prime_del(X, Y) :- v_prime_del(X, Y) , ! s1(X, Y) , Y = "A" , s2(X, Y).
+s1_prime_del(X, Y) :- v_prime_del(X, Y) , ! s2(X, Y) , Y = "A" , s1(X, Y).
+s1_prime_ins(X, Y) :- v_prime_ins(X, Y) , ! s2(X, Y) , Y = "A" , ! s1(X, Y).
+
+s1_prime(X, Y) :- s1(X, Y), ! s1_prime_del(X, Y).
+s1_prime(X, Y) :- s1_prime_ins(X, Y).
+
+s2_prime(X, Y) :- s2(X, Y), ! s2_prime_del(X, Y).
+s2_prime(X, Y) :- s2_prime_ins(X, Y).
+
+
+// -- output --
+
+.output precondition
+
+.output s1
+.output s2
+.output v_prime
+
+.output v
+.output s1_prime
+.output s2_prime

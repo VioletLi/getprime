@@ -1,0 +1,13 @@
+tracks1("t1", 2025, 1, "a1", 1).
+tracks1("t2", 2025, 2, "a2", 2).
+
+// Expected view
+
+// tracks2("t1", 1, "a1", 1).
+// tracks2("t2", 2, "a2", 2).
+
+tracks2_prime("t1", 1, "a1", 1).
+
+// Expected source prime
+
+// tracks1_prime("t1", 2025, 1, "a1", 1).

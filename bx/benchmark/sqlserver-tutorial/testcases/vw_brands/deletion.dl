@@ -1,0 +1,23 @@
+brands(11, "brand 1").
+brands(12, "brand 2").
+
+brand_approvals(21, "brand_approval 1").
+brand_approvals(22, "brand_approval 2").
+
+// Expected view
+
+// vw_brands("brand 1", "Approved").
+// vw_brands("brand 2", "Approved").
+// vw_brands("brand_approval 1", "Pending Approval").
+// vw_brands("brand_approval 2", "Pending Approval").
+
+vw_brands_prime("brand 1", "Approved").
+vw_brands_prime("brand 2", "Approved").
+vw_brands_prime("brand_approval 2", "Pending Approval").
+
+// Expected source prime
+
+// brands_prime(11, "brand 1").
+// brands_prime(12, "brand 2").
+
+// brand_approvals_prime(22, "brand_approval 2").

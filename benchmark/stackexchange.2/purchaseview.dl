@@ -1,0 +1,52 @@
+%% natural join with PK
+
+%% describe the schema of sources and views
+source product('PRODUCT_ID':int, 'PRODUCT_NAME':string).
+source purchase('PURCHASE_ID':int, 'PRODUCT_ID':int, 'WHEN_BOUGHT':string).
+source next_produce_id('ID':int).
+view purchaseview('PURCHASE_ID':int, 'PRODUCT_NAME':string, 'WHEN_BOUGHT':string).
+
+
+%% constraints
+% primary key
+PK(product,['PRODUCT_ID']).
+PK(purchase,['PURCHASE_ID']).
+PK(purchaseview,['PURCHASE_ID']).
+
+% foreign key
+_|_ :- purchase(_, PRODUCT_ID, _), not product(PRODUCT_ID, _).
+% join dependency for insertions
+_|_ :- purchaseview(PURCHASE_ID, _, WHEN_BOUGHT), purchaseview(_, PRODUCT_NAME, _), not purchaseview(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT).
+
+
+% constraint on new CUSTOMER_ID (new and only one)
+_|_ :- product(PRODUCT_ID, _), next_produce_id(PRODUCT_ID).
+_|_ :- next_produce_id(ID1), next_produce_id(ID2), ID1 <> ID2.
+_|_ :- not next_produce_id(_).
+
+GET : [
+    purchaseview(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT) :- purchase(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT), product(PRODUCT_ID, PRODUCT_NAME).
+].
+
+IS : [
+    product0(PRODUCT_ID, PRODUCT_NAME) :- product(PRODUCT_ID, PRODUCT_NAME).
+    purchase0(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT) :- purchase(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT).
+    next_produce_id0(ID) :- next_produce_id(ID).
+    purchaseview0(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT) :- purchase0(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT), product0(PRODUCT_ID, PRODUCT_NAME).
+].
+
+
+%% getprime begin
+
+% rule for insertion to view
++purchaseview(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT) :- +purchase(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT), product(PRODUCT_ID, PRODUCT_NAME).
++purchaseview(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT) :- +purchase(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT), +product(PRODUCT_ID, PRODUCT_NAME), not product(_, PRODUCT_NAME), next_produce_id(PRODUCT_ID).
+
+% rule for deletion to view
+-purchaseview(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT) :- -purchase(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT), product(PRODUCT_ID, PRODUCT_NAME).
+
+%% getprime end
+
+
+%% view definition
+% purchaseview(PURCHASE_ID, PRODUCT_NAME, WHEN_BOUGHT) :- purchase(PURCHASE_ID, PRODUCT_ID, WHEN_BOUGHT), product(PRODUCT_ID, PRODUCT_NAME).

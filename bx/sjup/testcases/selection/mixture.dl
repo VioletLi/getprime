@@ -1,0 +1,22 @@
+s("a", "a").
+s("b", "b").
+s("c", "default").
+s("d", "default").
+
+
+// Expected view
+
+// v("c", "default").
+// v("d", "default").
+
+v_prime("a", "default").
+v_prime("c", "default").
+v_prime("e", "default").
+
+// Expected source prime
+
+// s_prime("a", "a").
+// s_prime("a", "default").
+// s_prime("b", "b").
+// s_prime("c", "default").
+// s_prime("e", "default").

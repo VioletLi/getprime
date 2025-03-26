@@ -1,18 +1,23 @@
+%% set difference
+
+%% describe the schema of sources and views
 source ed('EMP_NAME':string,'DEPT_NAME':string).
 source eed('EMP_NAME':string,'DEPT_NAME':string).
 view ced('EMP_NAME':string, 'DEPT_NAME':string).
 
 
+%% getprime begin
 
-
-
+% rule for insertion to view
 +ced(E, D) :- +ed(E, D), not eed(E, D).
 +ced(E, D) :- -eed(E, D), ed(E, D).
 +ced(E, D) :- +ed(E, D), -eed(E, D).
+
+% rule for deletion to view
 -ced(E, D) :- +eed(E, D), ed(E, D).
 
-% +ed(E, D) :- ced(E, D), NOT ed(E, D).
-% -eed(E, D) :- ced(E, D), eed(E, D).
-% +eed(E, D) :- ed(E, D), NOT ced(E, D), NOT eed(E, D).
+%% getprime end
 
-% ced(E, D) :- ed(E, D), not eed(E, D).
+
+%% view definition
+% ced(EMP_NAME, DEPT_NAME) :- ed(EMP_NAME, DEPT_NAME), not eed(EMP_NAME, DEPT_NAME).

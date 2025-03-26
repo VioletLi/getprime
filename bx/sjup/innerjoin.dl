@@ -1,0 +1,140 @@
+#include "./testcases/innerjoin/multi-deletion.dl"
+
+.type string <: symbol
+
+.decl s10(X:string, Y:string)
+.decl s20(Y:string, Z:string)
+.decl v0(X:string, Y:string, Z:string)
+
+.decl s1(X:string, Y:string)
+.decl s1_ins(X:string, Y:string)
+.decl s1_del(X:string, Y:string)
+
+.decl s2(Y:string, Z:string)
+.decl s2_ins(Y:string, Z:string)
+.decl s2_del(Y:string, Z:string)
+
+.decl v(X:string, Y:string, Z:string)
+.decl v_ins(X:string, Y:string, Z:string)
+.decl v_del(X:string, Y:string, Z:string)
+
+.decl v_prime(X:string, Y:string, Z:string)
+.decl v_prime_ins(X:string, Y:string, Z:string)
+.decl v_prime_del(X:string, Y:string, Z:string)
+
+.decl s1_prime(X:string, Y:string)
+.decl s1_prime_ins(X:string, Y:string)
+.decl s1_prime_del(X:string, Y:string)
+
+.decl s2_prime(Y:string, Z:string)
+.decl s2_prime_ins(Y:string, Z:string)
+.decl s2_prime_del(Y:string, Z:string)
+
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("error4")  :- s1(_, Y) , ! s2(Y, _).
+precondition("error5") :- s1(X, Y1), s1(X, Y2), Y1 != Y2.
+precondition("error6") :- s2(Y, Z1), s1(Y, Z2), Z1 != Z2.
+
+precondition("error7") :- v_prime(X, Y1, _), v_prime(X, Y2, _), Y1 != Y2.
+precondition("error8") :- v_prime(X, _, Z1), v_prime(X, _, Z2), Z1 != Z2.
+precondition("error9")  :- v_prime(_, Y, Z1) , v_prime(_, Y, Z2) , Z1 != Z2.
+precondition("error10")  :- v_prime(X, Y1, _) , v_prime(X, Y2, _) , Y1 != Y2.
+
+
+// -- initial source and view -- 
+// emtpy
+
+
+// -- get --
+
+v(X, Y, Z) :- v0(X, Y, Z) , ! v_del(X, Y, Z).
+v(X, Y, Z) :- v_ins(X, Y, Z).
+s2_ins(Y, Z) :- s2(Y, Z) , ! s20(Y, Z).
+s2_del(Y, Z) :- s20(Y, Z) , ! s2(Y, Z).
+s1_ins(X, Y) :- s1(X, Y) , ! s10(X, Y).
+s1_del(X, Y) :- s10(X, Y) , ! s1(X, Y).
+v_del(X, Y, Z) :- s1_del(X, Y) , s2(Y, Z).
+v_ins(X, Y, Z) :- s1_ins(X, Y) , s2_ins(Y, Z).
+v_ins(X, Y, Z) :- s1_ins(X, Y) , s2(Y, Z).
+v_del(X, Y, Z) :- s2_ins(Y, Z1) , s2(Y, Z) , s1(X, Y) , ! s2(Y, Z1) , ! s2(Y, _) , ! Z = Z1.
+v_ins(X, Y, Z1) :- s2_ins(Y, Z1) , s2(Y, Z) , s1(X, Y) , ! s2(Y, Z1) , ! s2(Y, _) , ! Z = Z1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X, Y1) , s2_ins(Y1, Z) , s2(Y, Z) , s1(X, Y) , ! s2(Y1, Z) , ! s2(Y1, _) , ! Y = Y1.
+v_ins(X, Y1, Z) :- s1_del(X, Y) , s1_ins(X, Y1) , s2_ins(Y1, Z) , s2(Y, Z) , s1(X, Y) , ! s2(Y1, Z) , ! s2(Y1, _) , ! Y = Y1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X, Y1) , s2_ins(Y1, Z1) , s2(Y, Z) , s1(X, Y) , ! s2(Y1, Z1) , ! s2(Y1, _) , ! Y = Y1 , ! Z = Z1.
+v_ins(X, Y1, Z1) :- s1_del(X, Y) , s1_ins(X, Y1) , s2_ins(Y1, Z1) , s2(Y, Z) , s1(X, Y) , ! s2(Y1, Z1) , ! s2(Y1, _) , ! Y = Y1 , ! Z = Z1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X1, Y) , s2_ins(Y, Z) , s2(Y, Z) , s1(X, Y) , ! s1(X1, Y) , ! s2(Y, Z) , ! s1(X1, _) , ! s2(Y, _) , ! X = X1.
+v_ins(X1, Y, Z) :- s1_del(X, Y) , s1_ins(X1, Y) , s2_ins(Y, Z) , s2(Y, Z) , s1(X, Y) , ! s1(X1, Y) , ! s2(Y, Z) , ! s1(X1, _) , ! s2(Y, _) , ! X = X1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X1, Y) , s2_ins(Y, Z1) , s2(Y, Z) , s1(X, Y) , ! s1(X1, Y) , ! s2(Y, Z1) , ! s1(X1, _) , ! s2(Y, _) , ! X = X1 , ! Z = Z1.
+v_ins(X1, Y, Z1) :- s1_del(X, Y) , s1_ins(X1, Y) , s2_ins(Y, Z1) , s2(Y, Z) , s1(X, Y) , ! s1(X1, Y) , ! s2(Y, Z1) , ! s1(X1, _) , ! s2(Y, _) , ! X = X1 , ! Z = Z1.
+v_del(X, Y, Z) :- s2(Y, Z) , s1(X, Y) , s2(Y, Z1) , ! Z = Z1.
+v_ins(X, Y, Z1) :- s2(Y, Z) , s1(X, Y) , s2(Y, Z1) , ! Z = Z1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X, Y1) , s2(Y, Z) , s1(X, Y) , s2(Y1, Z) , ! Y = Y1.
+v_ins(X, Y1, Z) :- s1_del(X, Y) , s1_ins(X, Y1) , s2(Y, Z) , s1(X, Y) , s2(Y1, Z) , ! Y = Y1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X, Y1) , s2(Y, Z) , s1(X, Y) , s2(Y1, Z1) , ! Y = Y1 , ! Z = Z1.
+v_ins(X, Y1, Z1) :- s1_del(X, Y) , s1_ins(X, Y1) , s2(Y, Z) , s1(X, Y) , s2(Y1, Z1) , ! Y = Y1 , ! Z = Z1.
+v_del(X, Y, Z) :- s1_del(X, Y) , s1_ins(X1, Y) , s2(Y, Z) , s1(X, Y) , s2(Y, Z1) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+v_ins(X1, Y, Z1) :- s1_del(X, Y) , s1_ins(X1, Y) , s2(Y, Z) , s1(X, Y) , s2(Y, Z1) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+
+
+// -- put --
+
+v_prime_ins(X, Y, Z) :- v_prime(X, Y, Z) , ! v(X, Y, Z).
+v_prime_del(X, Y, Z) :- v(X, Y, Z) , ! v_prime(X, Y, Z).
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , ! v_prime_ins(_, _, _) , s1(X, Y) , s2(Y, Z).
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , ! v_prime_ins(_, _, _) , s1(X, Y) , s2(Y, Z).
+s1_prime_ins(X, Y) :- v_prime_ins(X, Y, Z) , ! v_prime_del(_, _, _) , ! s1(X, Y) , ! s2(Y, Z) , ! s1(X, _) , ! s2(Y, _).
+s2_prime_ins(Y, Z) :- v_prime_ins(X, Y, Z) , ! v_prime_del(_, _, _) , ! s1(X, Y) , ! s2(Y, Z) , ! s1(X, _) , ! s2(Y, _).
+s1_prime_ins(X, Y) :- v_prime_ins(X, Y, Z) , ! v_prime_del(_, _, _) , s2(Y, Z) , ! s1(X, Y) , ! s1(X, _).
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y, Z1) , s1(X, Y) , s2(Y, Z) , ! Z = Z1.
+s2_prime_ins(Y, Z1) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y, Z1) , s1(X, Y) , s2(Y, Z) , ! Z = Z1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z) , ! s2(Y1, _) , ! Y = Y1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z) , ! s2(Y1, _) , ! Y = Y1.
+s1_prime_ins(X, Y1) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z) , ! s2(Y1, _) , ! Y = Y1.
+s2_prime_ins(Y1, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z) , ! s2(Y1, _) , ! Y = Y1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z1) , ! s2(Y1, _) , ! Y = Y1 , ! Z = Z1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z1) , ! s2(Y1, _) , ! Y = Y1 , ! Z = Z1.
+s1_prime_ins(X, Y1) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z1) , ! s2(Y1, _) , ! Y = Y1 , ! Z = Z1.
+s2_prime_ins(Y1, Z1) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , ! s2(Y1, Z1) , ! s2(Y1, _) , ! Y = Y1 , ! Z = Z1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z) , s1(X, Y) , s2(Y, Z) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1.
+s1_prime_ins(X1, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z) , s1(X, Y) , s2(Y, Z) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+s1_prime_ins(X1, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+s2_prime_ins(Y, Z1) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y, Z1) , ! Z = Z1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , s2(Y1, Z) , ! Y = Y1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , s2(Y1, Z) , ! Y = Y1.
+s1_prime_ins(X, Y1) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z) , s1(X, Y) , s2(Y, Z) , s2(Y1, Z) , ! Y = Y1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y1, Z1) , ! Y = Y1 , ! Z = Z1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y1, Z1) , ! Y = Y1 , ! Z = Z1.
+s1_prime_ins(X, Y1) :- v_prime_del(X, Y, Z) , v_prime_ins(X, Y1, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y1, Z1) , ! Y = Y1 , ! Z = Z1.
+s2_prime_del(Y, Z) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y, Z1) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+s1_prime_del(X, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y, Z1) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+s1_prime_ins(X1, Y) :- v_prime_del(X, Y, Z) , v_prime_ins(X1, Y, Z1) , s1(X, Y) , s2(Y, Z) , s2(Y, Z1) , ! s1(X1, Y) , ! s1(X1, _) , ! X = X1 , ! Z = Z1.
+
+
+s1_prime(X, Y) :- s1(X, Y), ! s1_prime_del(X, Y).
+s1_prime(X, Y) :- s1_prime_ins(X, Y).
+s2_prime(Y, Z) :- s2(Y, Z), ! s2_prime_del(Y, Z).
+s2_prime(Y, Z) :- s2_prime_ins(Y, Z).
+
+
+// -- output --
+
+.output precondition
+
+// .output s1
+// .output s2
+// .output v_prime
+
+.output v
+.output s1_prime
+.output s2_prime
+
+.output v_prime_del
+.output v_prime_ins

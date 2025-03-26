@@ -1,0 +1,45 @@
+%% natural join with PK
+
+%% describe the schema of sources and views
+source tracks('TRACK':string,'DATE':int,'RATING':int,'ALBUM':string).
+source albums('ALBUM':string,'QUANTITY':int).
+view tracks1('TRACK':string,'DATE':int,'RATING':int,'ALBUM':string,'QUANTITY':int).
+
+%% constraints
+
+% primary key
+PK(tracks,['TRACK']).
+PK(albums, ['ALBUM']).
+PK(tracks1, ['TRACK']).
+
+% foreign key
+_|_ :- tracks(_, _, _, ALBUM), not albums(ALBUM, _).
+
+% constraints:
+_|_ :- tracks1(T,D,R,A,_), tracks1(_,_,_,A,Q), not tracks1(T,D,R,A,Q).
+
+GET : [
+    tracks1(T,D,R,A,Q) :- tracks(T,D,R,A), albums(A,Q).
+].
+
+IS : [
+    tracks0(T,DTE,R,A) :- tracks(T,D,R,A).
+    albums0(A,Q) :- albums(A,Q).
+    tracks10(T,D,R,A,Q) :- tracks0(T,D,R,A), albums0(A,Q).
+].
+
+
+%% getprime begin
+
+% rule for insertion to view
++tracks1(T,D,R,A,Q) :- +tracks(T,D,R,A), albums(A,Q).
++tracks1(T,D,R,A,Q) :- +tracks(T,D,R,A), +albums(A,Q).
+
+% rule for deletion to view
+-tracks1(T,D,R,A,Q) :- -tracks(T,D,R,A), albums(A,Q).
+
+%% getprime end
+
+
+%% view definition:
+% tracks1(T,D,R,A,Q) :- tracks(T,D,R,A), albums(A,Q).

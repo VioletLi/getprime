@@ -1,0 +1,86 @@
+// projection + complement
+#include "./testcases/good_residents/mixture.dl"
+
+.type string <: symbol
+
+
+.decl residents0(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl blacklist0(EMP_NAME:string)
+.decl good_residents0(EMP_NAME:string, BIRTH_DATE:string)
+
+.decl residents(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_ins(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_del(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+
+.decl blacklist(EMP_NAME:string)
+.decl blacklist_ins(EMP_NAME:string)
+.decl blacklist_del(EMP_NAME:string)
+
+.decl good_residents(EMP_NAME:string, BIRTH_DATE:string)
+.decl good_residents_ins(EMP_NAME:string, BIRTH_DATE:string)
+.decl good_residents_del(EMP_NAME:string, BIRTH_DATE:string)
+
+.decl good_residents_prime(EMP_NAME:string, BIRTH_DATE:string)
+.decl good_residents_prime_ins(EMP_NAME:string, BIRTH_DATE:string)
+.decl good_residents_prime_del(EMP_NAME:string, BIRTH_DATE:string)
+
+.decl residents_prime(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_prime_ins(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+.decl residents_prime_del(EMP_NAME:string, BIRTH_DATE:string, GENDER:string)
+
+.decl blacklist_prime(EMP_NAME:string)
+.decl blacklist_prime_ins(EMP_NAME:string)
+.decl blacklist_prime_del(EMP_NAME:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+
+precondition("error") :- good_residents_prime(NAME, BIRTH_DATE) , blacklist(NAME).
+
+
+// -- initial source and view --    
+
+residents0(E, B, G) :- residents(E, B, G).
+blacklist0(E) :- blacklist(E).
+good_residents0(E, B) :- residents0(E, B, _) , ! blacklist0(E).
+
+
+// -- get --
+
+good_residents(EMP_NAME, BIRTH_DATE) :- good_residents0(EMP_NAME, BIRTH_DATE) , ! good_residents_del(EMP_NAME, BIRTH_DATE).
+good_residents(EMP_NAME, BIRTH_DATE) :- good_residents_ins(EMP_NAME, BIRTH_DATE).
+residents_ins(EMP_NAME, BIRTH_DATE, GENDER) :- residents(EMP_NAME, BIRTH_DATE, GENDER) , ! residents0(EMP_NAME, BIRTH_DATE, GENDER).
+residents_del(EMP_NAME, BIRTH_DATE, GENDER) :- residents0(EMP_NAME, BIRTH_DATE, GENDER) , ! residents(EMP_NAME, BIRTH_DATE, GENDER).
+blacklist_ins(EMP_NAME) :- blacklist(EMP_NAME) , ! blacklist0(EMP_NAME).
+blacklist_del(EMP_NAME) :- blacklist0(EMP_NAME) , ! blacklist(EMP_NAME).
+good_residents_del(E, B) :- residents_del(E, B, G) , residents(E, B, G) , ! blacklist(E).
+good_residents_ins(E, B) :- residents_ins(E, B, G) , G = "unknown" , ! residents(E, B, _).
+
+
+// -- put --
+
+good_residents_prime_ins(EMP_NAME, BIRTH_DATE) :- good_residents_prime(EMP_NAME, BIRTH_DATE) , ! good_residents(EMP_NAME, BIRTH_DATE).
+good_residents_prime_del(EMP_NAME, BIRTH_DATE) :- good_residents(EMP_NAME, BIRTH_DATE) , ! good_residents_prime(EMP_NAME, BIRTH_DATE).
+residents_prime_del(E, B, G) :- good_residents_prime_del(E, B) , residents(E, B, G) , ! blacklist(E) , residents(E, B, G).
+residents_prime_ins(E, B, G) :- good_residents_prime_ins(E, B) , G = "unknown" , ! residents(E, B, _) , ! residents(E, B, G).
+
+residents_prime(E, B, G) :- residents(E, B, G), ! residents_prime_del(E, B, G).
+residents_prime(E, B, G) :- residents_prime_ins(E, B, G).
+
+blacklist_prime(EMP_NAME) :- blacklist(EMP_NAME), ! blacklist_prime_del(EMP_NAME).
+blacklist_prime(EMP_NAME) :- blacklist_prime_ins(EMP_NAME).
+
+
+// -- output --
+
+.output precondition
+
+.output residents
+.output blacklist
+.output good_residents_prime
+
+.output good_residents
+.output residents_prime
+.output blacklist_prime

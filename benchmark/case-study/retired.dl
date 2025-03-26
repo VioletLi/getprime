@@ -1,6 +1,12 @@
+%% semijoin + projection + set difference
+
+%% describe the schema of sources and views
 source residents('EMP_NAME':string, 'BIRTH_DATE':string, 'GENDER':string).
 source ced('EMP_NAME':string, 'DEPT_NAME':string).
 view retired('EMP_NAME':string).
+
+PK(residents,['EMP_NAME']).
+PK(ced,['EMP_NAME']).
 
 IS:[
     residents0(E, B, G) :- residents(E, B, G).
@@ -8,7 +14,19 @@ IS:[
     retired0(E) :- residents0(E, B, G), not ced0(E, _).
 ].
 
-+retired(E) :- -ced(E, D), ced(E, D), residents(E, B, G).
-+retired(E) :- +residents(E, B, G), not ced(E, _), not residents(E, _, _), B = '0001-01-01', G = 'unknown'.
-+retired(E) :- +residents(E, B, G), -ced(E, D), ced(E, D), not residents(E, _, _), B = '0001-01-01', G = 'unknown'.
--retired(E) :- +ced(E, D), not ced(E, _), residents(E, _, _), D = 'unknown'.
+
+%% getprime begin
+
+% rule for insertion to view
++retired(E) :- -ced(E, D), residents(E, B, G).
++retired(E) :- +residents(E, B, G), not ced(E, _), B = '0001-01-01', G = 'unknown'.
++retired(E) :- +residents(E, B, G), -ced(E, D), B = '0001-01-01', G = 'unknown'.
+
+% rule for deletion to view
+-retired(E) :- +ced(E, D), residents(E, _, _), D = 'unknown'.
+
+%% getprime end
+
+
+%% view definition
+% retired(E) :- residents(E, B, G), not ced(E, _).

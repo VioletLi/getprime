@@ -1,0 +1,34 @@
+source s1('X': string, 'Y': string).
+source s2('Y': string, 'Z': string).
+view v('X': string, 'Y': string, 'Z': string).
+
+% primary key
+PK(s1, ['X']).
+PK(s2, ['Y']).
+PK(v, ['X']).
+
+% foreign key
+_|_ :- s1(_, Y), not s2(Y, _).
+
+% view constraints
+_|_ :- v(X, Y1, _), v(X, Y2, _), Y1 <> Y2.
+_|_ :- v(_, Y, Z1), v(_, Y, Z2), Z1 <> Z2.
+
+GET:
+[
+    v(X, Y, Z) :- s1(X, Y), s2(Y, Z).
+].
+
+% get prime
++v(X, Y, Z) :- +s1(X, Y), s2(Y, Z).
++v(X, Y, Z) :- +s1(X, Y), +s2(Y, Z).
+-v(X, Y, Z) :- -s1(X, Y), s2(Y, Z).
+
+% view definition
+% v(X, Y, Z) :- s1(X, Y), s2(Y, Z).
+
+% putdelta
+% +s1(X, Y) :- v(X, Y, _).
+% +s2(Y, Z) :- v(_, Y, Z).
+% -s1(X, Y) :- not v(X, Y, _), s1(X, Y).
+% -s2(Y, Z) :- v(_, Y, _), not v(_, Y, Z), s2(Y, Z).

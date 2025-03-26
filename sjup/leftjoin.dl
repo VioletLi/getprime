@@ -8,13 +8,9 @@ PK(s1, ['X']).
 PK(s2, ['X']).
 PK(v, ['X']).
 
-GET:
-[
-    v(X, Y, Z) :- s1(X, Y), s2(X, Z), not Z = 'null'.
-    v(X, Y, Z) :- s1(X, Y), not s2(X, _), Z = 'null'.
-].
 
 +v(X, Y, Z) :- +s1(X, Y), +s2(X, Z), not Z = 'null'.
 +v(X, Y, Z) :- +s1(X, Y), not s2(X, _), Z = 'null'.
+
 -v(X, Y, Z) :- -s1(X, Y), -s2(X, Z), not Z = 'null'.
 -v(X, Y, Z) :- -s1(X, Y), not s2(X, _), Z = 'null'.

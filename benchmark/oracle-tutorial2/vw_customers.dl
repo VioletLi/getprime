@@ -1,3 +1,6 @@
+%% natural join with PK, only insertion
+
+%% describe the schema of sources and views
 source customers('CUSTOMER_ID':real, 'NAME':string, 'ADDRESS':string, 'WEBSITE':string, 'CREDIT_LIMIT':real).
 source contacts('CONTACT_ID':real, 'FIRST_NAME':string, 'LAST_NAME':string, 'EMAIL':string, 'PHONE':string, 'CUSTOMER_ID':real).
 source next_customer_id('ID':real).
@@ -5,9 +8,6 @@ source next_contact_id('ID':real).
 
 view vw_customers('NAME':string, 'ADDRESS':string, 'WEBSITE':string, 'CREDIT_LIMIT':real, 'FIRST_NAME':string, 'LAST_NAME':string, 'EMAIL':string, 'PHONE':string).
 
-% view definition
-
-% vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) :- customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID).
 
 IS:[
     customers0(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT) :- customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT).
@@ -17,7 +17,7 @@ IS:[
     vw_customers0(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) :- customers0(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), contacts0(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID).
 ].
 
-% constraints
+%% constraints
 % primary key
 PK(customers,['CUSTOMER_ID']).
 PK(contacts,['CONTACT_ID']).
@@ -36,7 +36,20 @@ _|_ :- not next_contact_id(_).
 % allow only insertion on the view
 _|_  :- customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID), not vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE).
 
-% update strategy for insertion
-+vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) :- +customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), next_customer_id(CUSTOMER_ID), contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID).
-+vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) :- +contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID), customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), next_customer_id(CUSTOMER_ID), next_contact_id(CONTACT_ID).
-+vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) :- +contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID), +customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), next_customer_id(CUSTOMER_ID), next_contact_id(CONTACT_ID).
+
+%% getprime begin
+
+% rule for insertion to view
++vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) 
+    :- +contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID), not contacts(_, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID), next_contact_id(CONTACT_ID)
+    ,  customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT).
+
++vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) 
+    :- +contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID), next_contact_id(CONTACT_ID)
+    ,  +customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), not customers(_, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), next_customer_id(CUSTOMER_ID).
+
+%% getprime end
+
+
+%% view definition
+% vw_customers(NAME, ADDRESS, WEBSITE, CREDIT_LIMIT, FIRST_NAME, LAST_NAME, EMAIL, PHONE) :- customers(CUSTOMER_ID, NAME, ADDRESS, WEBSITE, CREDIT_LIMIT), contacts(CONTACT_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE, CUSTOMER_ID).

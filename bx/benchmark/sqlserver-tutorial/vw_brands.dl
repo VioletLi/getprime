@@ -1,0 +1,92 @@
+// union + projection
+#include "./testcases/vw_brands/mixture.dl"
+
+.type int <: number
+.type string <: symbol
+
+.decl brand_approvals0(BRAND_ID:int, BRAND_NAME:string)
+.decl brands0(BRAND_ID:int, BRAND_NAME:string)
+.decl vw_brands0(BRAND_NAME:string, APPROVAL_STATUS:string)
+
+.decl brand_approvals(BRAND_ID:int, BRAND_NAME:string)
+.decl brand_approvals_ins(BRAND_ID:int, BRAND_NAME:string)
+.decl brand_approvals_del(BRAND_ID:int, BRAND_NAME:string)
+
+.decl brands(BRAND_ID:int, BRAND_NAME:string)
+.decl brands_ins(BRAND_ID:int, BRAND_NAME:string)
+.decl brands_del(BRAND_ID:int, BRAND_NAME:string)
+
+.decl vw_brands(BRAND_NAME:string, APPROVAL_STATUS:string)
+.decl vw_brands_ins(BRAND_NAME:string, APPROVAL_STATUS:string)
+.decl vw_brands_del(BRAND_NAME:string, APPROVAL_STATUS:string)
+
+.decl vw_brands_prime(BRAND_NAME:string, APPROVAL_STATUS:string)
+.decl vw_brands_prime_ins(BRAND_NAME:string, APPROVAL_STATUS:string)
+.decl vw_brands_prime_del(BRAND_NAME:string, APPROVAL_STATUS:string)
+
+.decl brand_approvals_prime(BRAND_ID:int, BRAND_NAME:string)
+.decl brand_approvals_prime_ins(BRAND_ID:int, BRAND_NAME:string)
+.decl brand_approvals_prime_del(BRAND_ID:int, BRAND_NAME:string)
+
+.decl brands_prime(BRAND_ID:int, BRAND_NAME:string)
+.decl brands_prime_ins(BRAND_ID:int, BRAND_NAME:string)
+.decl brands_prime_del(BRAND_ID:int, BRAND_NAME:string)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+precondition("sourceErrPK1") :- brands(BRAND_ID_1, BRAND_NAME) , brands(BRAND_ID_2, BRAND_NAME) , !BRAND_ID_1 = BRAND_ID_2.
+precondition("sourceErrPK2") :- brand_approvals(BRAND_ID_1, BRAND_NAME) , brand_approvals(BRAND_ID_2, BRAND_NAME) , !BRAND_ID_1 = BRAND_ID_2.
+precondition("error1") :- brands(_, BRAND_NAME) , brand_approvals(_, BRAND_NAME).
+
+
+// -- initial source and view --
+
+brand_approvals0(BRAND_ID, BRAND_NAME) :- brand_approvals(BRAND_ID, BRAND_NAME), not BRAND_ID = 10000000.
+brands0(BRAND_ID, BRAND_NAME) :- brands(BRAND_ID, BRAND_NAME), not BRAND_ID = 10000000.
+vw_brands0(BRAND_NAME, APPROVAL_STATUS) :- brands0(BRAND_ID, BRAND_NAME) , APPROVAL_STATUS = "Approved".
+vw_brands0(BRAND_NAME, APPROVAL_STATUS) :- brand_approvals0(BRAND_ID, BRAND_NAME) , APPROVAL_STATUS = "Pending Approval".
+
+
+// -- get --
+
+vw_brands(BRAND_NAME, APPROVAL_STATUS) :- vw_brands0(BRAND_NAME, APPROVAL_STATUS) , ! vw_brands_del(BRAND_NAME, APPROVAL_STATUS).
+vw_brands(BRAND_NAME, APPROVAL_STATUS) :- vw_brands_ins(BRAND_NAME, APPROVAL_STATUS).
+brand_approvals_ins(BRAND_ID, BRAND_NAME) :- brand_approvals(BRAND_ID, BRAND_NAME) , ! brand_approvals0(BRAND_ID, BRAND_NAME).
+brand_approvals_del(BRAND_ID, BRAND_NAME) :- brand_approvals0(BRAND_ID, BRAND_NAME) , ! brand_approvals(BRAND_ID, BRAND_NAME).
+brands_ins(BRAND_ID, BRAND_NAME) :- brands(BRAND_ID, BRAND_NAME) , ! brands0(BRAND_ID, BRAND_NAME).
+brands_del(BRAND_ID, BRAND_NAME) :- brands0(BRAND_ID, BRAND_NAME) , ! brands(BRAND_ID, BRAND_NAME).
+vw_brands_del(BRAND_NAME, APPROVAL_STATUS) :- brand_approvals_del(BRAND_ID, BRAND_NAME) , APPROVAL_STATUS = "Pending Approval".
+vw_brands_del(BRAND_NAME, APPROVAL_STATUS) :- brands_del(BRAND_ID, BRAND_NAME) , APPROVAL_STATUS = "Approved".
+vw_brands_ins(BRAND_NAME, APPROVAL_STATUS) :- brand_approvals_ins(BRAND_ID, BRAND_NAME) , ! brand_approvals(_, BRAND_NAME) , BRAND_ID = 10000000 , APPROVAL_STATUS = "Pending Approval".
+vw_brands_ins(BRAND_NAME, APPROVAL_STATUS) :- brands_ins(BRAND_ID, BRAND_NAME) , ! brands(_, BRAND_NAME) , BRAND_ID = 10000000 , APPROVAL_STATUS = "Approved".
+
+
+// -- put --
+
+vw_brands_prime_ins(BRAND_NAME, APPROVAL_STATUS) :- vw_brands_prime(BRAND_NAME, APPROVAL_STATUS) , ! vw_brands(BRAND_NAME, APPROVAL_STATUS).
+vw_brands_prime_del(BRAND_NAME, APPROVAL_STATUS) :- vw_brands(BRAND_NAME, APPROVAL_STATUS) , ! vw_brands_prime(BRAND_NAME, APPROVAL_STATUS).
+
+brand_approvals_prime_del(BRAND_ID, BRAND_NAME) :- vw_brands_prime_del(BRAND_NAME, APPROVAL_STATUS) , APPROVAL_STATUS = "Pending Approval" , brand_approvals(BRAND_ID, BRAND_NAME).
+brands_prime_del(BRAND_ID, BRAND_NAME) :- vw_brands_prime_del(BRAND_NAME, APPROVAL_STATUS) , APPROVAL_STATUS = "Approved" , brands(BRAND_ID, BRAND_NAME).
+brand_approvals_prime_ins(BRAND_ID, BRAND_NAME) :- vw_brands_prime_ins(BRAND_NAME, APPROVAL_STATUS) , BRAND_ID = 10000000 , APPROVAL_STATUS = "Pending Approval" , ! brand_approvals(BRAND_ID, BRAND_NAME) , ! brand_approvals(_, BRAND_NAME).
+brands_prime_ins(BRAND_ID, BRAND_NAME) :- vw_brands_prime_ins(BRAND_NAME, APPROVAL_STATUS) , BRAND_ID = 10000000 , APPROVAL_STATUS = "Approved" , ! brands(BRAND_ID, BRAND_NAME) , ! brands(_, BRAND_NAME).
+
+brand_approvals_prime(BRAND_ID, BRAND_NAME) :- brand_approvals(BRAND_ID, BRAND_NAME), ! brand_approvals_prime_del(BRAND_ID, BRAND_NAME).
+brand_approvals_prime(BRAND_ID, BRAND_NAME) :- brand_approvals_prime_ins(BRAND_ID, BRAND_NAME).
+brands_prime(BRAND_ID, BRAND_NAME) :- brands(BRAND_ID, BRAND_NAME), ! brands_prime_del(BRAND_ID, BRAND_NAME).
+brands_prime(BRAND_ID, BRAND_NAME) :- brands_prime_ins(BRAND_ID, BRAND_NAME).
+
+
+// -- output --
+
+.output precondition
+
+.output brand_approvals
+.output brands
+.output vw_brands_prime
+
+.output vw_brands
+.output brand_approvals_prime
+.output brands_prime

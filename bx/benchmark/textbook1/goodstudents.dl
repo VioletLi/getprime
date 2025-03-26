@@ -1,0 +1,89 @@
+// selection + projection
+#include "./testcases/goodstudents/mixture.dl"
+
+.type int <: number
+.type real <: float
+.type string <: symbol
+
+.decl students0(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl goodstudents0(SID:int, GPA:real)
+
+.decl students(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_ins(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_del(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+
+.decl goodstudents(SID:int, GPA:real)
+.decl goodstudents_ins(SID:int, GPA:real)
+.decl goodstudents_del(SID:int, GPA:real)
+
+.decl goodstudents_prime(SID:int, GPA:real)
+.decl goodstudents_prime_ins(SID:int, GPA:real)
+.decl goodstudents_prime_del(SID:int, GPA:real)
+
+.decl students_prime(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_prime_ins(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+.decl students_prime_del(SID:int, SNAME:string, LOGIN:string, AGE:int, GPA:real)
+
+.decl precondition(errNo:string)
+
+
+// -- constraints --
+precondition("sourcePKError1") :- students(SID, SNAME, _, _, _) , students(SID, SNAME1, _, _, _), ! SNAME = SNAME1.
+precondition("sourcePKError2") :- students(SID, _, LOGIN, _, _) , students(SID, _, LOGIN1, _, _), ! LOGIN = LOGIN1.
+precondition("sourcePKError3") :- students(SID, _, _, AGE, _) , students(SID, _, _, AGE1, _), ! AGE = AGE1.
+precondition("sourcePKError4") :- students(SID, _, _, _, GPA) , students(SID, _, _, _, GPA1), ! GPA = GPA1.
+precondition("viewPKError") :- goodstudents_prime(SID, GPA) , goodstudents_prime(SID, GPA1), ! GPA = GPA1.
+
+precondition("error") :- goodstudents_prime(SID, GPA) , GPA <= 3.0.
+
+
+// -- initial source and view --
+
+students0(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA).
+goodstudents0(SID, GPA) :- students0(SID, _, _, _, GPA) , GPA > 3.0.
+
+
+// -- get --
+
+goodstudents(SID, GPA) :- goodstudents0(SID, GPA) , ! goodstudents_del(SID, GPA).
+goodstudents(SID, GPA) :- goodstudents_ins(SID, GPA).
+students_ins(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA) , ! students0(SID, SNAME, LOGIN, AGE, GPA).
+students_del(SID, SNAME, LOGIN, AGE, GPA) :- students0(SID, SNAME, LOGIN, AGE, GPA) , ! students(SID, SNAME, LOGIN, AGE, GPA).
+goodstudents_del(SID, GPA) :- students_del(SID, SNAME, LOGIN, AGE, GPA) , GPA > 3.0.
+goodstudents_ins(SID, GPA) :- students_ins(SID, SNAME, LOGIN, AGE, GPA) , students_del(SID, SNAME1, LOGIN1, AGE1, GPA1) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA1 <= 3.0.
+goodstudents_ins(SID, GPA) :- students_ins(SID, SNAME, LOGIN, AGE, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0.
+goodstudents_del(SID, GPA) :- students_del(SID, SNAME1, LOGIN1, AGE1, GPA1) , students_del(SID, SNAME, LOGIN, AGE, GPA) , students_ins(SID, SNAME, LOGIN, AGE, GPA1) , GPA > 3.0 , students(SID, SNAME, LOGIN, AGE, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA1 <= 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA1) , ! GPA = GPA1.
+goodstudents_ins(SID, GPA1) :- students_del(SID, SNAME1, LOGIN1, AGE1, GPA1) , students_del(SID, SNAME, LOGIN, AGE, GPA) , students_ins(SID, SNAME, LOGIN, AGE, GPA1) , GPA > 3.0 , students(SID, SNAME, LOGIN, AGE, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA1 <= 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA1) , ! GPA = GPA1.
+goodstudents_del(SID, GPA) :- students_del(SID, SNAME, LOGIN, AGE, GPA) , students_ins(SID, SNAME, LOGIN, AGE, GPA1) , GPA > 3.0 , students(SID, SNAME, LOGIN, AGE, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! GPA = GPA1.
+goodstudents_ins(SID, GPA1) :- students_del(SID, SNAME, LOGIN, AGE, GPA) , students_ins(SID, SNAME, LOGIN, AGE, GPA1) , GPA > 3.0 , students(SID, SNAME, LOGIN, AGE, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! GPA = GPA1.
+
+
+// -- put --
+
+goodstudents_prime_ins(SID, GPA) :- goodstudents_prime(SID, GPA) , ! goodstudents(SID, GPA).
+goodstudents_prime_del(SID, GPA) :- goodstudents(SID, GPA) , ! goodstudents_prime(SID, GPA).
+
+students_prime_del(SID, SNAME1, LOGIN1, AGE1, GPA1) :- goodstudents_prime_del(SID, GPA1) , ! goodstudents_prime_ins(SID, _) , GPA1 > 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA1).
+students_prime_ins(SID, SNAME, LOGIN, AGE, GPA) :- goodstudents_prime_ins(SID, GPA) , ! goodstudents_prime_del(SID, _) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA2 <= 3.0 , ! students(SID, SNAME, LOGIN, AGE, GPA) , students(SID, SNAME1, LOGIN1, AGE1, GPA2).
+students_prime_del(SID, SNAME1, LOGIN1, AGE1, GPA2) :- goodstudents_prime_ins(SID, GPA) , ! goodstudents_prime_del(SID, _) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA2 <= 3.0 , ! students(SID, SNAME, LOGIN, AGE, GPA) , students(SID, SNAME1, LOGIN1, AGE1, GPA2).
+students_prime_ins(SID, SNAME, LOGIN, AGE, GPA) :- goodstudents_prime_ins(SID, GPA) , ! goodstudents_prime_del(SID, _) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA > 3.0 , ! students(SID, SNAME, LOGIN, AGE, GPA) , ! students(SID, _, _, _, _).
+students_prime_del(SID, SNAME1, LOGIN1, AGE1, GPA2) :- goodstudents_prime_del(SID, GPA) , goodstudents_prime_ins(SID, GPA1) , GPA > 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA2 <= 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA2) , ! GPA = GPA1.
+students_prime_del(SID, SNAME1, LOGIN1, AGE1, GPA) :- goodstudents_prime_del(SID, GPA) , goodstudents_prime_ins(SID, GPA1) , GPA > 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA2 <= 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA2) , ! GPA = GPA1.
+students_prime_ins(SID, SNAME, LOGIN, AGE, GPA1) :- goodstudents_prime_del(SID, GPA) , goodstudents_prime_ins(SID, GPA1) , GPA > 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! SNAME1 = SNAME , ! LOGIN1 = LOGIN , ! AGE1 = AGE , GPA2 <= 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA2) , ! GPA = GPA1.
+students_prime_del(SID, SNAME1, LOGIN1, AGE1, GPA) :- goodstudents_prime_del(SID, GPA) , goodstudents_prime_ins(SID, GPA1) , GPA > 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! GPA = GPA1.
+students_prime_ins(SID, SNAME, LOGIN, AGE, GPA1) :- goodstudents_prime_del(SID, GPA) , goodstudents_prime_ins(SID, GPA1) , GPA > 3.0 , students(SID, SNAME1, LOGIN1, AGE1, GPA) , SNAME = "unknown" , LOGIN = "unknown" , AGE = 0 , GPA1 > 3.0 , ! GPA = GPA1.
+
+
+students_prime(SID, SNAME, LOGIN, AGE, GPA) :- students(SID, SNAME, LOGIN, AGE, GPA), ! students_prime_del(SID, SNAME, LOGIN, AGE, GPA).
+students_prime(SID, SNAME, LOGIN, AGE, GPA) :- students_prime_ins(SID, SNAME, LOGIN, AGE, GPA).
+
+
+// -- output --
+
+.output precondition
+
+.output students
+.output goodstudents_prime
+
+.output goodstudents
+.output students_prime

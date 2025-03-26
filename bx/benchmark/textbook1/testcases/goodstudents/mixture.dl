@@ -1,0 +1,22 @@
+// -- testcase1 insertion --
+
+students(1, "Alice", "alice", 20, 3.5).
+students(2, "Bob", "bob", 21, 2.5).
+students(3, "Charlie", "charlie", 22, 3.2).
+students(4, "David", "david", 23, 2.0).
+
+// Expected view
+
+// goodstudents(1, 3.5).
+// goodstudents(3, 3.2).
+
+goodstudents_prime(1, 3.5).
+goodstudents_prime(2, 3.3).
+goodstudents_prime(5, 4.0).
+
+// Expected source prime
+
+// students_prime(1, "Alice", "alice", 20, 3.5).
+// students_prime(2, "unknown", "unknown", 0, 3.3).
+// students_prime(4, "David", "david", 23, 2.0).
+// students_prime(5, "unknown", "unknown", 0, 4.0).
