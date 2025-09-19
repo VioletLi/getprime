@@ -4,52 +4,37 @@
     let keyword_table = Hashtbl.create 100
     let _ =
         List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
-        ["AND", AND;
-        "And", AND;
-        "and", AND;
-        "OR", OR;
-        "Or", OR;
-        "or", OR;
+        ["CREATE", CREATE;
+        "SOURCE", SOURCE;
+        "VIEW", VIEW;
+        "DO", DGET;
+        "&&", AND;
+        "||", OR;
         "NOT", NOT;
-        "Not", NOT;
-        "not", NOT;
-        "FALSE", FF;
-        "False", FF;
-        "false", FF;
-        "BOT", BOT;
-        "Bot", BOT;
-        "bot", BOT;
-        "TRUE", TT;
-        "True", TT;
-        "true", TT;
-        "TOP", TOP;
-        "Top", TOP;
-        "top", TOP;
-        "null", NULL;
-        "Null", NULL;
-        "NULL", NULL;
-        "int", SINT;
-        "INT", SINT;
-        "real", SREAL;
-        "REAL", SREAL;
-        "string", SSTRING;
-        "STRING", SSTRING;
-        "bool", SBOOL;
-        "BOOL", SBOOL;
-        "source", SMARK;
-        "Source", SMARK;
-        "SOURCE", SMARK;
-        "view", VMARK;
-        "View", VMARK;
-        "VIEW", VMARK;
-        "pk", PK;
-        "Pk", PK;
-        "PK", PK;
-        "pK", PK;
-        "primarykey", PK;
-        "IS", INISTATE;
-        "is", INISTATE;
-        "GET", GETRULES;
+        "IN", IN;
+        "PRIMARY", PRIMARY;
+        "FOREIGN", FOREIGN;
+        "KEY", KEY;
+        "REFERENCE", REF;
+        "UNIQUE", UNIQUE;
+        "CHECK", CHECK;
+        "INT", INTTYPE;
+        "BOOLEAN", BOOLEANTYPE;
+        "STRING", STRINGTYPE;
+        "WHEN", WHEN;
+        "THEN", THEN;
+        "INSERT", INSERT;
+        "DELETE", DELETE;
+        "INTO", INTO;
+        "FROM", FROM;
+        "group", GROUP;
+        "true", BTRUE;
+        "false", BFALSE;
+        "identity", DID;
+        "ON", ON;
+        "FOR", FOR;
+        "INPUT", INPUT;
+        "FOR", FOR;
         ]
 (*		exception Eof
 *)
@@ -64,7 +49,6 @@
     | '%'['v''s'][^':'][^'\n']*'\n'        			{ Lexing.new_line lexbuf; token lexbuf }    (* skip comments *)
     | '%'['v''s'][^':'][^'\n']*eof        			{ Lexing.new_line lexbuf; token lexbuf }    (* skip comments *)
     | ['0'-'9']+ as lxm 			{ INT (int_of_string lxm) }
-    | ['0'-'9']*'.'?['0'-'9']+(['e''E']['-''+']?['0'-'9']+)?  as lxm  { FLOAT (float_of_string (lxm)) }
     | '\''(('\'''\'')|[^'\n''\''])*'\'' as lxm  { STRING(lxm) }
     | '_'*['a'-'z']['a'-'z''0'-'9''_']* as lxm 	{ 
         try
@@ -74,39 +58,25 @@
         try
             Hashtbl.find keyword_table lxm
         with Not_found -> VARNAME(lxm)
+        (* 注意变量名只能大写 *)
 						}
-    | "_|_"                                       { BOT }
-    | "%v:"            				{ VMARK }  (* view mark *)
-    | "%s:"                         { SMARK } (* source relation mark *)
-    | ":-"          				{ IMPLIEDBY }  
-    | "<-"          				{ IMPLIEDBY }  
-    | "?-"            				{ QMARK }  (* query mark *)
-    | "?_"                                       { ANONVAR }
-    | "<>"            				{ NE }
-    | "\\="            				{ NE }
     | "<="                                      { LE }
     | ">="                                      { GE }
-    | "^"                                       { CONCAT }
-    | "←"           				{ IMPLIEDBY } 
-    | "¬"           				{ NOT }  
-    | "!"           				{ NOT }  
-    | '.'            				{ DOT }    (* end of rule or query *)
-    | ','            				{ SEP }
-    | '('            				{ LPAREN }
-    | ')'            				{ RPAREN }
-    | '['            				{ LBRACKET }
-    | ']'            				{ RBRACKET }
-    | '='            				{ EQ }
+    | ','            			            	{ SEP }
+    | ';'                                       { SEMICOLON }
+    | '('            	            			{ LPAREN }
+    | ')'            	            			{ RPAREN }
+    | '['            	            			{ LBRACKET }
+    | ']'            		            		{ RBRACKET }
+    | '='            	            			{ EQ }
     | '_'                                       { ANONVAR }
-    | ':'          				{ TYPING }
-    | "⊥"                                       { BOT }
-    | "⊤"                                       { TOP } 
     | '<'                                       { LT }
     | '>'                                       { GT }
     | '+'                                       { PLUS }
     | '-'                                       { MINUS }
     | '*'                                       { TIMES }
-    | '/'                                       { DIVIDE }   
-	| eof            { EOF }
-    | _                      { spec_lex_error lexbuf }
+    | '/'                                       { DIVIDE }  
+    | '^'                                       { CONCAT }
+	| eof                                       { EOF }
+    | _                                         { spec_lex_error lexbuf }
 	

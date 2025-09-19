@@ -5,7 +5,30 @@ open Parsing
 open Lexing
 open Printf
 
-(** Semantic error  *)
+let checkSV sList v sche =
+  match sche with
+    | (name, _) -> 
+      if name = v then false
+      else 
+        if List.exists (fun n -> name = n) sList
+        then true
+        else raise (DeclErr "A schema should be used as either a source or a view")
+
+let genExpr schemaList sList v dget =
+  let (sSchemas, vSchema) = List.partition (checkSV sList v) schemaList in
+  if (List.length vSchema) = 1 then 
+    if (List.length sSchemas) + 1 = (List.length schemaList) then
+      {
+        rules = dget;
+        source = sSchemas;
+        view = List.head vSchema;
+      }
+    else
+      raise (DeclErr "Some relations are not declared as a schema")
+  else 
+    raise (DeclErr "Only one relation can be used as view")
+
+(* * Semantic error 
 exception SemErr of string
 
 (** Verification error  *)
@@ -793,3 +816,11 @@ let getSingleElem l =
 
 let addElems2StringSet lst set =
   List.fold_left (fun s elem -> StringSet.add elem s) set lst
+
+let rec subsets lst =
+  match lst with
+  | [] -> [[]]  (* 空集 *)
+  | x :: xs ->
+    let rest = subsets xs in
+    rest @ (List.map (fun subset -> x :: subset) rest) *)
+

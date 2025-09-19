@@ -2,12 +2,14 @@ open Expr
 open Lexing
 open Parser
 open Utils
-open Verifier
+(* open Verifier
 open Generator
-open Fuser
+open Fuser *)
 open Sys
 
-let _ =
+let _ = print_string "test"
+
+(* let _ =
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let prog = Parser.main Lexer.token lexbuf in
   try
@@ -27,12 +29,12 @@ let _ =
           begin
             let inj_end = Unix.gettimeofday() in
             let inj_time = inj_end -. inj_start in
-            let _ = Printf.printf "Verification of injective time: %f seconds\n" inj_time in
+            let _ = Printf.printf "Verification of injectivity time: %f seconds\n" inj_time in
             let pre_start = Unix.gettimeofday() in
             let fusedrule = fuseRules expr in
             let pre_end = Unix.gettimeofday() in
             let pre_time = pre_end -. pre_start in
-            let _ = Printf.printf "Preprocess time: %f seconds\n" pre_time in
+            let _ = Printf.printf "Compose Rules time: %f seconds\n" pre_time in
             (* let fusecode = String.concat "" (List.map string_of_rule (List.concat (List.map crule2rules fusedrule))) in
             let vc3 = open_out "/home/code/fuse.dl" in
             Printf.fprintf vc3 "%s\n" fusecode;
@@ -50,4 +52,4 @@ let _ =
     (* Sys.command "rm /home/code/temp.dl"; *)
   with
     | VerificationErr s -> print_string ("Verification Error: " ^ s); exit 0;
-    | GenerationErr s   -> print_string ("Generation Error: " ^ s); exit 0;
+    | GenerationErr s   -> print_string ("Generation Error: " ^ s); exit 0; *)

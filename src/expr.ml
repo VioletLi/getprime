@@ -1,4 +1,196 @@
-type const =
+(* initial state作为用户输入，参数输入，所以还是需要parser *)
+
+(* Declaration Error *)
+exception DeclErr of string
+
+exception TypeErr of string
+
+type const = 
+  | Int of int
+  | String of string
+  | Bool of bool
+
+type var =
+  | NamedVar of string
+  | AnonVar 
+  | ConstVar of const
+
+type vterm =
+  | Const of const
+  | Var of var
+  | Bop of string * vterm * vterm
+  | Uop of string * vterm
+
+type pred =
+  | Equation of string * vterm * vterm
+  | In of (var list) * string
+  | And of pred * pred
+  | Or of pred * pred
+  | Not of pred
+
+type atype =
+  | Aint
+  | Astring
+  | Abool
+
+type constr =
+  | PK of var list
+  | FK of var * string * var
+  | Check of pred
+
+type schema = string * ((string * atype) list) * (constr list)
+
+type aopp =
+  (* atomic operation pattern *)
+  | Insert of string * var list
+  | Delete of string * var list
+  | Forall of var * pred * aopp
+
+type rule = aopp list * pred * aopp list
+
+type expr = {
+  source: schema list;
+  view: schema;
+  rules: rule list;
+}
+
+let extractSchemaName s =
+  match s with
+    | (n, _, _) -> n
+    | _ -> raise (TypeErr "Cannot extract name from non-schema data structure with extractSchemaName")
+
+let string_of_attr (s, a) =
+  match a with
+    | Aint -> s ^ " INT"
+    | Astring -> s ^ " STRING"
+    | Abool -> s ^ " BOOLEAN"
+    (* | _ -> raise (TypeErr "Unknown type in schema declaration") *)
+
+let string_of_const c =
+  match c with
+    | Int i -> string_of_int i
+    | String s -> s
+    | Bool b -> string_of_bool b
+
+let string_of_var v =
+  match v of
+    | NamedVar n -> n
+    | AnonVar -> "_"
+    | ConstVar c -> string_of_const c
+
+let precedence op =
+  match op with
+  | "+" | "-" | "^" -> 1 (* 最低优先级 *)
+  | "*" | "/" -> 2 (* 中等优先级 *)
+  | "~" -> 3 (* Unop "-"，通常优先级最高 *)
+  | _ -> 0
+
+(* 现在的实现中uop只有“-”一种，因此在下面硬编码"-"为"~" *)
+
+let rec string_of_vterm v =
+  match v with
+    | Const c -> string_of_const c
+    | Var var -> string_of_var var
+    | Bop (op, left, right) ->
+      begin
+        let string_of_subterm sub_term parent_op is_right_child =
+          (* 两个表达式的优先级 *)
+          let parent_prec = precedence parent_op in
+          let sub_prec = 
+            match sub_term with
+            | Bop (sub_op, _, _) -> precedence sub_op
+            | Uop (sub_op, _) -> precedence "~"
+            | _ -> 100 (* 原子项（Const, Var），优先级最高，永远不需要括号 *)
+          in
+          (* 只有当子表达式优先级低于父表达式，或同级且为右侧子表达式时，才需要加括号 *)
+          let need_paren = 
+            sub_prec < parent_prec ||
+            (sub_prec = parent_prec && is_right_child)
+          in
+          let sub_term_str = string_of_vterm sub_term in
+          if need_paren then
+            "(" ^ sub_term_str ^ ")"
+          else
+            sub_term_str
+        in
+        let left_str = string_of_subterm left op false in
+        let right_str = string_of_subterm right op true in
+        (* 特别处理减法和负数，例如 `a - (-b)` 不应打印为 `a--b` *)
+        let op_str = 
+          match (op, right) with
+          | ("-", Uop ("-", _)) -> " + " (* `a - -b` 等价于 `a + b` *)
+          | _ -> " " ^ op ^ " "
+        in
+        left_str ^ op_str ^ right_str
+      end
+    | Uop (op, sub_term) ->
+      begin
+        let parent_prec = precedence "~" in
+        let sub_prec = 
+          match sub_term with
+          | Bop (sub_op, _, _) -> precedence sub_op
+          | Uop (sub_op, _) -> precedence "~"
+          | _ -> 100
+        in
+        let need_paren = sub_prec < parent_prec in
+        let sub_term_str = string_of_vterm sub_term in
+        let sub_term_str_with_paren =
+          if need_paren then "(" ^ sub_term_str ^ ")" else sub_term_str
+        in
+        op ^ sub_term_str_with_paren
+      end
+
+let rec string_of_pred p =
+  match p with
+    | And (p1, p2) -> (string_of_pred p1) ^ " && " ^ (string_of_pred p2)
+    | Or (p1, p2) -> 
+      begin
+        match (p1, p2) with
+        | (And _, And _) -> "(" ^ (string_of_pred p1) ^ ") || (" ^ (string_of_pred p2) ^ ")" 
+        | (And _, _) -> "(" ^ (string_of_pred p1) ^ ") || " ^ (string_of_pred p2) 
+        | (_, And _) -> (string_of_pred p1) ^ " || (" ^ (string_of_pred p2) ^ ")" 
+        | _ -> (string_of_pred p1) ^ " || " ^ (string_of_pred p2)
+      end
+    | Not p_ -> 
+      begin
+        match p_ with
+          | And _ -> "NOT (" ^ (string_of_pred p_) ^ ")"
+          | Or _ -> "NOT (" ^ (string_of_pred p_) ^ ")"
+          | _ -> "NOT " ^ (string_of_pred p_)
+      end
+    | In (vars, r) -> "( " ^ (String.concat ", " (List.map string_of_var vars)) ^ ") IN " ^ r
+    | Equation (op, v1, v2) -> (string_of_vterm v1) ^ " " ^ op ^ " " ^ (string_of_vterm v2)
+
+let string_of_con c =
+  match c with
+    | PK vs -> "PRIMARY KEY(" ^ (String.concat ", " (List.map string_of_var vs)) ^ ")"
+    | FK (a1, r, a2) -> "FOREIGN KEY(" ^ (string_of_var a1) ^ ") REFERENCE " ^ r ^ "(" ^ (string_of_var a2) ^ ")"
+    | Check p -> "CHECK(" ^ string_of_pred ^ ")"
+    (* | _ -> raise (TypeErr "Unknown type of constraint") *)
+
+let string_of_schema s =
+  match s with 
+    | (n, types, []) -> 
+      "CREATE " ^ n ^ "(\n" ^ (String.concat ",\n" (List.map string_of_attr types)) ^ ")"
+    | (n, types, cons) -> 
+      "CREATE " ^ n ^ "(\n" ^ (String.concat ",\n" (List.map string_of_attr types)) ^ ",\n" ^ (String.concat ",\n" (List.map string_of_con cons)) ^ ")"
+    (* | _ -> raise (TypeErr "Cannot print a non-schema data structure with string_of_schema") *)
+
+let rec string_of_aopp opp =
+  match opp with
+    | Insert (r, vars) -> "INSERT (" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ ") INTO " ^ r
+    | Delete (r, vars) -> "DELETE (" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ ") FROM " ^ r
+    | Forall (v, p, op) -> "FORALL " ^ (string_of_var v) ^ " SUCH THAT " ^ (string_of_pred p) ^ " DO " ^ (string_of_aopp op)
+
+let string_of_rule (sop, p, vop) =
+  (String.concat "; " (List.map string_of_aopp sop)) ^ "\nWHEN " ^ (string_of_pred p) ^ "\nTHEN" ^ (String.concat "; " (List.map string_of_aopp vop))
+
+let to_string {source; view; rules} =
+  let sourceNames = List.map (extractSchemaName) source in
+  let viewName = extractSchemaName view in
+  (String.concat ",\n\n" (List.map string_of_schema source)) ^ ",\n\n" ^ (string_of_schema view) ^ ";\n\nON SOURCE(" ^ (String.concat "," sourceNames) ^ "), VIEW " ^ viewName ^ "\n\n" ^ (String.concat ",\n\n" (List.map string_of_rule rules)) ^ ";"
+
+(* type const =
   | Int of int
   | Real of float
   | String of string
@@ -495,4 +687,5 @@ let stype_of_const c = match c with
     | Real _ -> Sreal 
     | String _ -> Sstring 
     | Bool _ -> Sbool
-    | Null -> invalid_arg "Null does not have type"
+    | Null -> invalid_arg "Null does not have type" *)
+
