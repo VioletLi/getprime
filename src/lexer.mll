@@ -7,9 +7,7 @@
         ["CREATE", CREATE;
         "SOURCE", SOURCE;
         "VIEW", VIEW;
-        "DO", DGET;
-        "&&", AND;
-        "||", OR;
+        "DO", DO;
         "NOT", NOT;
         "IN", IN;
         "PRIMARY", PRIMARY;
@@ -30,11 +28,11 @@
         "group", GROUP;
         "true", BTRUE;
         "false", BFALSE;
-        "identity", DID;
+        (* "identity", DID; *)
         "ON", ON;
-        "FOR", FOR;
-        "INPUT", INPUT;
-        "FOR", FOR;
+        "FORALL", FORALL;
+        "SUCH", SUCH;
+        "THAT", THAT;
         ]
 (*		exception Eof
 *)
@@ -77,6 +75,12 @@
     | '*'                                       { TIMES }
     | '/'                                       { DIVIDE }  
     | '^'                                       { CONCAT }
+    | ':'                                       { COLON }
+    | '.'                                       { DOT }
+    | "&&"                                      { AND }
+    | "||"                                      { OR }
+    | '{'                                       { LRECORD }
+    | '}'                                       { RRECORD }
 	| eof                                       { EOF }
     | _                                         { spec_lex_error lexbuf }
 	

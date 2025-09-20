@@ -7,7 +7,10 @@ open Generator
 open Fuser *)
 open Sys
 
-let _ = print_string "test"
+let _ = 
+  let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
+  let prog = Parser.main Lexer.token lexbuf in
+  print_string (to_string prog)
 
 (* let _ =
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in

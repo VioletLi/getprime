@@ -5,6 +5,12 @@ exception DeclErr of string
 
 exception TypeErr of string
 
+(** Grammar error  *)
+exception ParseErr of string
+
+(** Lexing error  *)
+exception LexErr of string
+
 type const = 
   | Int of int
   | String of string
@@ -44,7 +50,7 @@ type aopp =
   (* atomic operation pattern *)
   | Insert of string * var list
   | Delete of string * var list
-  | Forall of var * pred * aopp
+  | Forall of var * pred * (aopp list)
 
 type rule = aopp list * pred * aopp list
 
@@ -73,7 +79,7 @@ let string_of_const c =
     | Bool b -> string_of_bool b
 
 let string_of_var v =
-  match v of
+  match v with
     | NamedVar n -> n
     | AnonVar -> "_"
     | ConstVar c -> string_of_const c
@@ -158,14 +164,14 @@ let rec string_of_pred p =
           | Or _ -> "NOT (" ^ (string_of_pred p_) ^ ")"
           | _ -> "NOT " ^ (string_of_pred p_)
       end
-    | In (vars, r) -> "( " ^ (String.concat ", " (List.map string_of_var vars)) ^ ") IN " ^ r
+    | In (vars, r) -> "{" ^ (String.concat ", " (List.map string_of_var vars)) ^ "} IN " ^ r
     | Equation (op, v1, v2) -> (string_of_vterm v1) ^ " " ^ op ^ " " ^ (string_of_vterm v2)
 
 let string_of_con c =
   match c with
     | PK vs -> "PRIMARY KEY(" ^ (String.concat ", " (List.map string_of_var vs)) ^ ")"
     | FK (a1, r, a2) -> "FOREIGN KEY(" ^ (string_of_var a1) ^ ") REFERENCE " ^ r ^ "(" ^ (string_of_var a2) ^ ")"
-    | Check p -> "CHECK(" ^ string_of_pred ^ ")"
+    | Check p -> "CHECK(" ^ (string_of_pred p) ^ ")"
     (* | _ -> raise (TypeErr "Unknown type of constraint") *)
 
 let string_of_schema s =
@@ -173,22 +179,22 @@ let string_of_schema s =
     | (n, types, []) -> 
       "CREATE " ^ n ^ "(\n" ^ (String.concat ",\n" (List.map string_of_attr types)) ^ ")"
     | (n, types, cons) -> 
-      "CREATE " ^ n ^ "(\n" ^ (String.concat ",\n" (List.map string_of_attr types)) ^ ",\n" ^ (String.concat ",\n" (List.map string_of_con cons)) ^ ")"
+      "CREATE " ^ n ^ "(\n" ^ (String.concat ",\n" (List.map string_of_attr types)) ^ ";\n" ^ (String.concat ",\n" (List.map string_of_con cons)) ^ ")"
     (* | _ -> raise (TypeErr "Cannot print a non-schema data structure with string_of_schema") *)
 
 let rec string_of_aopp opp =
   match opp with
-    | Insert (r, vars) -> "INSERT (" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ ") INTO " ^ r
-    | Delete (r, vars) -> "DELETE (" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ ") FROM " ^ r
-    | Forall (v, p, op) -> "FORALL " ^ (string_of_var v) ^ " SUCH THAT " ^ (string_of_pred p) ^ " DO " ^ (string_of_aopp op)
+    | Insert (r, vars) -> "INSERT {" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ "} INTO " ^ r
+    | Delete (r, vars) -> "DELETE {" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ "} FROM " ^ r
+    | Forall (v, p, ops) -> "FORALL " ^ (string_of_var v) ^ " SUCH THAT " ^ (string_of_pred p) ^ " DO [" ^ (String.concat ";" (List.map string_of_aopp ops)) ^ "]"
 
 let string_of_rule (sop, p, vop) =
-  (String.concat "; " (List.map string_of_aopp sop)) ^ "\nWHEN " ^ (string_of_pred p) ^ "\nTHEN" ^ (String.concat "; " (List.map string_of_aopp vop))
+  (String.concat "; " (List.map string_of_aopp sop)) ^ "\nWHEN " ^ (string_of_pred p) ^ "\nTHEN " ^ (String.concat "; " (List.map string_of_aopp vop))
 
 let to_string {source; view; rules} =
   let sourceNames = List.map (extractSchemaName) source in
   let viewName = extractSchemaName view in
-  (String.concat ",\n\n" (List.map string_of_schema source)) ^ ",\n\n" ^ (string_of_schema view) ^ ";\n\nON SOURCE(" ^ (String.concat "," sourceNames) ^ "), VIEW " ^ viewName ^ "\n\n" ^ (String.concat ",\n\n" (List.map string_of_rule rules)) ^ ";"
+  (String.concat ",\n\n" (List.map string_of_schema source)) ^ ",\n\n" ^ (string_of_schema view) ^ ";\n\nON SOURCE[" ^ (String.concat "," sourceNames) ^ "], VIEW " ^ viewName ^ ":\n\n" ^ (String.concat ",\n\n" (List.map string_of_rule rules)) ^ "."
 
 (* type const =
   | Int of int

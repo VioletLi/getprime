@@ -1,0 +1,33 @@
+CREATE users
+    ( ID INT
+    , NAME STRING
+    )
+,
+CREATE comments
+    ( USERID INT
+    , BOOKID INT
+    )
+, 
+CREATE book_comment
+    ( USERID INT
+    , USERNAME STRING
+    , BOOKID INT
+    )
+;
+ON SOURCE [users, comments], VIEW book_comment:
+    INSERT {USERID, BOOKID} INTO comments 
+    WHEN {USERID, _} IN users && NOT {USERID, BOOKID} IN comments
+    THEN FORALL NAME SUCH THAT {USERID, NAME} IN users DO [INSERT {USERID, NAME, BOOKID} INTO book_comment],
+
+    INSERT {ID, NAME} INTO users 
+    WHEN NOT {ID, NAME} IN users && {ID, _} IN comments
+    THEN FORALL BOOKID SUCH THAT {ID, BOOKID} IN comments DO [INSERT {ID, NAME, BOOKID} INTO book_comment],
+
+    DELETE {USERID, BOOKID} FROM comments
+    WHEN {USERID, _} IN users && {USERID, BOOKID} IN comments
+    THEN FORALL NAME SUCH THAT {USERID, NAME} IN users DO [DELETE {USERID, NAME, BOOKID} FROM book_comment],
+
+    DELETE {ID, NAME} FROM users 
+    WHEN {ID, NAME} IN users && {ID, _} IN comments
+    THEN FORALL BOOKID SUCH THAT {ID, BOOKID} IN comments DO [DELETE {ID, NAME, BOOKID} FROM book_comment]
+.

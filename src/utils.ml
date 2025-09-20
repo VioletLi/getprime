@@ -7,7 +7,7 @@ open Printf
 
 let checkSV sList v sche =
   match sche with
-    | (name, _) -> 
+    | (name, _, _) -> 
       if name = v then false
       else 
         if List.exists (fun n -> name = n) sList
@@ -21,7 +21,7 @@ let genExpr schemaList sList v dget =
       {
         rules = dget;
         source = sSchemas;
-        view = List.head vSchema;
+        view = List.hd vSchema;
       }
     else
       raise (DeclErr "Some relations are not declared as a schema")
@@ -37,18 +37,12 @@ exception ChkErr of string
 (** Environment error  *)
 exception EnvErr of string
 
-(** Grammar error  *)
-exception ParseErr of string
-
-(** Lexing error  *)
-exception LexErr of string
-
 exception VerificationErr of string
 
 exception GenerationErr of string
 
 exception FuseErr of string
-
+*)
 (** get a concrete message (file, possition of error, error message) for parsing or lexing error  *)
 let spec_error msg start finish  =
   Printf.sprintf "File \"%s\", line %d, characters %d-%d: '%s'" start.pos_fname start.pos_lnum
@@ -61,7 +55,7 @@ let spec_parse_error msg nterm =
 (** raise a lexing error *)
 let spec_lex_error lexbuf =
   raise ( LexErr (spec_error (lexeme lexbuf) (lexeme_start_p lexbuf) (lexeme_end_p lexbuf)))
-
+(*
 (***********************************************************
  *  Symtable
  *********************************************************)
