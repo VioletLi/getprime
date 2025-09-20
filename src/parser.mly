@@ -35,8 +35,8 @@
 %start main               /* entry point */
 %type <Expr.expr> main
 
-%start pred
-%type <Expr.pred> pred
+%start parse_userops
+%type <Expr.op list> parse_userops
 /* %start parseDelta
 %type <Expr.delta> parseDelta
 
@@ -192,20 +192,23 @@
   ;
 
   rule:
-  | dopps WHEN pred THEN dopps { ($1, $3, $5) }
+  | ops WHEN pred THEN ops { ($1, $3, $5) }
   | error                      { spec_parse_error "invalid syntax for a rule" 1; }
   ;
 
-  dopps:
-  | dopp            { $1 :: [] }
-  | dopp SEMICOLON dopps  { $1 :: $3 }
-  | error           { spec_parse_error "invalid syntax for atomic operation patterns" 1; }
+  ops:
+  | op            { $1 :: [] }
+  | op SEMICOLON ops  { $1 :: $3 }
+  | error           { spec_parse_error "invalid syntax for operation list" 1; }
   ;
 
-  dopp:
+  op:
   | INSERT LRECORD varlist RRECORD INTO RELNAME { Insert ($6, $3) }
   | DELETE LRECORD varlist RRECORD FROM RELNAME { Delete ($6, $3) }
-  | FORALL var SUCH THAT pred DO LBRACKET dopps RBRACKET     { Forall ($2, $5, $8) }
-  | error                                     { spec_parse_error "invalid syntax for dopp" 1; }
+  | FORALL var SUCH THAT pred DO LBRACKET ops RBRACKET     { Forall ($2, $5, $8) }
+  | error                                     { spec_parse_error "invalid syntax for op" 1; }
   ;
 
+  parse_userops:
+  | ops DOT { $1 }
+  | error   { spec_parse_error "invalid syntax for operation when running" 1; }

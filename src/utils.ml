@@ -28,6 +28,60 @@ let genExpr schemaList sList v dget =
   else 
     raise (DeclErr "Only one relation can be used as view")
 
+let createDB prog : database = 
+  let db = Hashtbl.create 10 in
+  let schemas = List.map (extractSchemaName) (prog.view :: prog.source) in
+  let _ = List.iter (fun n -> Hashtbl.replace db n []) schemas in
+  db
+
+let print_relation (rel: relation) : unit =
+  List.iter (fun r ->
+    print_string "\t{";
+    print_string (String.concat ", " (List.map string_of_const r));
+    print_endline "}"
+  ) rel
+
+let print_db (db: database) : unit =
+  print_endline "--- Current Database State ---";
+  Hashtbl.iter (fun key rel ->
+    print_endline (key ^ ":[");
+    print_relation rel;
+    print_endline "]" (* 在每个关系之间添加一个空行 *)
+  ) db;
+  print_endline "----------------------------"
+
+let extractConst v =
+  match v with
+    | ConstVar c -> c 
+    | _ -> raise (RuntimeErr "Only constvar can be extracted")
+
+let rec removercd lst rcd =
+  match lst with
+    | [] -> raise (RuntimeErr "Cannot remove a record that does not exist")
+    | x :: xs -> if x = rcd then xs else x :: (removercd xs rcd)
+
+let rec apply db op =
+  match op with
+    | Insert (r, vars) -> 
+      begin
+        try
+          let old = Hashtbl.find db r in
+          let rcd = List.map extractConst vars in 
+          Hashtbl.replace db r (rcd :: old)
+        with
+          Not_found -> raise (RuntimeErr "Cannot insert a record into a relation without declaration")
+      end
+    | Delete (r, vars) ->
+      begin
+        try 
+          let old = Hashtbl.find db r in
+          let rcd = List.map extractConst vars in 
+          Hashtbl.replace db r (removercd old rcd)
+        with
+          Not_found -> raise (RuntimeErr "Cannot delete a record from a relation without declaration")
+      end
+    | _ -> ()
+
 (* * Semantic error 
 exception SemErr of string
 

@@ -7,10 +7,25 @@ open Generator
 open Fuser *)
 open Sys
 
+let rec repl db =
+  print_string "> ";
+  flush stdout;
+  match read_line () with
+    | "exit" -> print_endline "EXIT"
+    | exception End_of_file -> ()  (* Ctrl+D 退出 *)
+    | "show" -> print_db db; repl db
+    | line ->
+      let ops = Parser.parse_userops Lexer.token (Lexing.from_string line) in
+      List.iter (fun op -> apply db op) ops;
+      (* print_string (String.concat "; " (List.map string_of_op ops));  *)
+      repl db
+
 let _ = 
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let prog = Parser.main Lexer.token lexbuf in
-  print_string (to_string prog)
+  let _ = print_string (to_string prog) in
+  let _ = print_string "\n Finish Initialization\n" in
+  repl (createDB prog)
 
 (* let _ =
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in

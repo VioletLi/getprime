@@ -35,9 +35,9 @@ TOP_FILES = expr utils parser lexer
 TOP_FILES_WITH_MLI=\
 	parser
 
-FILES=\
+FILES= $(TOP_FILES)
 #     $(LOGIC_FILES:%=logic/%)\
-    $(TOP_FILES) \
+
 
 .PHONY: all clean
 all: $(BIN_DIR)/$(EX_NAME)
@@ -46,10 +46,6 @@ $(SOURCE_DIR)/parser.ml $(SOURCE_DIR)/parser.mli: $(SOURCE_DIR)/parser.mly
 	ocamlyacc $<
 $(SOURCE_DIR)/lexer.ml:	$(SOURCE_DIR)/lexer.mll
 	ocamllex $<
-
-$(BIN_DIR)/$(EX_NAME): $(FILES:%=$(OBJ_DIR)/%.cmo) $(OBJ_DIR)/$(MAIN_FILE).cmo
-	$(DIR_GUARD)
-	ocamlfind ocamlc $(OCAMLC_FLAGS) -package $(PACKAGES) -thread -linkpkg $(FILES:%=$(OBJ_DIR)/%.cmo) $(OBJ_DIR)/$(MAIN_FILE).cmo -o $(BIN_DIR)/$(EX_NAME)
 
 $(TOP_FILES_WITH_MLI:%=$(OBJ_DIR)/%.cmi): $(OBJ_DIR)/%.cmi: $(SOURCE_DIR)/%.mli
 	$(DIR_GUARD)
@@ -67,14 +63,18 @@ $(TOP_FILES_WITH_MLI:%=$(OBJ_DIR)/%.cmo): $(OBJ_DIR)/%.cmo: $(SOURCE_DIR)/%.ml $
 # 	$(DIR_GUARD)
 # 	ocamlfind ocamlc $(OCAMLC_FLAGS) -package $(PACKAGES) -thread -o $(LOGIC_OBJ_DIR)/$* -c $<
 
-# $(OBJ_DIR)/%.cmi $(OBJ_DIR)/%.cmo $(OBJ_DIR)/%.cmt: $(SOURCE_DIR)/%.ml
-# 	$(DIR_GUARD)
-# 	ocamlfind ocamlc $(OCAMLC_FLAGS) -package $(PACKAGES) -thread -o $(OBJ_DIR)/$* -c $<
+$(OBJ_DIR)/%.cmi $(OBJ_DIR)/%.cmo $(OBJ_DIR)/%.cmt: $(SOURCE_DIR)/%.ml
+	$(DIR_GUARD)
+	ocamlfind ocamlc $(OCAMLC_FLAGS) -package $(PACKAGES) -thread -o $(OBJ_DIR)/$* -c $<
 
-include depend
+$(BIN_DIR)/$(EX_NAME): $(FILES:%=$(OBJ_DIR)/%.cmo) $(OBJ_DIR)/$(MAIN_FILE).cmo
+	$(DIR_GUARD)
+	ocamlfind ocamlc $(OCAMLC_FLAGS) -package $(PACKAGES) -thread -linkpkg $(FILES:%=$(OBJ_DIR)/%.cmo) $(OBJ_DIR)/$(MAIN_FILE).cmo -o $(BIN_DIR)/$(EX_NAME)
 
 # clean:
 # 	rm -r -f $(BIN_DIR)/* $(SOURCE_DIR)/parser.mli $(SOURCE_DIR)/parser.ml $(SOURCE_DIR)/lexer.ml $(OBJ_DIR)/*.cmt $(LOGIC_OBJ_DIR)/*.cmt $(OBJ_DIR)/*.cmti $(LOGIC_OBJ_DIR)/*.cmti $(OBJ_DIR)/*.cmo $(LOGIC_OBJ_DIR)/*.cmo $(OBJ_DIR)/*.cmi $(LOGIC_OBJ_DIR)/*.cmi
 
 clean:
 	rm -r -f $(BIN_DIR)/* $(SOURCE_DIR)/parser.mli $(SOURCE_DIR)/parser.ml $(SOURCE_DIR)/lexer.ml $(OBJ_DIR)/*.cmt $(OBJ_DIR)/*.cmti $(OBJ_DIR)/*.cmo $(OBJ_DIR)/*.cmi
+
+include depend

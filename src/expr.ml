@@ -11,6 +11,8 @@ exception ParseErr of string
 (** Lexing error  *)
 exception LexErr of string
 
+exception RuntimeErr of string
+
 type const = 
   | Int of int
   | String of string
@@ -46,19 +48,25 @@ type constr =
 
 type schema = string * ((string * atype) list) * (constr list)
 
-type aopp =
-  (* atomic operation pattern *)
+type op =
+  (* atomic operation*)
   | Insert of string * var list
   | Delete of string * var list
-  | Forall of var * pred * (aopp list)
+  | Forall of var * pred * (op list)
 
-type rule = aopp list * pred * aopp list
+type rule = op list * pred * op list
 
 type expr = {
   source: schema list;
   view: schema;
   rules: rule list;
 }
+
+type record = const list
+
+type relation = record list
+
+type database = (string, relation) Hashtbl.t
 
 let extractSchemaName s =
   match s with
@@ -182,14 +190,14 @@ let string_of_schema s =
       "CREATE " ^ n ^ "(\n" ^ (String.concat ",\n" (List.map string_of_attr types)) ^ ";\n" ^ (String.concat ",\n" (List.map string_of_con cons)) ^ ")"
     (* | _ -> raise (TypeErr "Cannot print a non-schema data structure with string_of_schema") *)
 
-let rec string_of_aopp opp =
-  match opp with
+let rec string_of_op op =
+  match op with
     | Insert (r, vars) -> "INSERT {" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ "} INTO " ^ r
     | Delete (r, vars) -> "DELETE {" ^ (String.concat ", " (List.map (string_of_var) vars)) ^ "} FROM " ^ r
-    | Forall (v, p, ops) -> "FORALL " ^ (string_of_var v) ^ " SUCH THAT " ^ (string_of_pred p) ^ " DO [" ^ (String.concat ";" (List.map string_of_aopp ops)) ^ "]"
+    | Forall (v, p, ops) -> "FORALL " ^ (string_of_var v) ^ " SUCH THAT " ^ (string_of_pred p) ^ " DO [" ^ (String.concat ";" (List.map string_of_op ops)) ^ "]"
 
 let string_of_rule (sop, p, vop) =
-  (String.concat "; " (List.map string_of_aopp sop)) ^ "\nWHEN " ^ (string_of_pred p) ^ "\nTHEN " ^ (String.concat "; " (List.map string_of_aopp vop))
+  (String.concat "; " (List.map string_of_op sop)) ^ "\nWHEN " ^ (string_of_pred p) ^ "\nTHEN " ^ (String.concat "; " (List.map string_of_op vop))
 
 let to_string {source; view; rules} =
   let sourceNames = List.map (extractSchemaName) source in
