@@ -5,6 +5,17 @@ open Parsing
 open Lexing
 open Printf
 
+let rec zip xs ys =
+  match (xs, ys) with
+    | ([], []) -> []
+    | (x :: xs, y :: ys) -> (x, y) :: (zip xs ys)
+    | _ -> raise (RuntimeErr "Cannot zip lists with different length")
+
+let all_equal (lst : 'a list) : bool =
+  match lst with
+  | [] -> true  (* 空列表，可以认为所有元素都相等 *)
+  | hd :: tl -> List.for_all (fun x -> x = hd) tl
+
 let checkSV sList v sche =
   match sche with
     | (name, _, _) -> 
@@ -60,6 +71,64 @@ let rec removercd lst rcd =
     | [] -> raise (RuntimeErr "Cannot remove a record that does not exist")
     | x :: xs -> if x = rcd then xs else x :: (removercd xs rcd)
 
+let getRel db r =
+  try
+    Hashtbl.find db r 
+  with
+    Not_found -> raise (RuntimeErr "Cannot get a relation that does not exist")
+
+let is_match (v1, v2) =
+  match (v1, v2) with
+    | (ConstVar c1, c2) -> c1 = c2
+    | (AnonVar, _) -> true
+    | _ -> false
+
+let getVal lst =
+  let (pat, constPairs) = List.partition (
+    fun (a, b) -> match a with
+      | NamedVar "match" -> true
+      | _ -> false
+  ) lst in
+  (* let _ = print_endline (String.concat ";" (List.map (fun (a, b) -> "(" ^ (string_of_var a) ^ "," ^ (string_of_const b) ^ ")") pat)) in
+  let _ = print_endline (String.concat ";" (List.map (fun (a, b) -> "(" ^ (string_of_var a) ^ "," ^ (string_of_const b) ^ ")") constPairs)) in *)
+  let matchSuccess = List.for_all is_match constPairs in
+  (* let _ = print_endline (string_of_bool matchSuccess) in *)
+  if matchSuccess then 
+    let tmp = List.map (fun (a, b) -> b) pat in
+    if all_equal tmp then [List.hd tmp] else []
+  else []
+
+let collectVal db pvar p =
+  match p with
+    | In (vars, r) ->
+      let rel = getRel db r in
+      let pat = List.map (fun v -> if v = pvar then NamedVar "match" else v) vars in
+      (* let _ = print_endline (String.concat "," (List.map string_of_var pat)) in *)
+      let subst = List.concat (List.map (fun rcd -> getVal (zip pat rcd)) rel) in
+      subst
+    | _ -> raise (DeclErr "Only IN predicate is allowed in forall operation")
+
+let rec substVarinVTerm vt pvar v =
+  match vt with
+    | Const _ -> vt
+    | Var v_ -> if pvar = v_ then Var v else vt
+    | Bop (bop, vt1, vt2) -> Bop (bop, substVarinVTerm vt1 pvar v, substVarinVTerm vt2 pvar v)
+    | Uop (uop, vt_) -> Uop (uop, substVarinVTerm vt_ pvar v)
+
+let rec substVarinPred p pvar v =
+  match p with
+    | And (p1, p2) -> And (substVarinPred p1 pvar v, substVarinPred p2 pvar v)
+    | Or (p1, p2) -> Or (substVarinPred p1 pvar v, substVarinPred p2 pvar v)
+    | Not p_ -> Not (substVarinPred p_ pvar v)
+    | In (vars, r) -> In (List.map (fun var -> if pvar = var then v else var) vars, r)
+    | Equation (cop, vt1, vt2) -> Equation (cop, substVarinVTerm vt1 pvar v, substVarinVTerm vt2 pvar v)
+
+let rec substVar pvar op v =
+  match op with
+    | Insert (r, vars) -> Insert (r, List.map (fun var -> if pvar = var then v else var) vars)
+    | Delete (r, vars) -> Delete (r, List.map (fun var -> if pvar = var then v else var) vars)
+    | Forall (v', p, ops) -> Forall (v', substVarinPred p pvar v, List.map (fun o -> substVar pvar o v) ops)
+
 let rec apply db op =
   match op with
     | Insert (r, vars) -> 
@@ -80,7 +149,13 @@ let rec apply db op =
         with
           Not_found -> raise (RuntimeErr "Cannot delete a record from a relation without declaration")
       end
-    | _ -> ()
+    | Forall (pvar, p, op_) -> 
+      begin
+        let vs = List.map (fun c -> ConstVar c) (collectVal db pvar p) in
+        let ops = List.concat (List.map (fun v -> List.map (fun o -> substVar pvar o v) op_) vs) in
+        (* print_endline ("op:" ^ (string_of_op op) ^ (String.concat ";\n" (List.map string_of_var vs))); *)
+        List.iter (apply db) ops
+      end
 
 (* * Semantic error 
 exception SemErr of string
