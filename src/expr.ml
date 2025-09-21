@@ -68,6 +68,8 @@ type relation = record list
 
 type database = (string, relation) Hashtbl.t
 
+type environment = (string, const) Hashtbl.t
+
 let extractSchemaName s =
   match s with
     | (n, _, _) -> n

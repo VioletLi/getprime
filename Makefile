@@ -29,7 +29,7 @@ MAIN_FILE=main
 
 # TOP_FILES = expr utils rule_preprocess stratification derivation parser lexer generator ast2fol ast2theorem verifier fuser 
 
-TOP_FILES = expr utils parser lexer
+TOP_FILES = expr utils parser lexer eval
 
 
 TOP_FILES_WITH_MLI=\

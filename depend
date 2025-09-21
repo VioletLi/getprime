@@ -150,6 +150,12 @@ bin/utils.cmo : \
     bin/expr.cmo
 bin/utils.cmx : \
     bin/expr.cmx
+bin/eval.cmo : \
+    bin/expr.cmo \
+    bin/utils.cmo
+bin/eval.cmx : \
+    bin/expr.cmx \
+    bin/utils.cmx
 # bin/verifier.cmo : \
 #     bin/utils.cmo \
 #     bin/expr.cmo \

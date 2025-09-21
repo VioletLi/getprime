@@ -2,30 +2,41 @@ open Expr
 open Lexing
 open Parser
 open Utils
+open Eval
 (* open Verifier
 open Generator
 open Fuser *)
 open Sys
 
-let rec repl db =
+let rec repl db prog =
   print_string "> ";
   flush stdout;
   match read_line () with
     | "exit" -> print_endline "EXIT"
     | exception End_of_file -> ()  (* Ctrl+D 退出 *)
-    | "show" -> print_db db; repl db
-    | line ->
+    | "show" -> print_db db; repl db prog
+    | "fwd" ->
+      let line = read_line () in
       let ops = Parser.parse_userops Lexer.token (Lexing.from_string line) in
-      List.iter (fun op -> apply db op) ops;
+      let vops = execFwd db prog ops in
+      List.iter (fun op -> apply db op) (ops @ vops);
       (* print_string (String.concat "; " (List.map string_of_op ops));  *)
-      repl db
+      repl db prog
+    | "bwd" ->
+      let line = read_line () in
+      let ops = Parser.parse_userops Lexer.token (Lexing.from_string line) in
+      let sops = execBwd db prog ops in
+      List.iter (fun op -> apply db op) (ops @ sops);
+      (* print_string (String.concat "; " (List.map string_of_op ops));  *)
+      repl db prog
+    | _ -> repl db prog
 
 let _ = 
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let prog = Parser.main Lexer.token lexbuf in
   let _ = print_string (to_string prog) in
   let _ = print_string "\n Finish Initialization\n" in
-  repl (createDB prog)
+  repl (createDB prog) prog
 
 (* let _ =
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in

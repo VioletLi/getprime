@@ -104,8 +104,7 @@ let collectVal db pvar p =
       let rel = getRel db r in
       let pat = List.map (fun v -> if v = pvar then NamedVar "match" else v) vars in
       (* let _ = print_endline (String.concat "," (List.map string_of_var pat)) in *)
-      let subst = List.concat (List.map (fun rcd -> getVal (zip pat rcd)) rel) in
-      subst
+      List.concat (List.map (fun rcd -> getVal (zip pat rcd)) rel) 
     | _ -> raise (DeclErr "Only IN predicate is allowed in forall operation")
 
 let rec substVarinVTerm vt pvar v =
