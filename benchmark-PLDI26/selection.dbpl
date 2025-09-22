@@ -12,9 +12,9 @@ Y STRING
 ON SOURCE[s], VIEW v:
 
 INSERT {X, Y} INTO s
-WHEN NOT { X, _} IN s && Y = 'd'
+WHEN NOT { X, 'd'} IN s && Y = 'd'
 THEN INSERT {X, Y} INTO v,
 
 DELETE {X, Y} FROM s
 WHEN { X, Y} IN s && Y = 'd'
-THEN DELETE {X} FROM v.
+THEN DELETE {X, Y} FROM v.
