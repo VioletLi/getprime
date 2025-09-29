@@ -33,6 +33,7 @@
         "FORALL", FORALL;
         "SUCH", SUCH;
         "THAT", THAT;
+        "ONLY", ONLY;
         ]
 (*		exception Eof
 *)

@@ -120,6 +120,7 @@ let rec substVarinPred p pvar v =
     | Or (p1, p2) -> Or (substVarinPred p1 pvar v, substVarinPred p2 pvar v)
     | Not p_ -> Not (substVarinPred p_ pvar v)
     | In (vars, r) -> In (List.map (fun var -> if pvar = var then v else var) vars, r)
+    | Only (vars, r) -> Only (List.map (fun var -> if pvar = var then v else var) vars, r)
     | Equation (cop, vt1, vt2) -> Equation (cop, substVarinVTerm vt1 pvar v, substVarinVTerm vt2 pvar v)
 
 let rec substVar pvar op v =

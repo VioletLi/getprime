@@ -26,7 +26,7 @@
 %token INTTYPE BOOLEANTYPE STRINGTYPE
 %token WHEN THEN INSERT DELETE INTO FROM GROUP
 %token BTRUE BFALSE
-%token FORALL SUCH THAT ON DO COLON DOT LRECORD RRECORD
+%token FORALL SUCH THAT ON DO COLON DOT LRECORD RRECORD ONLY
 
 %left OR
 %left AND
@@ -122,6 +122,7 @@
   predicate:
   // | LRECORD var RRECORD IN RELNAME  { In ([$2], $5) }
   | LRECORD varlist RRECORD IN RELNAME  { In ($2, $5) }
+  | ONLY LRECORD varlist RRECORD IN RELNAME { Only ($3, $6) }
   | value EQ value      { Equation ("=", $1, $3) }
   | value LT value      { Equation ( "<", $1, $3) }
   | value GT value      { Equation ( ">", $1, $3) }

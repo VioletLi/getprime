@@ -32,6 +32,7 @@ type vterm =
 type pred =
   | Equation of string * vterm * vterm
   | In of (var list) * string
+  | Only of (var list) * string
   | And of pred * pred
   | Or of pred * pred
   | Not of pred
@@ -176,6 +177,7 @@ let rec string_of_pred p =
       end
     | In (vars, r) -> "{" ^ (String.concat ", " (List.map string_of_var vars)) ^ "} IN " ^ r
     | Equation (op, v1, v2) -> (string_of_vterm v1) ^ " " ^ op ^ " " ^ (string_of_vterm v2)
+    | Only (vars, r) -> "ONLY {" ^ (String.concat ", " (List.map string_of_var vars)) ^ "} IN " ^ r
 
 let string_of_con c =
   match c with

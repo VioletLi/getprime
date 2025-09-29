@@ -34,6 +34,7 @@ let rec extractEnvfromPred env p1 p2 =
     | (Or (p11, p12), Or (p21, p22)) -> (extractEnvfromPred env p11 p21) && (extractEnvfromPred env p12 p22)
     | (Not p1_, Not p2_) -> extractEnvfromPred env p1_ p2_
     | (In (vars1, r1), In (vars2, r2)) -> r1 = r2 && (updEnv env (zip vars1 vars2))
+    | (Only (vars1, r1), Only (vars2, r2)) -> r1 = r2 && (updEnv env (zip vars1 vars2))
     | (Equation (cop1, vt11, vt12), Equation (cop2, vt21, vt22)) ->
       cop1 = cop2 && (extractEnvfromVTerm env vt11 vt21) && (extractEnvfromVTerm env vt12 vt22)
     | _ -> false
@@ -108,6 +109,14 @@ let search db r rcd =
   with
     Not_found -> raise (RuntimeErr ("Unknown relation " ^ r))
 
+let uniqueSearch db r rcd =
+  try
+    let rel = Hashtbl.find db r in
+    let aux acc x = if matchRcd rcd x then acc+1 else acc in
+    (List.fold_left aux 0 rel) = 1
+  with
+    Not_found -> raise (RuntimeErr ("Unknown relation " ^ r))
+
 let rec evalVTerm vt =
   match vt with
     | Const c -> c
@@ -151,6 +160,7 @@ let rec check db env p =
     | Or (p1, p2) -> (check db env p1) || (check db env p2)
     | Not p_ -> not (check db env p_)
     | In (vars, r) -> let rcd = subst env vars in (search db r rcd)
+    | Only (vars, r) -> let rcd = subst env vars in (uniqueSearch db r rcd)
     | Equation (op, vt1, vt2) -> 
       let v1 = evalVTerm (substVTerm env vt1) in
       let v2 = evalVTerm (substVTerm env vt2) in
@@ -168,6 +178,7 @@ let rec substPred env p =
     | Or (p1, p2) -> Or ((substPred env p1), (substPred env p2))
     | Not p_ -> Not (substPred env p_)
     | In (vars, r) -> In (subst env vars, r)
+    | Only (vars, r) -> Only (subst env vars, r)
     | Equation (op, vt1, vt2) -> Equation (op, substVTerm env vt1, substVTerm env vt2)
 
 let rec substOp env op = 
