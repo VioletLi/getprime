@@ -66,6 +66,14 @@ let extractConst v =
     | ConstVar c -> c 
     | _ -> raise (RuntimeErr "Only constvar can be extracted")
 
+let ins db r vars =
+  try
+    let old = Hashtbl.find db r in
+    let rcd = List.map extractConst vars in 
+    Hashtbl.replace db r (rcd :: old)
+  with
+    Not_found -> raise (RuntimeErr "Cannot insert a record into a relation without declaration")
+
 let rec removercd lst rcd =
   match lst with
     | [] -> raise (RuntimeErr "Cannot remove a record that does not exist")
@@ -131,15 +139,7 @@ let rec substVar pvar op v =
 
 let rec apply db op =
   match op with
-    | Insert (r, vars) -> 
-      begin
-        try
-          let old = Hashtbl.find db r in
-          let rcd = List.map extractConst vars in 
-          Hashtbl.replace db r (rcd :: old)
-        with
-          Not_found -> raise (RuntimeErr "Cannot insert a record into a relation without declaration")
-      end
+    | Insert (r, vars) -> ins db r vars
     | Delete (r, vars) ->
       begin
         try 
@@ -156,6 +156,43 @@ let rec apply db op =
         (* print_endline ("op:" ^ (string_of_op op) ^ (String.concat ";\n" (List.map string_of_var vs))); *)
         List.iter (apply db) ops
       end
+
+let genDB rels datas =
+  let db = Hashtbl.create 10 in
+  let schemas = List.map (extractSchemaName) rels in
+  let _ = List.iter (fun n -> Hashtbl.replace db n []) schemas in
+  List.iter (fun (r, vars) -> ins db r vars) datas; db
+
+let snapshot tbl =
+  let newtbl = Hashtbl.create (Hashtbl.length tbl) in
+  Hashtbl.iter (fun k v -> Hashtbl.add newtbl k v) tbl;
+  newtbl
+
+let restore tbl snap =
+  Hashtbl.reset tbl;               (* 清空当前表 *)
+  Hashtbl.iter (fun k v -> Hashtbl.add tbl k v) snap
+
+let diff_rel rel_old rel_new =
+  let to_delete = List.filter (fun r -> not (List.mem r rel_new)) rel_old in
+  let to_insert = List.filter (fun r -> not (List.mem r rel_old)) rel_new in
+  to_delete, to_insert
+
+let rcd2op rcd = List.map (fun c -> ConstVar c) rcd
+
+let diff_db db_old db_new schemas =
+  let order = List.map (fun (r, _, _) -> r) schemas in
+  List.fold_left
+    (fun acc rel ->
+      let rel_old = getRel db_old rel in
+      let rel_new = getRel db_new rel in
+      let dels, inss = diff_rel rel_old rel_new in
+      let del_ops = List.map (fun rcd -> Delete (rel, rcd2op rcd)) dels in
+      let ins_ops = List.map (fun rcd -> Insert (rel, rcd2op rcd)) inss in
+      (* 删除操作加到前面，插入操作加到后面 *)
+      del_ops @ acc @ ins_ops
+    )
+    []   (* 初始 accumulator *)
+    order
 
 (* * Semantic error 
 exception SemErr of string

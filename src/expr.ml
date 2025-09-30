@@ -63,6 +63,8 @@ type expr = {
   rules: rule list;
 }
 
+type data = string * (var list)
+
 type record = const list
 
 type relation = record list

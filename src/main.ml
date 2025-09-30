@@ -29,6 +29,25 @@ let rec repl db prog =
       List.iter (fun op -> apply db op) (ops @ sops);
       (* print_string (String.concat "; " (List.map string_of_op ops));  *)
       repl db prog
+    | "db" ->
+      let line = read_line () in
+      let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+      let newdb = genDB (prog.view :: prog.source) datas in
+      print_db newdb; repl db prog
+    | "fwd_diff" ->
+      let line = read_line () in
+      let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+      let newdb = genDB prog.source datas in
+      let op = diff_db db newdb prog.source in
+      print_string (String.concat "; " (List.map string_of_op op)); 
+      repl db prog
+    | "bwd_diff" ->
+      let line = read_line () in
+      let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+      let newdb = genDB [prog.view] datas in
+      let op = diff_db db newdb [prog.view] in
+      print_string (String.concat "; " (List.map string_of_op op)); 
+      repl db prog
     | _ -> repl db prog
 
 let _ = 

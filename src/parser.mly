@@ -37,6 +37,9 @@
 
 %start parse_userops
 %type <Expr.op list> parse_userops
+
+%start parse_db
+%type <Expr.data list> parse_db
 /* %start parseDelta
 %type <Expr.delta> parseDelta
 
@@ -213,3 +216,14 @@
   parse_userops:
   | ops DOT { $1 }
   | error   { spec_parse_error "invalid syntax for operation when running" 1; }
+
+  parse_db:
+  | datalist { $1 }
+  | error { spec_parse_error "invalid syntax for database" 1; }
+
+  datalist:
+  | data { $1 :: [] }
+  | data SEP datalist { $1 :: $3 }
+
+  data:
+  | RELNAME LPAREN varlist RPAREN { ($1, $3) }

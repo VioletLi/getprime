@@ -213,3 +213,5 @@ let execBwd db prog ops =
     | Some op -> (List.iter (fun x -> print_endline (string_of_op x)) op);op
     | None -> raise (RuntimeErr "Invalid view operation")
   
+
+(* 这些都不动，加一个根据rule decompose的算法 *)
