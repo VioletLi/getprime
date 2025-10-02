@@ -13,6 +13,8 @@ exception LexErr of string
 
 exception RuntimeErr of string
 
+exception AssignErr 
+
 type const = 
   | Int of int
   | String of string

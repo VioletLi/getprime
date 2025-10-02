@@ -111,6 +111,7 @@ let collectVal db pvar p =
     | In (vars, r) ->
       let rel = getRel db r in
       let pat = List.map (fun v -> if v = pvar then NamedVar "match" else v) vars in
+      (* let _ = print_endline ("pat: " ^ (String.concat "," (List.map string_of_var vars))) in *)
       (* let _ = print_endline (String.concat "," (List.map string_of_var pat)) in *)
       List.concat (List.map (fun rcd -> getVal (zip pat rcd)) rel) 
     | _ -> raise (DeclErr "Only IN predicate is allowed in forall operation")
@@ -163,12 +164,12 @@ let genDB rels datas =
   let _ = List.iter (fun n -> Hashtbl.replace db n []) schemas in
   List.iter (fun (r, vars) -> ins db r vars) datas; db
 
-let snapshot tbl =
+let restore tbl =
   let newtbl = Hashtbl.create (Hashtbl.length tbl) in
   Hashtbl.iter (fun k v -> Hashtbl.add newtbl k v) tbl;
   newtbl
 
-let restore tbl snap =
+let copy tbl snap =
   Hashtbl.reset tbl;               (* 清空当前表 *)
   Hashtbl.iter (fun k v -> Hashtbl.add tbl k v) snap
 
@@ -193,6 +194,17 @@ let diff_db db_old db_new schemas =
     )
     []   (* 初始 accumulator *)
     order
+
+let mergeEnv tbl1 tbl2 =
+  Hashtbl.iter (fun key value ->
+    Hashtbl.replace tbl1 key value
+  ) tbl2
+
+let rec nth idx lst =
+  match (idx, lst) with
+    | (0, e :: ls) -> e
+    | (n, e :: ls) -> nth (idx-1) ls
+    | _ -> raise (RuntimeErr "out of range")
 
 (* * Semantic error 
 exception SemErr of string
