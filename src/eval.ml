@@ -435,7 +435,7 @@ let rec tryRules db splitTime matchedRules rules op ops =
   let _ = print_endline (String.concat "\n" (List.map string_of_rule matchedRules)) in *)
   (* let _ = print_endline ("try") in *)
   match matchedRules with
-    | [] -> None
+    | [] -> (false, [])
     | ([Forall (v, p, fops)], pred, opso) :: rs ->
       begin
         try
@@ -452,11 +452,11 @@ let rec tryRules db splitTime matchedRules rules op ops =
                 let snap = restore db in
                 let _ = List.iter (apply db) allop in
                 let remains = deleteSharedOP ops allop in
+                let corop = List.map (substOp env) opso in
+                let _ = List.iter (apply db) corop in
                 match (searchpath db splitTime rules remains) with
-                  | Some res -> 
-                    let corop = List.map (substOp env) opso in
-                    Some (corop @ res)
-                  | None -> copy db snap; tryRules db splitTime rs rules op ops
+                  | (true, res) -> (true, corop @ res)
+                  | (false, _) -> copy db snap; tryRules db splitTime rs rules op ops
               else
                 tryRules db splitTime rs rules op ops
             | None -> tryRules db splitTime rs rules op ops
@@ -482,11 +482,11 @@ let rec tryRules db splitTime matchedRules rules op ops =
                             let _ = print_endline (String.concat "," (List.map string_of_op ops)) in *)
                 let snap = restore db in
                 let _ = List.iter (apply db) usedOP in
+                let corop = List.map (substOp env) opso in
+                let _ = List.iter (apply db) corop in
                 match (searchpath db (splitTime + (List.length canceledOPs)) rules (remains @ canceledOPs)) with
-                  | Some res -> 
-                    let corop = List.map (substOp env) opso in
-                    Some (corop @ res)
-                  | None -> copy db snap; tryRules db splitTime rs rules op ops
+                  | (true, res) -> (true, corop @ res)
+                  | (false, _) -> copy db snap; tryRules db splitTime rs rules op ops
               else
                 tryRules db splitTime rs rules op ops
             with
@@ -499,15 +499,15 @@ let rec tryRules db splitTime matchedRules rules op ops =
 
 and searchpath db splitTime rules ops =
   match (splitTime, ops) with
-    | (_, []) -> Some []
+    | (_, []) -> (true, [])
     | (n, op :: ops_) ->
       begin
-        if n > 3 then None else
+        if n > 3 then (false, []) else
         let snap = restore db in
         let matchedRules = findMatch rules op in
         match (tryRules db splitTime matchedRules rules op ops_) with
-          | Some res -> Some res
-          | None -> copy db snap; None
+          | (true, res) -> (true, res)
+          | (false, _) -> copy db snap; (false, [])
       end
 (* 这些都不动，加一个根据rule decompose的算法 *)
 (* 如果backward返回none那么就是错了 forward返回none就贪心（尽可能消耗掉所有op）直到最大限度然后剩下的以id处理 *)
@@ -516,14 +516,14 @@ let fwdDiff dbold dbnew prog =
   let ops = diff_db dbold dbnew prog.source in
   (* let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in *)
   match searchpath dbold 0 prog.rules ops with
-    | Some res -> (List.iter (fun x -> print_endline (string_of_op x); apply dbold x) res)
-    | None -> (List.iter (apply dbold) ops); print_endline "No update of view"
+    | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
+    | (false, _) -> (List.iter (apply dbold) ops); print_endline "No update of view"
     (* 现在就不做复杂partition了，没找到匹配的所有的operation都认为是没有match *)
 
 let bwdDiff dbold dbnew prog =
   let ops = diff_db dbold dbnew [prog.view] in
-  let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in
+  (* let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in *)
   let brules = List.map (fun (a, b, c) -> (c, b, a)) prog.rules in
   match searchpath dbold 0 brules ops with
-    | Some res -> (List.iter (fun x -> print_endline (string_of_op x);apply dbold x) res)
-    | None -> (print_endline "invalid operation of view")
+    | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
+    | (false, _) -> (print_endline "invalid operation of view")
