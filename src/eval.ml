@@ -423,14 +423,16 @@ let rec genOPfromForall db env op =
   (* let _ = Hashtbl.iter (fun k v -> print_endline (k ^ ": " ^ (string_of_const v))) env in *)
   match op with
     | Forall (pvar, p, fops) -> 
+      begin
       let vs = List.map (fun c -> ConstVar c) (collectVal db pvar p) in
       (* let _ = print_endline ("vals:" ^ (String.concat "," (List.map string_of_var vs))) in *)
       let ops = List.concat (List.map (fun v -> List.map (fun o -> substVar pvar o v) fops) vs) in
       List.concat (List.map (genOPfromForall db env) ops)
+      end
     | Insert (r, vars) -> [Insert (r, subst env vars)]
     | Delete (r, vars) -> [Delete (r, subst env vars)]
 
-let rec tryRules db splitTime matchedRules rules op ops =
+let rec tryRules db splitTime matchedRules rules op ops isFwd =
   (* let _ = print_endline (string_of_op op) in
   let _ = print_endline (String.concat "\n" (List.map string_of_rule matchedRules)) in *)
   (* let _ = print_endline ("try") in *)
@@ -443,6 +445,7 @@ let rec tryRules db splitTime matchedRules rules op ops =
           match findMatchedEnv env [] [Forall (v, p, fops)] op with
             | Some path ->
               let _ = List.iter (Hashtbl.remove env) path in
+              (* let _ = Hashtbl.iter (fun k v -> print_endline (k ^ ":" ^ (string_of_const v))) env in *)
               let actop = substOp env (Forall (v, p, fops)) in
               let allop = genOPfromForall db env actop in
               (* let _ = print_endline (String.concat "," (List.map string_of_op allop)) in *)
@@ -450,25 +453,25 @@ let rec tryRules db splitTime matchedRules rules op ops =
               if (List.for_all (fun o -> List.mem o (op :: ops)) allop) && (check db env pred) then
                 (* let _ = print_endline "222" in *)
                 let snap = restore db in
-                let _ = List.iter (apply db) allop in
                 let remains = deleteSharedOP ops allop in
                 let corop = List.map (substOp env) opso in
-                let _ = List.iter (apply db) corop in
-                match (searchpath db splitTime rules remains) with
+                let execops = if isFwd then corop @ allop else allop @ corop in
+                let _ = List.iter (apply db) execops in
+                match (searchpath db splitTime rules remains isFwd) with
                   | (true, res) -> (true, corop @ res)
-                  | (false, _) -> copy db snap; tryRules db splitTime rs rules op ops
+                  | (false, _) -> copy db snap; tryRules db splitTime rs rules op ops isFwd
               else
-                tryRules db splitTime rs rules op ops
-            | None -> tryRules db splitTime rs rules op ops
+                tryRules db splitTime rs rules op ops isFwd
+            | None -> tryRules db splitTime rs rules op ops isFwd
     (* 找好environment之后就试着把pattern 变量都找出来从environment里删掉，然后按forall语义生成所有需要的操作，看是不是都执行了，没有的话就不考虑这条规则了
             forall先做pattern matching找到env，不考虑找到environment失败的情况，然后找到所有可能取值的operation，看是不是所有op都存在，如果不是就直接跳过这条规则 *)
         with
-          AssignErr -> tryRules db splitTime rs rules op ops
+          AssignErr -> tryRules db splitTime rs rules op ops isFwd
       end
     | (opsi, p, opso) :: rs ->
       let env = Hashtbl.create 10 in 
       match extractEnvPart env opsi op with
-        | None -> tryRules db splitTime rs rules op ops
+        | None -> tryRules db splitTime rs rules op ops isFwd
         | Some opRemain -> 
           begin
             try
@@ -481,23 +484,23 @@ let rec tryRules db splitTime matchedRules rules op ops =
                             (* let _ = print_endline (String.concat "," (List.map string_of_op remains)) in
                             let _ = print_endline (String.concat "," (List.map string_of_op ops)) in *)
                 let snap = restore db in
-                let _ = List.iter (apply db) usedOP in
                 let corop = List.map (substOp env) opso in
-                let _ = List.iter (apply db) corop in
-                match (searchpath db (splitTime + (List.length canceledOPs)) rules (remains @ canceledOPs)) with
+                let execops = if isFwd then corop @ usedOP else usedOP @ corop in
+                let _ = List.iter (apply db) execops in
+                match (searchpath db (splitTime + (List.length canceledOPs)) rules (canceledOPs @ remains) isFwd) with
                   | (true, res) -> (true, corop @ res)
-                  | (false, _) -> copy db snap; tryRules db splitTime rs rules op ops
+                  | (false, _) -> copy db snap; tryRules db splitTime rs rules op ops isFwd
               else
-                tryRules db splitTime rs rules op ops
+                tryRules db splitTime rs rules op ops isFwd
             with
-              AssignErr -> tryRules db splitTime rs rules op ops
+              AssignErr -> tryRules db splitTime rs rules op ops isFwd
           end
           (* 找到了一个匹配上的内容，然后要尝试给没匹配上的赋值
           赋值之后要check predicates
           如果通过了那这个就用上了，把没匹配上的cancel op加到剩下的op里，然后继续searchpath，成功了就加上现在的操作然后直接返回，失败了就尝试下一条rule
           返回的是output的delta而不是input *)
 
-and searchpath db splitTime rules ops =
+and searchpath db splitTime rules ops isFwd =
   match (splitTime, ops) with
     | (_, []) -> (true, [])
     | (n, op :: ops_) ->
@@ -505,7 +508,7 @@ and searchpath db splitTime rules ops =
         if n > 3 then (false, []) else
         let snap = restore db in
         let matchedRules = findMatch rules op in
-        match (tryRules db splitTime matchedRules rules op ops_) with
+        match (tryRules db splitTime matchedRules rules op ops_ isFwd) with
           | (true, res) -> (true, res)
           | (false, _) -> copy db snap; (false, [])
       end
@@ -515,7 +518,7 @@ and searchpath db splitTime rules ops =
 let fwdDiff dbold dbnew prog =
   let ops = diff_db dbold dbnew prog.source in
   (* let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in *)
-  match searchpath dbold 0 prog.rules ops with
+  match searchpath dbold 0 prog.rules ops true with
     | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
     | (false, _) -> (List.iter (apply dbold) ops); print_endline "No update of view"
     (* 现在就不做复杂partition了，没找到匹配的所有的operation都认为是没有match *)
@@ -524,6 +527,6 @@ let bwdDiff dbold dbnew prog =
   let ops = diff_db dbold dbnew [prog.view] in
   (* let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in *)
   let brules = List.map (fun (a, b, c) -> (c, b, a)) prog.rules in
-  match searchpath dbold 0 brules ops with
+  match searchpath dbold 0 brules ops false with
     | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
     | (false, _) -> (print_endline "invalid operation of view")
