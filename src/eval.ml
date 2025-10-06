@@ -234,12 +234,23 @@ let rec extractEnvPart env ops op =
     | (Insert (r1, vars1), (Insert (r2, vars2)) :: ops_) -> 
         if r1 = r2 && (updEnv env (zip vars2 vars1)) 
           then Some ops_
-        else (Hashtbl.reset env; extractEnvPart env ops_ op)
+        else (Hashtbl.reset env; 
+        match extractEnvPart env ops_ op with
+          | Some res -> Some ((Insert (r2, vars2)) :: ops_)
+          | _ -> None)
     | (Delete (r1, vars1), (Delete (r2, vars2)) :: ops_) -> 
         if r1 = r2 && (updEnv env (zip vars2 vars1)) 
           then Some ops_ 
-        else (Hashtbl.reset env; extractEnvPart env ops_ op)
-    | (_, o :: ops_) -> extractEnvPart env ops_ op
+        else (Hashtbl.reset env; 
+        match extractEnvPart env ops_ op with
+          | Some res -> Some ((Delete (r2, vars2)) :: ops_)
+          | _ -> None)
+    | (_, o :: ops_) -> 
+      begin
+        match extractEnvPart env ops_ op with
+          | Some res -> Some (o :: ops_)
+          | _ -> None
+      end
 
 let rec canMatchOP env o ops =
   match (o, ops) with

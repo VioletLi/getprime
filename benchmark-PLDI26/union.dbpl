@@ -1,33 +1,33 @@
-CREATE s1 (
-    X STRING
+CREATE on_sale (
+    ITEM STRING
 ),
-CREATE s2 (
-    X STRING
+CREATE in_stock (
+    ITEM STRING
 ),
-CREATE v (
-    X STRING
+CREATE all_items (
+    ITEM STRING
 );
-ON SOURCE [s1, s2], VIEW v:
-INSERT {X} INTO s1
-WHEN NOT {X} IN s1 && NOT {X} IN s2
-THEN INSERT {X} INTO v,
+ON SOURCE [on_sale, in_stock], VIEW all_items:
+INSERT {ITEM} INTO on_sale
+WHEN NOT {ITEM} IN on_sale && NOT {ITEM} IN in_stock
+THEN INSERT {ITEM} INTO all_items,
 
-INSERT {X} INTO s2
-WHEN NOT {X} IN s1 && NOT {X} IN s2
-THEN INSERT {X} INTO v,
+INSERT {ITEM} INTO in_stock
+WHEN NOT {ITEM} IN on_sale && NOT {ITEM} IN in_stock
+THEN INSERT {ITEM} INTO all_items,
 
-INSERT {X} INTO s1; INSERT {X} INTO s2
-WHEN NOT {X} IN s1 && NOT {X} IN s2
-THEN INSERT {X} INTO v,
+INSERT {ITEM} INTO on_sale; INSERT {ITEM} INTO in_stock
+WHEN NOT {ITEM} IN on_sale && NOT {ITEM} IN in_stock
+THEN INSERT {ITEM} INTO all_items,
 
-DELETE {X} FROM s1
-WHEN {X} IN s1 && NOT {X} IN s2
-THEN DELETE {X} FROM v,
+DELETE {ITEM} FROM on_sale
+WHEN {ITEM} IN on_sale && NOT {ITEM} IN in_stock
+THEN DELETE {ITEM} FROM all_items,
 
-DELETE {X} FROM s2
-WHEN NOT {X} IN s1 && {X} IN s2
-THEN DELETE {X} FROM v,
+DELETE {ITEM} FROM in_stock
+WHEN NOT {ITEM} IN on_sale && {ITEM} IN in_stock
+THEN DELETE {ITEM} FROM all_items,
 
-DELETE {X} FROM s1; DELETE {X} FROM s2
-WHEN {X} IN s1 && {X} IN s2
-THEN DELETE {X} FROM v.
+DELETE {ITEM} FROM on_sale; DELETE {ITEM} FROM in_stock
+WHEN {ITEM} IN on_sale && {ITEM} IN in_stock
+THEN DELETE {ITEM} FROM all_items.
