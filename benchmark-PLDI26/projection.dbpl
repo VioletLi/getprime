@@ -1,19 +1,22 @@
-CREATE s(
-X STRING,
-Y STRING;
-CHECK (NOT Y = 'NULL')
+CREATE enrollment(
+CNAME STRING,
+SNAME STRING
 ),
 
-CREATE v(
-X STRING
+CREATE courses(
+CNAME STRING
 );
 
-ON SOURCE[s], VIEW v:
+ON SOURCE[enrollment], VIEW courses:
 
-INSERT {X, Y} INTO s
-WHEN NOT { X, _} IN s
-THEN INSERT {X} INTO v,
+INSERT {CNAME, 'Bob'} INTO enrollment
+WHEN NOT {CNAME, _} IN enrollment
+THEN INSERT {CNAME} INTO courses,
 
-FORALL Y SUCH THAT { X, Y} IN s DO [DELETE {X, Y} FROM s]
-WHEN { X, _} IN s
-THEN DELETE {X} FROM v.
+INSERT {CNAME, SNAME} INTO enrollment
+WHEN NOT {CNAME, _} IN enrollment
+THEN INSERT {CNAME} INTO courses,
+
+FORALL SNAME SUCH THAT {CNAME, SNAME} IN enrollment DO [DELETE {CNAME, SNAME} FROM enrollment]
+WHEN {CNAME, _} IN enrollment
+THEN DELETE {CNAME} FROM courses.

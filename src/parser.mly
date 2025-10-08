@@ -219,6 +219,7 @@
 
   parse_db:
   | datalist { $1 }
+  | EOF { [] }
   | error { spec_parse_error "invalid syntax for database" 1; }
 
   datalist:
