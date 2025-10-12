@@ -1,0 +1,21 @@
+CREATE emp (
+    EMPLOYEE STRING,
+    DEPARTMENT STRING,
+    LOCATION STRING,
+    BASEBALL_TEAM BOOLEAN
+),
+CREATE baseball (
+    EMPLOYEE STRING
+);
+ON SOURCE [emp], VIEW baseball:
+INSERT {E, 'SALES', 'NEW YORK', true} INTO emp
+WHEN NOT {E, _, _, true} IN emp
+THEN INSERT {E} INTO baseball,
+
+INSERT {E, D, L, true} INTO emp
+WHEN NOT {E, D, L, true} IN emp
+THEN INSERT {E} INTO baseball,
+
+FORALL D SUCH THAT {E, D, _, true} IN emp DO [FORALL L SUCH THAT {E, D, L, true} IN emp DO [DELETE {E, D, L, true} FROM emp]]
+WHEN {E, _, _, true} IN emp
+THEN DELETE {E} FROM baseball.
