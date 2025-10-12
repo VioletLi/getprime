@@ -172,6 +172,10 @@ let rec check db env p =
         | ("<", Int i1, Int i2) -> i1 < i2
         | (">=", Int i1, Int i2) -> i1 >= i2
         | ("<=", Int i1, Int i2) -> i1 <= i2
+        | (">", String s1, String s2) -> s1 > s2
+        | ("<", String s1, String s2) -> s1 < s2
+        | (">=", String s1, String s2) -> s1 >= s2
+        | ("<=", String s1, String s2) -> s1 <= s2
         | _ -> raise (RuntimeErr "Unsupported comparison")
 
 let rec substPred env p =

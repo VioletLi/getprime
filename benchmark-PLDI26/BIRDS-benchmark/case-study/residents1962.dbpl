@@ -1,0 +1,20 @@
+CREATE residents(
+    EMP_NAME STRING,
+    BIRTH_DATE STRING,
+    GENDER STRING
+),
+CREATE residents1962(
+    EMP_NAME STRING,
+    BIRTH_DATE STRING,
+    GENDER STRING;
+    CHECK(BIRTH_DATE >= '1962-01-01' && BIRTH_DATE <= '1962-12-31')
+);
+ON SOURCE [residents], VIEW residents1962:
+INSERT {E, B, G} INTO residents
+WHEN NOT {E, B, G} IN residents && B >= '1962-01-01' && B <= '1962-12-31'
+THEN INSERT {E, B, G} INTO residents1962,
+
+DELETE {E, B, G} FROM residents
+WHEN {E, B, G} IN residents && B >= '1962-01-01' && B <= '1962-12-31'
+THEN DELETE {E, B, G} FROM residents1962.
+

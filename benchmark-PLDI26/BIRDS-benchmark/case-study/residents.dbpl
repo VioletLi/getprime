@@ -1,0 +1,42 @@
+CREATE male(
+    EMP_NAME STRING, 
+    BIRTH_DATE STRING
+),
+CREATE female(
+    EMP_NAME STRING, 
+    BIRTH_DATE STRING
+),
+CREATE others(
+    EMP_NAME STRING, 
+    BIRTH_DATE STRING, 
+    GENDER STRING
+),
+CREATE residents(
+    EMP_NAME STRING,
+    BIRTH_DATE STRING,
+    GENDER STRING
+);
+ON SOURCE [male, female, others], VIEW residents :
+INSERT {E, B} INTO male
+WHEN NOT {E, B} IN male && NOT {E, B, _} IN others
+THEN INSERT {E, B, 'M'} INTO residents,
+
+INSERT {E, B} INTO female
+WHEN NOT {E, B} IN female && NOT {E, B, _} IN others
+THEN INSERT {E, B, 'F'} INTO residents,
+
+INSERT {E, B, G} INTO others
+WHEN NOT G = 'M' && NOT G = 'F' && NOT {E, B, G} IN others
+THEN INSERT {E, B, G} INTO residents,
+
+DELETE {E, B} FROM male
+WHEN {E, B} IN male
+THEN DELETE {E, B, 'M'} FROM residents,
+
+DELETE {E, B} FROM female
+WHEN {E, B} IN female
+THEN DELETE {E, B, 'F'} FROM residents,
+
+DELETE {E, B, G} FROM others
+WHEN NOT G = 'M' && NOT G = 'F' && {E, B, G} IN others
+THEN DELETE {E, B, G} FROM residents.

@@ -1,0 +1,40 @@
+CREATE residents(
+    EMP_NAME STRING, 
+    BIRTH_DATE STRING, 
+    GENDER STRING
+),
+CREATE ced(
+    EMP_NAME STRING, 
+    DEPT_NAME STRING
+),
+CREATE researchers(
+    EMP_NAME STRING
+);
+ON SOURCE [residents, ced], VIEW researchers:
+INSERT {E, '0001-01-01', 'unknown'} INTO residents
+WHEN NOT {E, _, _} IN residents && {E, 'Research'} IN ced
+THEN INSERT {E} INTO researchers,
+
+INSERT {E, '0001-01-01', 'unknown'} INTO residents; INSERT {E, 'Research'} INTO ced
+WHEN NOT {E, _, _} IN residents && NOT {E, 'Research'} IN ced
+THEN INSERT {E} INTO researchers,
+
+INSERT {E, B, G} INTO residents
+WHEN NOT {E, _, _} IN residents && {E, 'Research'} IN ced
+THEN INSERT {E} INTO researchers,
+
+INSERT {E, B, G} INTO residents; INSERT {E, 'Research'} INTO ced
+WHEN NOT {E, _, _} IN residents && NOT {E, 'Research'} IN ced
+THEN INSERT {E} INTO researchers,
+
+DELETE {E, 'Research'} FROM ced
+WHEN {E, _, _} IN residents && {E, 'Research'} IN ced
+THEN DELETE {E} FROM researchers,
+
+INSERT {E, 'Research'} INTO ced
+WHEN {E, _, _} IN residents && NOT {E, 'Research'} IN ced
+THEN INSERT {E} INTO researchers,
+
+FORALL B SUCH THAT {E, B, _} IN residents DO [FORALL G SUCH THAT {E, B, G} IN residents DO [DELETE {E, B, G} FROM residents]]
+WHEN {E, _, _} IN residents && {E, 'Research'} IN ced
+THEN DELETE {E} FROM researchers.
