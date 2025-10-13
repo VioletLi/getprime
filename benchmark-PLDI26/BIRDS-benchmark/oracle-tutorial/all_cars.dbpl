@@ -1,0 +1,40 @@
+CREATE brands(
+    BRAND_ID INT, 
+    BRAND_NAME STRING;
+    PRIMARY KEY (BRAND_ID)
+),
+CREATE cars(
+    CAR_ID INT, 
+    CAR_NAME STRING, 
+    BRAND_ID INT;
+    PRIMARY KEY (CAR_ID),
+    FOREIGN KEY (BRAND_ID) REFERENCE brands(BRAND_ID)
+),
+CREATE all_cars(
+    CAR_ID INT, 
+    CAR_NAME STRING, 
+    BRAND_ID INT, 
+    BRAND_NAME STRING;
+    PRIMARY KEY (CAR_ID),
+    CHECK (NOT ({_, _, BRAND_ID, BRAND_NAME1} IN all_cars && {_, _, BRAND_ID, BRAND_NAME2} IN all_cars && NOT BRAND_NAME1 = BRAND_NAME2))
+);
+ON SOURCE [brands, cars], VIEW all_cars:
+INSERT {BID, BN} INTO brands
+WHEN {_, _, BID} IN cars && NOT {BID, _} IN brands
+THEN FORALL CID SUCH THAT {CID, _, BID} IN cars DO [FORALL CN SUCH THAT {CID, CN, BID} IN cars DO [INSERT {CID, CN, BID, BN} INTO all_cars]],
+
+INSERT {CID, CN, BID} INTO cars
+WHEN NOT {CID, _, _} IN cars && {BID, _} IN brands
+THEN FORALL BN SUCH THAT {BID, BN} IN brands DO [INSERT {CID, CN, BID, BN} INTO all_cars],
+
+FORALL CID SUCH THAT {CID, _, BID} IN cars DO [FORALL CN SUCH THAT {CID, CN, BID} IN cars DO [DELETE {CID, CN, BID} FROM cars]];FORALL BN SUCH THAT {BID, BN} IN brands DO [DELETE {BID, BN} FROM brands]
+WHEN {_, _, BID} IN cars && {BID, _} IN brands
+THEN FORALL CID SUCH THAT {CID, _, BID} IN cars DO [FORALL CN SUCH THAT {CID, CN, BID} IN cars DO [FORALL BN SUCH THAT {BID, BN} IN brands DO [DELETE {CID, CN, BID, BN} FROM all_cars]]],
+
+DELETE {CID, CN, BID} FROM cars
+WHEN {CID, CN, BID} IN cars && {BID, _} IN brands
+THEN FORALL BN SUCH THAT {BID, BN} IN brands DO [DELETE {CID, CN, BID, BN} FROM all_cars],
+
+DELETE {BID, BN} FROM brands
+WHEN {_, _, BID} IN cars && {BID, BN} IN brands
+THEN FORALL CID SUCH THAT {CID, _, BID} IN cars DO [FORALL CN SUCH THAT {CID, CN, BID} IN cars DO [DELETE {CID, CN, BID, BN} FROM all_cars]].

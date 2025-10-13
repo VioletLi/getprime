@@ -1,0 +1,20 @@
+CREATE tracks2(
+    TRACK STRING,
+    RATING INT,
+    ALBUM STRING,
+    QUANTITY INT
+),
+CREATE tracks3(
+    TRACK STRING,
+    RATING INT,
+    ALBUM STRING,
+    QUANTITY INT
+);
+ON SOURCE [tracks2], VIEW tracks3:
+INSERT {T, R, A, Q} INTO tracks2
+WHEN NOT {T, R, A, Q} IN tracks2 && Q > 2
+THEN INSERT {T, R, A, Q} INTO tracks3,
+
+DELETE {T, R, A, Q} FROM tracks2
+WHEN {T, R, A, Q} IN tracks2 && Q > 2
+THEN DELETE {T, R, A, Q} FROM tracks3.

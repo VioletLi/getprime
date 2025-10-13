@@ -1,0 +1,29 @@
+CREATE tracks1(
+    TRACK STRING,
+    DATE INT,
+    RATING INT,
+    ALBUM STRING,
+    QUANTITY INT
+),
+CREATE tracks2(
+    TRACK STRING,
+    RATING INT,
+    ALBUM STRING,
+    QUANTITY INT
+);
+ON SOURCE [tracks1], VIEW tracks2:
+FORALL D SUCH THAT {T, D, R, A, Q} IN tracks1 DO [DELETE {T, D, R, A, Q} FROM tracks1]
+WHEN {T, _, R, A, Q} IN tracks1
+THEN DELETE {T, R, A, Q} FROM tracks2,
+
+FORALL D SUCH THAT {T, D, _, A, _} IN tracks1 DO [INSERT {T, D, R, A, Q} INTO tracks1]
+WHEN NOT {T, _, R, A, Q} IN tracks1 && {T, _, _, A, _} IN tracks1
+THEN INSERT {T, R, A, Q} INTO tracks2,
+
+INSERT {T, 2018, R, A, Q} INTO tracks1
+WHEN NOT {T, _, _, A, _} IN tracks1
+THEN INSERT {T, R, A, Q} INTO tracks2,
+
+INSERT {T, D, R, A, Q} INTO tracks1
+WHEN NOT {T, _, R, A, Q} IN tracks1
+THEN INSERT {T, R, A, Q} INTO tracks2.

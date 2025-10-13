@@ -1,0 +1,19 @@
+CREATE items(
+    ID INT, 
+    NAME STRING, 
+    PRICE INT
+),
+CREATE luxuryitems(
+    ID INT, 
+    NAME STRING, 
+    PRICE INT
+);
+
+ON SOURCE [items], VIEW luxuryitems:
+INSERT {I, N, P} INTO items
+WHEN NOT {I, N, P} IN luxuryitems && P > 700
+THEN INSERT {I, N, P} INTO luxuryitems,
+
+DELETE {I, N, P} FROM items
+WHEN {I, N, P} IN luxuryitems && P > 700
+THEN DELETE {I, N, P} FROM luxuryitems.

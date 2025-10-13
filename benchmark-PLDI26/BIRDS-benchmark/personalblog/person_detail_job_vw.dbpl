@@ -1,0 +1,47 @@
+CREATE person_detail (
+    PID INT,
+    PNAME STRING;
+    PRIMARY KEY (PID)
+),
+CREATE person_job (
+    PID INT,
+    JOB STRING;
+    PRIMARY KEY (PID),
+    FOREIGN KEY (PID) REFERENCE person_detail(PID),
+    CHECK (NOT JOB = 'None')
+),
+CREATE person_detail_job_vw (
+    PID INT,
+    PNAME STRING,
+    JOB STRING;
+    PRIMARY KEY (PID)
+);
+
+ON SOURCE [person_detail, person_job], VIEW person_detail_job_vw:
+INSERT {PID, PNAME} INTO person_detail
+WHEN NOT {PID, PNAME} IN person_detail
+THEN INSERT {PID, PNAME, 'None'} INTO person_detail_job_vw,
+
+INSERT {PID, JOB} INTO person_job
+WHEN NOT JOB = 'None' && {PID, _} IN person_detail && NOT {PID, _} IN person_job
+THEN FORALL PNAME SUCH THAT {PID, PNAME} IN person_detail DO [DELETE {PID, PNAME, 'None'} FROM person_detail_job_vw;INSERT {PID, PNAME, JOB} INTO person_detail_job_vw],
+
+INSERT {PID, PNAME} INTO person_detail; INSERT {PID, JOB} INTO person_job
+WHEN NOT {PID, PNAME} IN person_detail && NOT {PID, _} IN person_job
+THEN INSERT {PID, PNAME, JOB} INTO person_detail_job_vw,
+
+INSERT {PID, JOB} INTO person_job
+WHEN NOT JOB = 'None' && {PID, _} IN person_detail && {PID, _} IN person_job
+THEN FORALL PNAME SUCH THAT {PID, PNAME} IN person_detail DO [INSERT {PID, PNAME, JOB} INTO person_detail_job_vw],
+
+DELETE {PID, PNAME} FROM person_detail
+WHEN {PID, PNAME} IN person_detail && NOT {PID, _} IN person_job
+THEN DELETE {PID, PNAME, 'None'} FROM person_detail_job_vw,
+
+DELETE {PID, JOB} FROM person_job; DELETE {PID, PNAME} FROM person_detail
+WHEN NOT JOB = 'None' && {PID, _} IN person_detail && ONLY {PID, _} IN person_job
+THEN DELETE {PID, PNAME, JOB} FROM person_detail_job_vw,
+
+DELETE {PID, JOB} FROM person_job
+WHEN NOT JOB = 'None' && {PID, _} IN person_detail && NOT ONLY {PID, _} IN person_job
+THEN FORALL PNAME SUCH THAT {PID, PNAME} IN person_detail DO [DELETE {PID, PNAME, JOB} FROM person_detail_job_vw].

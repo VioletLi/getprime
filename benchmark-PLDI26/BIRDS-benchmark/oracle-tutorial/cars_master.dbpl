@@ -1,0 +1,21 @@
+CREATE cars(
+    CAR_ID INT, 
+    CAR_NAME STRING, 
+    BRAND_ID INT
+),
+CREATE cars_master(
+    CAR_ID INT, 
+    CAR_NAME STRING
+);
+ON SOURCE [cars], VIEW cars_master:
+INSERT {CID, CNAME, 1} INTO cars
+WHEN NOT {CID, CNAME, _} IN cars
+THEN INSERT {CID, CNAME} INTO cars_master,
+
+INSERT {CID, CNAME, BID} INTO cars
+WHEN NOT {CID, CNAME, _} IN cars
+THEN INSERT {CID, CNAME} INTO cars_master,
+
+FORALL BID SUCH THAT {CID, CNAME, BID} IN cars DO [DELETE {CID, CNAME, BID} FROM cars]
+WHEN {CID, CNAME, _} IN cars
+THEN DELETE {CID, CNAME} FROM cars_master.

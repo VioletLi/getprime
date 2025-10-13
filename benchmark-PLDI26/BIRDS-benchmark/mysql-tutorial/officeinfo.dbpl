@@ -1,0 +1,28 @@
+CREATE offices(
+    OFFICECODE STRING, 
+    CITY STRING, 
+    PHONE STRING, 
+    ADDRESSLINE1 STRING, 
+    ADDRESSLINE2 STRING, 
+    STATE STRING, 
+    COUNTRY STRING, 
+    POSTALCODE STRING, 
+    TERRITORY STRING
+),
+CREATE officeinfo(
+    OFFICECODE STRING, 
+    PHONE STRING, 
+    CITY STRING
+);
+ON SOURCE [offices], VIEW officeinfo:
+INSERT {O, CI, PH, 'ADDRESSLINE1', 'ADDRESSLINE2', 'STATE', 'COUNTRY', 'POSTALCODE', 'TERRITORY'} INTO offices
+WHEN NOT {O, CI, PH, _, _, _, _, _, _} IN offices
+THEN INSERT {O, CI, PH} INTO officeinfo,
+
+INSERT {O, CI, PH, A1, A2, S, CO, PO, T} INTO offices
+WHEN NOT {O, CI, PH, _, _, _, _, _, _} IN offices
+THEN INSERT {O, CI, PH} INTO officeinfo,
+
+FORALL A1 SUCH THAT {O, CI, PH, A1, _, _, _, _, _} IN offices DO [FORALL A2 SUCH THAT {O, CI, PH, A1, A2, _, _, _, _} IN offices DO [FORALL S SUCH THAT {O, CI, PH, A1, A2, S, _, _, _} IN offices DO [FORALL CO SUCH THAT {O, CI, PH, A1, A2, S, CO, _, _} IN offices DO [FORALL PO SUCH THAT {O, CI, PH, A1, A2, S, CO, PO, _} IN offices DO [FORALL T SUCH THAT {O, CI, PH, A1, A2, S, CO, PO, T} IN offices DO [DELETE {O, CI, PH, A1, A2, S, CO, PO, T} FROM offices]]]]]]
+WHEN {O, CI, PH, _, _, _, _, _, _} IN offices
+THEN DELETE {O, CI, PH} FROM officeinfo.

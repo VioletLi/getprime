@@ -1,0 +1,34 @@
+CREATE tracks(
+    TRACK STRING,
+    DATE INT,
+    RATING INT,
+    ALBUM STRING
+),
+CREATE albums(
+    ALBUM STRING,
+    QUANTITY INT
+),
+CREATE tracks1(
+    TRACK STRING,
+    DATE INT,
+    RATING INT,
+    ALBUM STRING,
+    QUANTITY INT
+);
+ON SOURCE [tracks, albums], VIEW tracks1:
+INSERT {T, D, R, A} INTO tracks
+WHEN NOT {T, D, R, A} IN tracks && {A, _} IN albums
+THEN FORALL Q SUCH THAT {A, Q} IN albums DO [INSERT {T, D, R, A, Q} INTO tracks1],
+
+INSERT {A, Q} INTO albums
+WHEN NOT {A, Q} IN albums && {_, _, _, A} IN tracks
+THEN FORALL T SUCH THAT {T, _, _, A} IN tracks DO [FORALL D SUCH THAT {T, D, _, A} IN tracks DO [FORALL R SUCH THAT {T, D, R, A} IN tracks DO [INSERT {T, D, R, A, Q} INTO tracks1]]],
+
+DELETE {A, Q} FROM albums
+WHEN {A, Q} IN albums && {_, _, _, A} IN tracks
+THEN FORALL T SUCH THAT {T, _, _, A} IN tracks DO [FORALL D SUCH THAT {T, D, _, A} IN tracks DO [FORALL R SUCH THAT {T, D, R, A} IN tracks DO [DELETE {T, D, R, A, Q} FROM tracks1]]],
+
+DELETE {T, D, R, A} FROM tracks
+WHEN {T, D, R, A} IN tracks && {A, _} IN albums
+THEN FORALL Q SUCH THAT {A, Q} IN albums DO [DELETE {T, D, R, A, Q} FROM tracks1].
+

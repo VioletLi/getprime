@@ -108,5 +108,82 @@ WHERE T1.EMP_NAME NOT IN (
 ### Folder BIRDS-benchmark/mysql-tutorial
 #### luxuryitems.dbpl
 ```SQL
+CREATE VIEW luxuryitems (ID, NAME, PRICE) AS
+SELECT T1.ID, T1.NAME, T1.PRICE
+FROM items AS T1
+WHERE T1.PRICE > 700.0;
+```
 
+#### officeinfo.dbpl
+```SQL
+CREATE VIEW officeinfo AS
+SELECT T1.OFFICECODE, T1.PHONE, T1.CITY
+FROM offices AS T1;
+```
+
+### Folder BIRDS-benchmark/oracle-tutorial
+#### all_cars.dbpl
+```SQL
+CREATE VIEW all_cars (CAR_ID, CAR_NAME, BRAND_ID, BRAND_NAME) AS
+SELECT
+    T1.CAR_ID,
+    T1.CAR_NAME,
+    T1.BRAND_ID,
+    T2.BRAND_NAME
+FROM
+    cars AS T1
+INNER JOIN
+    brands AS T2 ON T1.BRAND_ID = T2.BRAND_ID;
+```
+
+#### cars_master.dbpl
+```SQL
+CREATE VIEW cars_master (CAR_ID, CAR_NAME) AS
+SELECT T1.CAR_ID, T1.CAR_NAME
+FROM cars AS T1;
+```
+
+### Folder BIRDS-benchmark/personalblog
+#### personal_detail_job_vw.dbpl
+```SQL
+CREATE VIEW person_detail_job_vw (PID, PNAME, JOB) AS
+SELECT
+    T1.PID,
+    T1.PNAME,
+    COALESCE(T2.JOB, 'None') AS JOB
+FROM
+    person_detail AS T1
+LEFT JOIN
+    person_job AS T2 ON T1.PID = T2.PID;
+```
+
+### Folder BIRDS-benchmark/PODS06
+#### tracks1.dbpl
+```SQL
+CREATE VIEW tracks1 (TRACK, DATE, RATING, ALBUM, QUANTITY) AS
+SELECT
+    T1.TRACK,
+    T1.DATE,
+    T1.RATING,
+    T1.ALBUM,
+    T2.QUANTITY
+FROM
+    tracks AS T1
+INNER JOIN
+    albums AS T2 ON T1.ALBUM = T2.ALBUM;
+```
+
+#### tracks2.dbpl
+```SQL
+CREATE VIEW tracks2 (TRACK, RATING, ALBUM, QUANTITY) AS
+SELECT T1.TRACK, T1.RATING, T1.ALBUM, T1.QUANTITY
+FROM tracks1 AS T1;
+```
+
+#### tracks3.dbpl
+```SQL
+CREATE VIEW tracks3 (TRACK, RATING, ALBUM, QUANTITY) AS
+SELECT T1.TRACK, T1.RATING, T1.ALBUM, T1.QUANTITY
+FROM tracks2 AS T1
+WHERE T1.QUANTITY > 2;
 ```
