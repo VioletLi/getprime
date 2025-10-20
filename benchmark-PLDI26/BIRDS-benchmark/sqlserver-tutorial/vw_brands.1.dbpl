@@ -1,0 +1,37 @@
+CREATE brands(
+    BRAND_ID INT, 
+    BRAND_NAME STRING
+),
+CREATE brand_approvals(
+    BRAND_ID INT,
+    BRAND_NAME STRING
+),
+CREATE vw_brands(
+    BRAND_NAME STRING, 
+    APPROVAL_STATUS STRING
+);
+
+ON SOURCE [brands, brand_approvals], VIEW vw_brands:
+INSERT {10000000, BN} INTO brands
+WHEN NOT {_, BN} IN brands
+THEN INSERT {BN, 'Approved'} INTO vw_brands,
+
+INSERT {10000000, BN} INTO brand_approvals
+WHEN NOT {_, BN} IN brand_approvals
+THEN INSERT {BN, 'Pending Approval'} INTO vw_brands,
+
+INSERT {BID, BN} INTO brands
+WHEN NOT {_, BN} IN brands
+THEN INSERT {BN, 'Approved'} INTO vw_brands,
+
+INSERT {BID, BN} INTO brand_approvals
+WHEN NOT {_, BN} IN brand_approvals
+THEN INSERT {BN, 'Pending Approval'} INTO vw_brands,
+
+FORALL BID SUCH THAT {BID, BN} IN brands DO [DELETE {BID, BN} FROM brands]
+WHEN {_, BN} IN brands
+THEN DELETE {BN, 'Approved'} FROM vw_brands,
+
+FORALL BID SUCH THAT {BID, BN} IN brand_approvals DO [DELETE {BID, BN} FROM brand_approvals]
+WHEN {_, BN} IN brand_approvals
+THEN DELETE {BN, 'Pending Approval'} FROM vw_brands.

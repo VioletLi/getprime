@@ -1,0 +1,54 @@
+CREATE klub(
+    NAZWA STRING, 
+    ADRES STRING;
+    PRIMARY KEY (NAZWA)
+),
+CREATE zespol(
+    NAZWA STRING, 
+    ILOSC_CZLONKOW INT;
+    PRIMARY KEY (NAZWA)
+),
+CREATE koncert(
+    NAZWA_KLUBU STRING, 
+    NAZWA_ZESPOLU STRING, 
+    DATA_WYSTEPU STRING;
+    FOREIGN KEY (NAZWA_KLUBU) REFERENCE klub(NAZWA),
+    FOREIGN KEY (NAZWA_ZESPOLU) REFERENCE zespol(NAZWA)
+),
+CREATE koncerty(
+    NAZWA_KLUBU STRING, 
+    ADRES_KLUBU STRING, 
+    NAZWA_ZESPOLU STRING, 
+    ILOSC_CZLONKOW_ZESPOLU INT, 
+    DATA_WYSTEPU STRING;
+    CHECK (NOT ({NAZWA_KLUBU, ADRES_KLUBU, _, _, _} IN koncerty && {NAZWA_KLUBU, ADRES_KLUBU2, _, _, _} IN koncerty && NOT ADRES_KLUBU = ADRES_KLUBU2)),
+    CHECK (NOT ({_, _, NAZWA_ZESPOLU, ILOSC_CZLONKOW_ZESPOLU, _} IN koncerty && {_, _, NAZWA_ZESPOLU, ILOSC_CZLONKOW_ZESPOLU2, _} IN koncerty && NOT ILOSC_CZLONKOW_ZESPOLU = ILOSC_CZLONKOW_ZESPOLU2))
+);
+ON SOURCE [klub, zespol, koncert], VIEW koncerty:
+INSERT {N, A} INTO klub; INSERT {N, NZ, D} INTO koncert
+WHEN NOT {N, _} IN klub && {NZ, _} IN zespol && NOT {N, NZ, D} IN koncert
+THEN FORALL I SUCH THAT {NZ, I} IN zespol DO [INSERT {N, A, NZ, I, D} INTO koncerty],
+
+INSERT {N, I} INTO zespol; INSERT {NK, N, D} INTO koncert
+WHEN {NK, _} IN klub && NOT {N, _} IN zespol && NOT {NK, N, D} IN koncert
+THEN FORALL A SUCH THAT {NK, A} IN klub DO [INSERT {NK, A, N, I, D} INTO koncerty],
+
+INSERT {NK, A} INTO klub; INSERT {NZ, I} INTO zespol; INSERT {NK, NZ, D} INTO koncert
+WHEN NOT {NK, _} IN klub && NOT {NZ, _} IN zespol && NOT {NK, NZ, D} IN koncert
+THEN INSERT {NK, A, NZ, I, D} INTO koncerty,
+
+INSERT {NK, NZ, D} INTO koncert
+WHEN {NK, _} IN klub && {NZ, _} IN zespol && NOT {NK, NZ, D} IN koncert
+THEN FORALL A SUCH THAT {NK, A} IN klub DO [FORALL I SUCH THAT {NZ, I} IN zespol DO [INSERT {NK, A, NZ, I, D} INTO koncerty]],
+
+DELETE {NK, NZ, D} FROM koncert
+WHEN {NK, _} IN klub && {NZ, _} IN zespol && {NK, NZ, D} IN koncert
+THEN FORALL A SUCH THAT {NK, A} IN klub DO [FORALL I SUCH THAT {NZ, I} IN zespol DO [DELETE {NK, A, NZ, I, D} FROM koncerty]],
+
+DELETE {NK, A1} FROM klub; INSERT {NK, A2} INTO klub
+WHEN {NK, A1} IN klub && {NK, _, _} IN koncert
+THEN FORALL NZ SUCH THAT {NK, NZ, _} IN koncert DO [FORALL D SUCH THAT {NK, NZ, D} IN koncert DO [FORALL I SUCH THAT {NZ, I} IN zespol DO [DELETE {NK, A1, NZ, I, D} FROM koncerty; INSERT {NK, A2, NZ, I, D} INTO koncerty]]],
+
+DELETE {NZ, I1} FROM zespol; INSERT {NZ, I2} INTO klub
+WHEN {NZ, I1} IN zespol && {_, NZ, _} IN koncert
+THEN FORALL NK SUCH THAT {NK, NZ, _} IN koncert DO [FORALL D SUCH THAT {NK, NZ, D} IN koncert DO [FORALL A SUCH THAT {NK, A} IN klub DO [DELETE {NK, A, NZ, I1, D} FROM koncerty; INSERT {NK, A, NZ, I2, D} INTO koncerty]]].

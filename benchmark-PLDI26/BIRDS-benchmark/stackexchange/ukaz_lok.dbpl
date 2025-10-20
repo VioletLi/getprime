@@ -1,0 +1,23 @@
+CREATE lokalita(
+    KOD_LOK STRING, 
+    NAZEV STRING, 
+    KATASTR STRING, 
+    PRESNOST INT
+),
+CREATE ukaz_lok(
+    _KOD STRING, 
+    _NAZEV STRING, 
+    _KATASTR STRING, 
+    _PRESNOST INT, 
+    _SIRKA INT, 
+    _DELKA INT
+);
+
+ON SOURCE [lokalita], VIEW ukaz_lok:
+INSERT {KL, N, K, P} INTO lokalita
+WHEN NOT {KL, N, K, P} IN lokalita
+THEN INSERT {KL, N, K, P, 50, 14} INTO ukaz_lok,
+
+DELETE {KL, N, K, P} FROM lokalita
+WHEN {KL, N, K, P} IN lokalita
+THEN DELETE {KL, N, K, P, 50, 14} FROM ukaz_lok.

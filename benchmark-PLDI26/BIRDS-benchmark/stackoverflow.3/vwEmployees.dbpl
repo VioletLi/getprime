@@ -1,0 +1,38 @@
+CREATE persons(
+    PERSONID INT, 
+    FIRSTNAME STRING, 
+    LASTNAME STRING;
+    PRIMARY KEY (PERSONID)
+),
+CREATE employees(
+    EMPLOYEEID INT, 
+    PERSONID INT, 
+    TITLE STRING;
+    PRIMARY KEY (EMPLOYEEID),
+    FOREIGN KEY (PERSONID) REFERENCE persons(PERSONID)
+),
+CREATE vwemployees(
+    PERSONID INT, 
+    EMPLOYEEID INT, 
+    FIRSTNAME STRING, 
+    LASTNAME STRING, 
+    TITLE STRING;
+    PRIMARY KEY (PERSONID)
+);
+ON SOURCE [persons, employees], VIEW vwemployees:
+
+INSERT {EID, PID, T} INTO employees
+WHEN {PID, _, _} IN persons && NOT {EID, _, _} IN employees
+THEN FORALL F SUCH THAT {PID, F, _} IN persons DO [FORALL L SUCH THAT {PID, F, L} IN persons DO [INSERT {PID, EID, F, L, T} INTO vwemployees]],
+
+INSERT {PID, F, L} INTO persons; INSERT {EID, PID, T} INTO employees
+WHEN NOT {PID, _, _} IN persons && NOT {EID, _, _} IN employees
+THEN INSERT {PID, EID, F, L, T} INTO vwemployees,
+
+DELETE {EID, PID, T} FROM employees; DELETE {PID, F, L} FROM persons
+WHEN {PID, F, L} IN persons && {EID, PID, T} IN employees
+THEN DELETE {PID, EID, F, L, T} FROM vwemployees,
+
+DELETE {EID, PID, T} FROM employees
+WHEN {PID, _, _} IN persons && {EID, PID, T} IN employees
+THEN FORALL F SUCH THAT {PID, F, _} IN persons DO [FORALL L SUCH THAT {PID, F, T} IN persons DO [DELETE {PID, EID, F, L, T} FROM vwemployees]].

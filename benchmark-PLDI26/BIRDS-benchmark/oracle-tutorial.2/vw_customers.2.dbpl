@@ -1,0 +1,49 @@
+CREATE customers(
+    CUSTOMER_ID INT, 
+    NAME STRING, 
+    ADDRESS STRING, 
+    WEBSITE STRING, 
+    CREDIT_LIMIT INT;
+    PRIMARY KEY (CUSTOMER_ID)
+),
+CREATE contacts(
+    CONTACT_ID INT, 
+    FIRST_NAME STRING, 
+    LAST_NAME STRING, 
+    EMAIL STRING, 
+    PHONE STRING, 
+    CUSTOMER_ID INT;
+    PRIMARY KEY (CONTACT_ID),
+    FOREIGN KEY (CUSTOMER_ID) REFERENCE customers(CUSTOMER_ID)
+),
+CREATE vw_customers(
+    NAME STRING, 
+    ADDRESS STRING, 
+    WEBSITE STRING, 
+    CREDIT_LIMIT INT, 
+    FIRST_NAME STRING, 
+    LAST_NAME STRING, 
+    EMAIL STRING, 
+    PHONE STRING
+);
+ON SOURCE [customers, contacts], VIEW vw_customers:
+
+INSERT {1, N, A, W, C} INTO customers; INSERT {1, F, L, E, P, 1} INTO contacts
+WHEN NOT {1, _, _, _, _} IN customers && NOT {1, _, _, _, _, _} IN contacts
+THEN INSERT {N, A, W, C, F, L, E, P} INTO vw_customers,
+
+INSERT {CUSID, N, A, W, C} INTO customers; INSERT {CONID, F, L, E, P, CUSID} INTO contacts
+WHEN NOT {CUSID, _, _, _, _} IN customers && NOT {CONID, _, _, _, _, _} IN contacts
+THEN INSERT {N, A, W, C, F, L, E, P} INTO vw_customers,
+
+INSERT {1, F, L, E, P, CUSID} INTO contacts
+WHEN {CUSID, _, _, _, _} IN customers && NOT {1, _, _, _, _, _} IN contacts
+THEN FORALL N SUCH THAT {CUSID, N, _, _, _} IN customers DO [FORALL A SUCH THAT {CUSID, N, A, _, _} IN customers DO [FORALL W SUCH THAT {CUSID, N, A, W, _} IN customers DO [FORALL C SUCH THAT {CUSID, N, A, W, C} IN customers DO [INSERT {N, A, W, C, F, L, E, P} INTO vw_customers]]]],
+
+INSERT {CONID, F, L, E, P, CUSID} INTO contacts
+WHEN {CUSID, _, _, _, _} IN customers && NOT {CONID, _, _, _, _, _} IN contacts
+THEN FORALL N SUCH THAT {CUSID, N, _, _, _} IN customers DO [FORALL A SUCH THAT {CUSID, N, A, _, _} IN customers DO [FORALL W SUCH THAT {CUSID, N, A, W, _} IN customers DO [FORALL C SUCH THAT {CUSID, N, A, W, C} IN customers DO [INSERT {N, A, W, C, F, L, E, P} INTO vw_customers]]]],
+
+FORALL CONID SUCH THAT {CONID, F, L, E, P, _} IN contacts DO [FORALL CUSID SUCH THAT {CONID, F, L, E, P, CUSID} IN contacts DO [DELETE {CONID, F, L, E, P, CUSID} FROM contacts]]
+WHEN {_, F, L, E, P, _} IN contacts
+THEN FORALL CONID SUCH THAT {CONID, F, L, E, P, _} IN contacts DO [FORALL CUSID SUCH THAT {CONID, F, L, E, P, CUSID} IN contacts DO [FORALL N SUCH THAT {CUSID, N, _, _, _} IN customers DO [FORALL A SUCH THAT {CUSID, N, A, _, _} IN customers DO [FORALL W SUCH THAT {CUSID, N, A, W, _} IN customers DO [FORALL C SUCH THAT {CUSID, N, A, W, C} IN customers DO [DELETE {N, A, W, C, F, L, E, P} FROM vw_customers]]]]]].

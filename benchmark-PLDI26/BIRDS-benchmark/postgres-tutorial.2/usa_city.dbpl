@@ -1,0 +1,23 @@
+CREATE city(
+    CITY_ID INT, 
+    CITY STRING, 
+    COUNTRY_ID INT, 
+    LAST_UPDATE STRING
+),
+CREATE usa_city(
+    CITY_ID INT, 
+    CITY STRING, 
+    COUNTRY_ID INT
+);
+ON SOURCE [city], VIEW usa_city:
+INSERT {CIID, C, 103, '2019-10-01'} INTO city
+WHEN NOT {CIID, C, 103, _} IN city
+THEN INSERT {CIID, C, 103} INTO usa_city,
+
+INSERT {CIID, C, 103, L} INTO city
+WHEN NOT {CIID, C, 103, _} IN city
+THEN INSERT {CIID, C, 103} INTO usa_city,
+
+FORALL L SUCH THAT {CIID, C, 103, L} IN city DO [DELETE {CIID, C, 103, L} FROM city]
+WHEN {CIID, C, 103, _} IN city
+THEN DELETE {CIID, C, 103} FROM usa_city.

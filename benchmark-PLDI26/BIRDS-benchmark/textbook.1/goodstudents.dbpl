@@ -1,0 +1,23 @@
+CREATE students(
+    SID INT, 
+    SNAME STRING, 
+    LOGIN STRING, 
+    AGE INT, 
+    GPA INT
+),
+CREATE goodstudents(
+    SID INT, 
+    GPA INT
+);
+ON SOURCE [students], VIEW goodstudents:
+INSERT {ID, 'unknown', 'unknown', 0, GPA} INTO students
+WHEN NOT {ID, 'unknown', 'unknown', 0, GPA} IN students && GPA > 3
+THEN INSERT {ID, GPA} INTO goodstudents,
+
+INSERT {ID, N, L, A, G} INTO students
+WHEN NOT {ID, N, L, A, G} IN students && G > 3
+THEN INSERT {ID, G} INTO goodstudents,
+
+FORALL N SUCH THAT {ID, N, _, _, G} IN students DO [FORALL L SUCH THAT {ID, N, L, _, G} IN students DO [FORALL A SUCH THAT {ID, N, L, A, G} IN students DO [DELETE {ID, N, L, A, G} FROM students]]]
+WHEN {ID, _, _, _, G} IN students && G > 3
+THEN DELETE {ID, G} FROM goodstudents.

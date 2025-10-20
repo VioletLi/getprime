@@ -1,0 +1,24 @@
+CREATE movies(
+    TITLE STRING, 
+    YEAR INT, 
+    LENGTH INT, 
+    GENRE STRING, 
+    STUDIONAME STRING, 
+    PRODUCERC INT
+),
+CREATE paramountmovies(
+    TITLE STRING, 
+    YEAR INT
+);
+ON SOURCE [movies], VIEW paramountmovies:
+INSERT {T, Y, 0, '', 'Paramount', 0} INTO movies
+WHEN NOT {T, Y, _, _, 'Paramount', _} IN movies
+THEN INSERT {T, Y} INTO paramountmovies,
+
+INSERT {T, Y, L, G, 'Paramount', P} INTO movies
+WHEN NOT {T, Y, _, _, _, _} IN movies 
+THEN INSERT {T, Y} INTO paramountmovies,
+
+FORALL L SUCH THAT {T, Y, L, _, 'Paramount', _} IN movies DO [FORALL G SUCH THAT {T, Y, L, G, 'Paramount', _} IN movies DO [FORALL P SUCH THAT {T, Y, L, G, 'Paramount', P} IN movies DO [DELETE {T, Y, L, G, 'Paramount', P} FROM movies]]]
+WHEN {T, Y, _, _, 'Paramount', _} IN movies
+THEN DELETE {T, Y} FROM paramountmovies.

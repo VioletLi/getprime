@@ -1,0 +1,53 @@
+CREATE customer(
+    ID INT, 
+    NUMBER STRING, 
+    LASTNAME STRING, 
+    FIRSTNAME STRING, 
+    PHONENO STRING
+),
+CREATE supplier(
+    ID INT, 
+    NUMBER INT, 
+    LASTNAME STRING, 
+    FIRSTNAME STRING, 
+    PHONENO STRING
+),
+CREATE vendor(
+    ID INT, 
+    NUMBER STRING, 
+    LASTNAME STRING, 
+    FIRSTNAME STRING, 
+    PHONENO STRING
+),
+CREATE vw_company_phonelist(
+    TYPE STRING, 
+    ID INT, 
+    NUMBER STRING, 
+    LASTNAME STRING, 
+    FIRSTNAME STRING, 
+    PHONENO STRING
+);
+ON SOURCE [customer, supplier, vendor], VIEW vw_company_phonelist:
+INSERT {ID, N, L, F, P} INTO customer
+WHEN NOT {ID, N, L, F, P} IN customer
+THEN INSERT {'Customer', ID, N, L, F, P} INTO vw_company_phonelist,
+
+INSERT {ID, N, L, F, P} INTO supplier
+WHEN NOT {ID, N, L, F, P} IN supplier
+THEN INSERT {'Supplier', ID, N, L, F, P} INTO vw_company_phonelist,
+
+INSERT {ID, N, L, F, P} INTO vendor
+WHEN NOT {ID, N, L, F, P} IN vendor
+THEN INSERT {'Vendor', ID, N, L, F, P} INTO vw_company_phonelist,
+
+DELETE {ID, N, L, F, P} FROM customer
+WHEN {ID, N, L, F, P} IN customer
+THEN DELETE {'Customer', ID, N, L, F, P} FROM vw_company_phonelist,
+
+DELETE {ID, N, L, F, P} FROM supplier
+WHEN {ID, N, L, F, P} IN supplier
+THEN DELETE {'Supplier', ID, N, L, F, P} FROM vw_company_phonelist,
+
+DELETE {ID, N, L, F, P} FROM vendor
+WHEN {ID, N, L, F, P} IN vendor
+THEN DELETE {'Vendor', ID, N, L, F, P} FROM vw_company_phonelist.

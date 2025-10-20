@@ -1,0 +1,36 @@
+CREATE measurement_y2006m02(
+    CITY_ID INT, 
+    LOGDATE INT, 
+    PEAKTEMP INT, 
+    UNITSALES INT;
+    CHECK (LOGDATE >= 20060201 && LOGDATE <= 20060228)
+),
+CREATE measurement_y2006m03(
+    CITY_ID INT, 
+    LOGDATE INT, 
+    PEAKTEMP INT, 
+    UNITSALES INT;
+    CHECK (LOGDATE >= 20060301 && LOGDATE <= 20060331)
+),
+CREATE measurement(
+    CITY_ID INT, 
+    LOGDATE INT, 
+    PEAKTEMP INT, 
+    UNITSALES INT
+);
+ON SOURCE [measurement_y2006m02, measurement_y2006m03], VIEW measurement:
+INSERT {C, L, P, U} INTO measurement_y2006m02
+WHEN NOT {C, L, P, U} IN measurement_y2006m02 && L >= 20060201 && L <= 20060228
+THEN INSERT {C, L, P, U} INTO measurement,
+
+INSERT {C, L, P, U} INTO measurement_y2006m03
+WHEN NOT {C, L, P, U} IN measurement_y2006m03 && L >= 20060301 && L <= 20060331
+THEN INSERT {C, L, P, U} INTO measurement,
+
+DELETE {C, L, P, U} FROM measurement_y2006m02
+WHEN {C, L, P, U} IN measurement_y2006m02 && L >= 20060201 && L <= 20060228
+THEN DELETE {C, L, P, U} FROM measurement,
+
+DELETE {C, L, P, U} FROM measurement_y2006m03
+WHEN {C, L, P, U} IN measurement_y2006m03 && L >= 20060301 && L <= 20060331
+THEN DELETE {C, L, P, U} FROM measurement.

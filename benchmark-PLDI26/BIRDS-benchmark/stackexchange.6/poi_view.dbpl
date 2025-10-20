@@ -1,0 +1,48 @@
+CREATE poi(
+    POI_ID INT, 
+    COL_A INT, 
+    COL_B INT, 
+    COL_C INT;
+    PRIMARY KEY (POI_ID)
+),
+CREATE points(
+    POI_ID INT, 
+    COL_D INT, 
+    COL_E STRING, 
+    COL_F STRING;
+    PRIMARY KEY (POI_ID)
+),
+CREATE poi_view(
+    POI_ID INT, 
+    COL_A INT, 
+    COL_B INT, 
+    COL_D STRING, 
+    COL_E STRING;
+    PRIMARY KEY (POI_ID)
+);
+
+ON SOURCE [poi, points], VIEW poi_view:
+
+INSERT {ID, A, B, 0} INTO poi
+WHEN NOT {ID, _, _, _} IN poi && {ID, _, _, _} IN points
+THEN FORALL D SUCH THAT {ID, D, _, _} IN points DO [FORALL E SUCH THAT {ID, D, E, _} IN points DO [INSERT {ID, A, B, D, E} INTO poi_view]],
+
+INSERT {ID, D, E, 'COL F'} INTO points
+WHEN {ID, _, _, _} IN poi && NOT {ID, _, _, _} IN points
+THEN FORALL A SUCH THAT {ID, A, _, _} IN poi DO [FORALL B SUCH THAT {ID, A, B, _} IN poi DO [INSERT {ID, A, B, D, E} INTO poi_view]],
+
+INSERT {ID, A, B, C} INTO poi
+WHEN NOT {ID, _, _, _} IN poi && {ID, _, _, _} IN points
+THEN FORALL D SUCH THAT {ID, D, _, _} IN points DO [FORALL E SUCH THAT {ID, D, E, _} IN points DO [INSERT {ID, A, B, D, E} INTO poi_view]],
+
+INSERT {ID, D, E, F} INTO points
+WHEN {ID, _, _, _} IN poi && NOT {ID, _, _, _} IN points
+THEN FORALL A SUCH THAT {ID, A, _, _} IN poi DO [FORALL B SUCH THAT {ID, A, B, _} IN poi DO [INSERT {ID, A, B, D, E} INTO poi_view]],
+
+FORALL C SUCH THAT {ID, A, B, C} IN poi DO [DELETE {ID, A, B, C} FROM poi]
+WHEN {ID, _, _, _} IN poi && {ID, _, _, _} IN points
+THEN FORALL D SUCH THAT {ID, A, B, D, _} IN poi_view DO [FORALL E SUCH THAT {ID, A, B, D, E} IN poi_view DO [DELETE {ID, A, B, D, E} FROM poi_view]],
+
+FORALL F SUCH THAT {ID, D, E, F} IN poi DO [DELETE {ID, D, E, F} FROM points]
+WHEN {ID, _, _, _} IN poi && {ID, _, _, _} IN points
+THEN FORALL A SUCH THAT {ID, A, _, D, E} IN poi_view DO [FORALL B SUCH THAT {ID, A, B, D, E} IN poi_view DO [DELETE {ID, A, B, D, E} FROM poi_view]].
