@@ -1,0 +1,5 @@
+enrollment('A', 'Alice'),
+enrollment('B', 'Grace'),
+enrollment('C', 'Richard'),
+enrollment('D', 'Bruce'),
+enrollment('E', 'Mike')

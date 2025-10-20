@@ -1,0 +1,3 @@
+book_info('1', 'A', 'B'),
+book_info('2', 'B', 'NULL'),
+book_info('3', 'C', 'C')

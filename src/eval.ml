@@ -545,3 +545,29 @@ let bwdDiff dbold dbnew prog =
   match searchpath dbold 0 brules ops false with
     | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
     | (false, _) -> (print_endline "invalid operation of view")
+
+let fwdDiffTime dbold dbnew prog =
+  let ops = diff_db dbold dbnew prog.source in
+  let _ = print_endline "Forward operations:" in
+  let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in
+  let beginTime = Sys.time () in
+  match searchpath dbold 0 prog.rules ops true with
+    | (true, res) -> 
+      let endTime = Sys.time () in
+      print_endline (Printf.sprintf "Forward transformation costs %.6f seconds" (endTime-.beginTime));
+      (List.iter (fun x -> print_endline (string_of_op x)) res)
+    | (false, _) -> (List.iter (apply dbold) ops); print_endline "No update of view"
+    (* 现在就不做复杂partition了，没找到匹配的所有的operation都认为是没有match *)
+
+let bwdDiffTime dbold dbnew prog =
+  let ops = diff_db dbold dbnew [prog.view] in
+  let _ = print_endline "Backward operations:" in
+  let _ = List.iter (fun x -> print_endline (string_of_op x)) ops in
+  let beginTime = Sys.time () in
+  let brules = List.map (fun (a, b, c) -> (c, b, a)) prog.rules in
+  match searchpath dbold 0 brules ops false with
+    | (true, res) -> 
+      let endTime = Sys.time () in
+      print_endline (Printf.sprintf "Backward transformation costs %.6f seconds" (endTime-.beginTime));
+      (List.iter (fun x -> print_endline (string_of_op x)) res)
+    | (false, _) -> (print_endline "invalid operation of view")

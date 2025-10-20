@@ -1,0 +1,6 @@
+author('1', 'A'),
+author('2', 'B'),
+author('3', 'D'),
+version('1', 'B'),
+version('1', 'C'),
+version('2', 'E')

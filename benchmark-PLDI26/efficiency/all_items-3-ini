@@ -1,0 +1,3 @@
+on_sale('A'),
+on_sale('B'),
+in_stock('B')

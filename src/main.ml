@@ -35,21 +35,73 @@ let rec repl db prog =
       let newdb = genDB (prog.view :: prog.source) datas in
       print_db newdb; repl db prog *)
     | "fwd_diff" ->
-      let line = read_line () in
-      let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
-      let newdb = genDB prog.source datas in
-      (* let op = diff_db db newdb prog.source in
-      print_string (String.concat "; " (List.map string_of_op op));  *)
-      fwdDiff db newdb prog;
-      repl db prog
+      begin
+        let snap = restore db in
+        try
+          let line = read_line () in
+          let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+          let newdb = genDB prog.source datas in
+          (* let op = diff_db db newdb prog.source in
+          print_string (String.concat "; " (List.map string_of_op op));  *)
+          fwdDiff db newdb prog;
+          repl db prog
+        with
+          | RuntimeErr msg -> print_endline ("RuntimeErr: " ^ msg); copy db snap; repl db prog
+          | TypeErr msg -> print_endline ("TypeeErr: " ^ msg); copy db snap; repl db prog
+          | DeclErr msg -> print_endline ("DeclErr: " ^ msg); copy db snap; repl db prog
+          | AssignErr -> print_endline ("AssignErr"); copy db snap; repl db prog
+      end
     | "bwd_diff" ->
-      let line = read_line () in
-      let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
-      let newdb = genDB [prog.view] datas in
-      (* let op = diff_db db newdb [prog.view] in
-      print_string (String.concat "; " (List.map string_of_op op));  *)
-      bwdDiff db newdb prog;
-      repl db prog
+      begin
+        let snap = restore db in
+        try
+          let line = read_line () in
+          let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+          let newdb = genDB [prog.view] datas in
+          (* let op = diff_db db newdb [prog.view] in
+          print_string (String.concat "; " (List.map string_of_op op));  *)
+          bwdDiff db newdb prog;
+          repl db prog
+        with
+          | RuntimeErr msg -> print_endline ("RuntimeErr: " ^ msg); copy db snap; repl db prog
+          | TypeErr msg -> print_endline ("TypeeErr: " ^ msg); copy db snap; repl db prog
+          | DeclErr msg -> print_endline ("DeclErr: " ^ msg); copy db snap; repl db prog
+          | AssignErr -> print_endline ("AssignErr"); copy db snap; repl db prog
+      end
+    | "fwd_diff_time" ->
+      begin
+        let snap = restore db in
+        try
+          let line = read_line () in
+          let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+          let newdb = genDB prog.source datas in
+          (* let op = diff_db db newdb prog.source in
+          print_string (String.concat "; " (List.map string_of_op op));  *)
+          fwdDiffTime db newdb prog;
+          repl db prog
+        with
+          | RuntimeErr msg -> print_endline ("RuntimeErr: " ^ msg); copy db snap; repl db prog
+          | TypeErr msg -> print_endline ("TypeeErr: " ^ msg); copy db snap; repl db prog
+          | DeclErr msg -> print_endline ("DeclErr: " ^ msg); copy db snap; repl db prog
+          | AssignErr -> print_endline ("AssignErr"); copy db snap; repl db prog
+      end
+    | "bwd_diff_time" ->
+      begin
+        let snap = restore db in
+        try
+          let line = read_line () in
+          let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+          let newdb = genDB [prog.view] datas in
+          (* let op = diff_db db newdb [prog.view] in
+          print_string (String.concat "; " (List.map string_of_op op));  *)
+          bwdDiffTime db newdb prog;
+          repl db prog
+        with
+          | RuntimeErr msg -> print_endline ("RuntimeErr: " ^ msg); copy db snap; repl db prog
+          | TypeErr msg -> print_endline ("TypeeErr: " ^ msg); copy db snap; repl db prog
+          | DeclErr msg -> print_endline ("DeclErr: " ^ msg); copy db snap; repl db prog
+          | AssignErr -> print_endline ("AssignErr"); copy db snap; repl db prog
+      end
     | _ -> repl db prog
 
 let _ = 

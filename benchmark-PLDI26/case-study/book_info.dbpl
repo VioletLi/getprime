@@ -16,7 +16,7 @@ CREATE book_info (
 );
 ON SOURCE [author, version], VIEW book_info:
 INSERT {BOOK, AUTHOR} INTO author
-WHEN NOT {BOOK, AUTHOR} IN author
+WHEN NOT {BOOK, _} IN author
 THEN INSERT {BOOK, AUTHOR, 'NULL'} INTO book_info,
 
 INSERT {BOOK, VER} INTO version
@@ -24,7 +24,7 @@ WHEN NOT VER = 'NULL' && {BOOK, _} IN author && NOT {BOOK, _} IN version
 THEN FORALL AUTHOR SUCH THAT {BOOK, AUTHOR} IN author DO [DELETE {BOOK, AUTHOR, 'NULL'} FROM book_info;INSERT {BOOK, AUTHOR, VER} INTO book_info],
 
 INSERT {BOOK, AUTHOR} INTO author; INSERT {BOOK, VER} INTO version
-WHEN NOT {BOOK, AUTHOR} IN author && NOT {BOOK, _} IN version
+WHEN NOT VER = 'NULL' && NOT {BOOK, _} IN author && NOT {BOOK, _} IN version
 THEN INSERT {BOOK, AUTHOR, VER} INTO book_info,
 
 INSERT {BOOK, VER} INTO version
