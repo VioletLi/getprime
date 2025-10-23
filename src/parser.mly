@@ -224,7 +224,7 @@
 
   datalist:
   | data { $1 :: [] }
-  | data SEP datalist { $1 :: $3 }
+  | data datalist { $1 :: $2 }
 
   data:
-  | RELNAME LPAREN varlist RPAREN { ($1, $3) }
+  | RELNAME LPAREN varlist RPAREN DOT { ($1, $3) }

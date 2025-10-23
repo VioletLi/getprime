@@ -102,6 +102,11 @@ let rec repl db prog =
           | DeclErr msg -> print_endline ("DeclErr: " ^ msg); copy db snap; repl db prog
           | AssignErr -> print_endline ("AssignErr"); copy db snap; repl db prog
       end
+    | "load" -> 
+      let line = read_line () in
+      let datas = Parser.parse_db Lexer.token (Lexing.from_channel (open_in line)) in
+      let newdb = genDB (prog.view :: prog.source) datas in
+      repl newdb prog
     | _ -> repl db prog
 
 let _ = 
