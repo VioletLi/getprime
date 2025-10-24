@@ -1,6 +1,0 @@
-book_info('1', 'A', 'NULL'),
-book_info('3', 'D', 'F'),
-book_info('3', 'D', 'G'),
-book_info('4', 'E', 'G'),
-book_info('4', 'E', 'F'),
-book_info('4', 'E', 'H')

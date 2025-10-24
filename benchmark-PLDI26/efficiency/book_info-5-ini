@@ -1,4 +1,0 @@
-author('1', 'A'),
-author('2', 'B'),
-version('1', 'B'),
-version('1', 'C')

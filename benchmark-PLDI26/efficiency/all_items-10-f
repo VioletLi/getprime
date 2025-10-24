@@ -1,5 +1,0 @@
-on_sale('D'),
-on_sale('E'),
-in_stock('E'),
-in_stock('F'),
-in_stock('G')
