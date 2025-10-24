@@ -520,7 +520,7 @@ and searchpath db splitTime rules ops isFwd =
     | (_, []) -> (true, [])
     | (n, op :: ops_) ->
       begin
-        if n > 3 then (false, []) else
+        if n > 10 then (false, []) else
         let snap = restore db in
         let matchedRules = findMatch rules op in
         match (tryRules db splitTime matchedRules rules op ops_ isFwd) with
