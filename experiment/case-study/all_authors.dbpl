@@ -1,0 +1,15 @@
+CREATE author ( BOOK STRING, AUTHOR STRING ),
+CREATE all_authors ( AUTHOR STRING );
+ON SOURCE[author], VIEW all_authors:
+
+INSERT {'Title', A} INTO author
+WHEN NOT {_, A} IN author
+THEN INSERT {A} INTO all_authors,
+
+INSERT {B, A} INTO author
+WHEN NOT {_, A} IN author
+THEN INSERT {A} INTO all_authors,
+
+FORALL B SUCH THAT {B, A} IN author DO [DELETE {B, A} FROM author]
+WHEN {_, A} IN author
+THEN DELETE {A} FROM all_authors.

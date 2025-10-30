@@ -1,0 +1,10 @@
+CREATE author ( BOOK STRING, AUTHOR STRING ),
+CREATE book_bob ( BOOK STRING, AUTHOR STRING );
+ON SOURCE [author], VIEW book_bob:
+INSERT {B, 'Bob'} INTO author
+WHEN NOT {B, 'Bob'} IN author 
+THEN INSERT {B, 'Bob'} INTO book_bob,
+
+DELETE {B, 'Bob'} FROM author
+WHEN {B, 'Bob'} IN author 
+THEN DELETE {B, 'Bob'} FROM book_bob.

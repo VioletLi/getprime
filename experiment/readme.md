@@ -31,6 +31,8 @@ SELECT A.BOOK, A.AUTHOR, COALESCE(V.VER, 'NULL') FROM author AS A
 LEFT OUTER JOIN version AS V ON A.BOOK = V.BOOK;
 ```
 
+还有三个例子记得补上
+
 ### Folder PODS85
 #### ny.*.dbpl
 ```SQL
@@ -475,9 +477,7 @@ INNER JOIN
     product AS T2 ON T1.PRODUCT_ID = T2.PRODUCT_ID;
 ``` -->
 
-case-study/good_residents:没有view定义
-postgres-tutorial/emp_view:aggregate
-stackoverflow.5/averagebygroup:同上
+这几个例子记得补上
 
 stackexchange.2/purchaseview:把join的属性project掉了
 stackoverflow.2/vehicleview:同上
@@ -486,3 +486,5 @@ textbook.1/activestudents:project掉的属性不能退化为常量
 
 textbook.1/bstudents:forall和普通操作混杂（两个方向）
 stackexchange.6/poi_view:同上
+
+运行实验：load ini - fwd_diff_time/bwd_diff_time

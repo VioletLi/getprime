@@ -1,0 +1,27 @@
+CREATE author ( BOOK STRING, AUTHOR STRING ),
+CREATE author_old ( BOOK STRING, AUTHOR STRING ),
+CREATE all_books ( BOOK STRING, AUTHOR STRING );
+ON SOURCE [author, author_old], VIEW all_books:
+INSERT {B, A} INTO author
+WHEN NOT {B, A} IN author && NOT {B, A} IN author_old
+THEN INSERT {B, A} INTO all_books,
+
+INSERT {B, A} INTO author_old
+WHEN NOT {B, A} IN author && NOT {B, A} IN author_old
+THEN INSERT {B, A} INTO all_books,
+
+INSERT {B, A} INTO author; INSERT {B, A} INTO author_old
+WHEN NOT {B, A} IN author && NOT {B, A} IN author_old
+THEN INSERT {B, A} INTO all_books,
+
+DELETE {B, A} FROM author
+WHEN {B, A} IN author && NOT {B, A} IN author_old
+THEN DELETE {B, A} FROM all_books,
+
+DELETE {B, A} FROM author_old
+WHEN NOT {B, A} IN author && {B, A} IN author_old
+THEN DELETE {B, A} FROM all_books,
+
+DELETE {B, A} FROM author; DELETE {B, A} FROM author_old
+WHEN {B, A} IN author && {B, A} IN author_old
+THEN DELETE {B, A} FROM all_books.
