@@ -3,7 +3,7 @@ CREATE author (
     AUTHOR STRING;
     PRIMARY KEY (BOOK)
 ),
-CREATE version (
+CREATE edition (
     BOOK STRING,
     VER STRING;
     FOREIGN KEY (BOOK) REFERENCE author(BOOK),
@@ -14,31 +14,31 @@ CREATE book_info (
     AUTHOR STRING,
     VER STRING
 );
-ON SOURCE [author, version], VIEW book_info:
+ON SOURCE [author, edition], VIEW book_info:
 INSERT {B, A} INTO author
 WHEN NOT {B, _} IN author
 THEN INSERT {B, A, 'NULL'} INTO book_info,
 
-INSERT {B, V} INTO version
-WHEN NOT VER = 'NULL' && {B, _} IN author && NOT {B, _} IN version
+INSERT {B, V} INTO edition
+WHEN NOT V = 'NULL' && {B, _} IN author && NOT {B, _} IN edition
 THEN FORALL A SUCH THAT {B, A} IN author DO [DELETE {B, A, 'NULL'} FROM book_info;INSERT {B, A, V} INTO book_info],
 
-INSERT {B, A} INTO author; INSERT {B, V} INTO version
-WHEN NOT VER = 'NULL' && NOT {B, _} IN author && NOT {B, _} IN version
+INSERT {B, A} INTO author; INSERT {B, V} INTO edition
+WHEN NOT V = 'NULL' && NOT {B, _} IN author && NOT {B, _} IN edition
 THEN INSERT {B, A, V} INTO book_info,
 
-INSERT {B, V} INTO version
-WHEN NOT VER = 'NULL' && {B, _} IN author && {B, _} IN version
+INSERT {B, V} INTO edition
+WHEN NOT V = 'NULL' && {B, _} IN author && {B, _} IN edition
 THEN FORALL A SUCH THAT {B, A} IN author DO [INSERT {B, A, V} INTO book_info],
 
 DELETE {B, A} FROM author
-WHEN {B, A} IN author && NOT {B, _} IN version
+WHEN {B, A} IN author && NOT {B, _} IN edition
 THEN DELETE {B, A, 'NULL'} FROM book_info,
 
-DELETE {B, V} FROM version; DELETE {B, A} FROM author
-WHEN NOT VER = 'NULL' && {B, _} IN author && ONLY {B, _} IN version
+DELETE {B, V} FROM edition; DELETE {B, A} FROM author
+WHEN NOT V = 'NULL' && {B, _} IN author && ONLY {B, _} IN edition
 THEN DELETE {B, A, V} FROM book_info,
 
-DELETE {B, V} FROM version
-WHEN NOT VER = 'NULL' && {B, _} IN author && NOT ONLY {B, _} IN version
+DELETE {B, V} FROM edition
+WHEN NOT V = 'NULL' && {B, _} IN author && NOT ONLY {B, _} IN edition
 THEN FORALL A SUCH THAT {B, A} IN author DO [DELETE {B, A, V} FROM book_info].
