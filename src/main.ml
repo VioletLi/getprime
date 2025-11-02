@@ -18,15 +18,13 @@ let rec repl db prog =
     | "fwd" ->
       let line = read_line () in
       let ops = Parser.parse_userops Lexer.token (Lexing.from_string line) in
-      let vops = execFwd db prog ops in
-      List.iter (fun op -> apply db op) (vops @ ops);
+      execFwd db prog ops;
       (* print_string (String.concat "; " (List.map string_of_op vops));  *)
       repl db prog
     | "bwd" ->
       let line = read_line () in
       let ops = Parser.parse_userops Lexer.token (Lexing.from_string line) in
-      let sops = execBwd db prog ops in
-      List.iter (fun op -> apply db op) (ops @ sops);
+      execBwd db prog ops;
       (* print_string (String.concat "; " (List.map string_of_op ops));  *)
       repl db prog
     (* | "db" ->

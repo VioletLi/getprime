@@ -206,18 +206,6 @@ let rec first_match db rules userop =
       match (tryMatch db r userop) with
         | Some op -> Some op
         | None -> first_match db rest userop
-
-
-let execFwd db prog ops = 
-  match first_match db prog.rules ops with
-    | Some op -> (List.iter (fun x -> print_endline (string_of_op x)) op);op
-    | None -> [] (* identity *)
-
-let execBwd db prog ops = 
-  let putRules = List.map (fun (sop, p, vop) -> (vop, p, sop)) prog.rules in
-  match first_match db putRules ops with
-    | Some op -> (List.iter (fun x -> print_endline (string_of_op x)) op);op
-    | None -> raise (RuntimeErr "Invalid view operation")
   
 let rec canMatch pat ops =
   List.exists (fun op -> 
@@ -529,6 +517,23 @@ and searchpath db splitTime rules ops isFwd =
       end
 (* 这些都不动，加一个根据rule decompose的算法 *)
 (* 如果backward返回none那么就是错了 forward返回none就贪心（尽可能消耗掉所有op）直到最大限度然后剩下的以id处理 *)
+
+let execFwd db prog ops = 
+  match searchpath db 0 prog.rules ops true with
+    | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
+    | (false, _) -> (List.iter (apply db) ops); print_endline "No update of view"
+  (* match first_match db prog.rules ops with
+    | Some op -> (List.iter (fun x -> print_endline (string_of_op x)) op);op
+    | None -> [] identity *)
+
+let execBwd db prog ops = 
+  let putRules = List.map (fun (sop, p, vop) -> (vop, p, sop)) prog.rules in
+  match searchpath db 0 putRules ops false with
+    | (true, res) -> (List.iter (fun x -> print_endline (string_of_op x)) res)
+    | (false, _) -> (print_endline "invalid operation of view")
+  (* match first_match db putRules ops with
+    | Some op -> (List.iter (fun x -> print_endline (string_of_op x)) op);op
+    | None -> raise (RuntimeErr "Invalid view operation") *)
 
 let fwdDiff dbold dbnew prog =
   let ops = diff_db dbold dbnew prog.source in

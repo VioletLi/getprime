@@ -21,8 +21,6 @@ apt-get install -y opam
 opam init
 opam switch 4.07.0
 eval `opam config env`
-# opam install num.1.0
-# opam install postgresql
 ```
 
 #### Before Compiling
@@ -34,20 +32,57 @@ opam switch 4.07.0
 eval `opam config env`
 ```
 
-#### Compile in Docker
+<!-- #### Compile in Docker
 
 ``` bash
 cd /the/path/to/code/in/docker
 make
-```
+``` -->
 
-#### Run
+### Run
 ``` bash
-/the/path/to/code/in/docker/bin/devbx /the/path/to/scripts
+/the/path/to/files/bin/dBPL /the/path/to/launched/derivative
 ```
-<!-- The tool will verify the injectivity and non-contradiction of get' and construct the bidirectional transformation, which can be verified by BIRDS.  -->
 
-#### Evaluation
-The examples are in the benchmarks.
+This command launches an interactive tool. Upon startup, you are required to specify a file that stores the definition of `get'`. The loaded `get'` will then be used for all subsequent database operations until you exit the tool.
 
-#### 加这个程序可以使用的命令：fwd/bwd，fwd_diff/bwd_diff，load，fwd_diff_time/bwd_diff_time
+#### Commands
+
+- exit
+
+  Quit the tool.
+
+- show
+  
+  Display the current database stored in the system.
+
+> NOTE: After typing these commands below, press Enter, then input the operation sequence or the filename on the next line.
+
+- fwd/bwd
+
+  Execute an update on the source or view, and let the system automatically infer and perform the corresponding updates on the other side to restore consistency.
+  
+  The input should be a sequence of operations separated by semicolons and ending with a period. e.g.
+
+  > INSERT {'A'} INTO s; DELETE {'B'} FROM s.
+
+- load
+
+  Load a consistent database from a file.
+
+  Each record in the file should be written in the format:
+
+  > relation_name('attr1','attr2',...).
+
+- fwd_diff/bwd_diff
+
+  Load a new state of the source or view (in database format) from a file, and automatically compute the corresponding updates that should be applied to the other side to restore consistency.
+
+- fwd_diff_time/bwd_diff_time
+
+  Same as fwd_diff / bwd_diff, but additionally record and display the evaluation time for the update process.
+
+### Evaluation
+The examples are in the benchmarks, please read the readme.md in folder experiment.
+
+<!-- #### 加这个程序可以使用的命令：fwd/bwd，fwd_diff/bwd_diff，load，fwd_diff_time/bwd_diff_time -->
