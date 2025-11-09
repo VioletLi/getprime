@@ -1,0 +1,48 @@
+CREATE students(
+    SID INT, 
+    SNAME STRING, 
+    LOGIN STRING, 
+    AGE INT, 
+    GPA INT;
+    PRIMARY KEY (SID)
+),
+CREATE enrolled(
+    SID INT, 
+    CID STRING, 
+    GRADE STRING;
+    PRIMARY KEY (SID)
+),
+CREATE bstudents(
+    NAME STRING, 
+    SID INT, 
+    COURSE STRING;
+    PRIMARY KEY (SID)
+);
+ON SOURCE [students, enrolled], VIEW bstudents:
+INSERT {SID, C, 'B'} INTO enrolled
+WHEN {SID, _, _, _, _} IN students && NOT {SID, _, _} IN enrolled
+THEN FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [INSERT {N, SID, C} INTO bstudents],
+
+INSERT {SID, N, '', 0, 0} INTO students
+WHEN NOT {SID, N, _, _, _} IN students && {SID, _, 'B'} IN enrolled
+THEN FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [INSERT {N, SID, C} INTO bstudents],
+
+FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [DELETE {SID, C, 'B'} FROM enrolled]; FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [FORALL L SUCH THAT {SID, N, L, _, _} IN students DO [FORALL A SUCH THAT {SID, N, L, A, _} IN students DO [FORALL G SUCH THAT {SID, N, L, A, G} IN students DO [DELETE {SID, N, L, A, G} FROM students]]]]
+WHEN {SID, _, _, _, _} IN students && {SID, _, 'B'} IN enrolled
+THEN FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [DELETE {N, SID, C} FROM bstudents]]
+
+FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [DELETE {SID, C, 'B'} FROM enrolled]
+WHEN {SID, N, _, _, _} IN students && {SID, _, 'B'} IN enrolled
+THEN FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [DELETE {N, SID, C} FROM bstudents]
+
+FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [FORALL L SUCH THAT {SID, N, L, _, _} IN students DO [FORALL A SUCH THAT {SID, N, L, A, _} IN students DO [FORALL G SUCH THAT {SID, N, L, A, G} IN students DO [DELETE {SID, N, L, A, G} FROM students]]]]
+WHEN {SID, _, _, _, _} IN students && {SID, _, 'B'} IN enrolled
+THEN FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [DELETE {N, SID, C} FROM bstudents],
+
+FORALL C SUCH THAT {SID, C, _} IN enrolled DO [FORALL G SUCH THAT {SID, C, G} IN enrolled DO [DELETE {SID, C, G} FROM enrolled]]; INSERT {SID, C1, 'B'} INTO enrolled
+WHEN {SID, _, _, _, _} IN students && {SID, _, _} IN enrolled
+THEN FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [DELETE {N, SID, C} FROM bstudents]]; INSERT {N, SID, C1} INTO bstudents,
+
+FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [FORALL L SUCH THAT {SID, N, L, _, _} IN students DO [FORALL A SUCH THAT {SID, N, L, A, _} IN students DO [FORALL G SUCH THAT {SID, N, L, A, G} IN students DO [DELETE {SID, N, L, A, G} FROM students]]]]; INSERT {SID, N1, '', 0, 0} INTO students
+WHEN {SID, _, _, _, _} IN students && {SID, _, _} IN enrolled
+THEN FORALL C SUCH THAT {SID, C, 'B'} IN enrolled DO [FORALL N SUCH THAT {SID, N, _, _, _} IN students DO [DELETE {N, SID, C} FROM bstudents]]; INSERT {N1, SID, C} INTO bstudents
