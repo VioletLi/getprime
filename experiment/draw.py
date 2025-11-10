@@ -1,17 +1,17 @@
 import matplotlib.pyplot as plt
-import numpy as np
+# import numpy as np
 
 fwd_db={
-    "luxuryitems":[0.000711,0.0014838,0.018185],
-    "all_items":[0.0006226,0.0009504,0.0080852],
-    "courses":[0.0013886,0.0057168,0.0547786],
-    "book_info":[0.0019424,0.0062114,0.0474992]
+    "luxuryitems":[0.000711,0.0014838,0.0077054,0.018185],
+    "all_items":[0.0006226,0.0009504,0.004374,0.0080852],
+    "courses":[0.0013886,0.0057168,0.027783,0.0547786],
+    "book_info":[0.0019424,0.0062114,0.0232154,0.0474992]
 }
 bwd_db={
-    "luxuryitems":[0.0008082,0.0015376,0.01656],
-    "all_items":[0.0011372,0.0022334,0.0251246],
-    "courses":[0.0027558,0.0074176,0.0724922],
-    "book_info":[0.0018276,0.005104,0.0425898]
+    "luxuryitems":[0.0008082,0.0015376,0.0070762,0.01656],
+    "all_items":[0.0011372,0.0022334,0.0126284,0.0251246],
+    "courses":[0.0027558,0.0074176,0.0381368,0.0724922],
+    "book_info":[0.0018276,0.005104,0.0230012,0.0425898]
 }
 fwd_op={
     "luxuryitems":[0.026459,0.0351826,0.0590258,0.074377],
@@ -27,7 +27,7 @@ bwd_op={
 }
 
 # 横轴定义
-db_sizes = [100, 1000, 10000]
+db_sizes = [100, 1000, 5000, 10000]
 ops = [5, 10, 15, 20]
 
 # 转换为毫秒
@@ -42,40 +42,54 @@ bwd_op = to_ms(bwd_op)
 # 绘图风格
 plt.style.use("seaborn-whitegrid")
 plt.rcParams.update({
-    'font.size': 9,          # 全局字体
-    'axes.titlesize': 10,    # 标题字体
-    'axes.labelsize': 9,     # 坐标轴标签字体
-    'xtick.labelsize': 8,    # x轴刻度
-    'ytick.labelsize': 8,    # y轴刻度
-    'legend.fontsize': 8     # 图例字体
+    'font.size': 9,
+    'axes.titlesize': 9,
+    'axes.labelsize': 9,
+    'xtick.labelsize': 8,
+    'ytick.labelsize': 8,
+    'legend.fontsize': 8
 })
 
-fig, axes = plt.subplots(1, 4, figsize=(22, 4))  # 宽度加大
+fig, axes = plt.subplots(2, 2, figsize=(7, 7), sharey='row') 
 
 
 titles = [
-    "DB Size FWD",
-    "DB Size BWD",
-    "Operation Count FWD",
-    "Operation Count BWD"
+    "Runtime vs. Database Size (Forward Transformation)",
+    "Runtime vs. Database Size (Backward Transformation)",
+    "Runtime vs. Operation Count (Forward Transformation)",
+    "Runtime vs. Operation Count (Backward Transformation)"
 ]
 datasets = [fwd_db, bwd_db, fwd_op, bwd_op]
 x_values = [db_sizes, db_sizes, ops, ops]
 x_labels = ["Database Size", "Database Size", "Operation Count", "Operation Count"]
 
+panel_labels = ['(a)', '(b)', '(c)', '(d)']
+
 # 绘制4张子图
-for i, ax in enumerate(axes):
+for i, ax in enumerate(axes.flat):
     data = datasets[i]
     x = x_values[i]
+    
     for label, y in data.items():
-        ax.plot(x, y, label=label)
-    if "DB" in titles[i]:
-        ax.set_xscale("log")
-    ax.set_xlabel(x_labels[i])
-    ax.set_ylabel("Time (ms)")
-    ax.set_title(titles[i])
-    ax.legend(fontsize=7, loc='upper left', frameon=False)
+        ax.plot(x, y, label=label, marker='o', markersize=3, linewidth=1)
 
+    if i < 2:
+        ax.set_xlim(0, 10000)
+        ax.set_xticks([0, 2500, 5000, 7500, 10000])
+    else:
+        ax.set_xlim(5, 20)
+        ax.set_xticks([5, 10, 15, 20])
+
+    ax.set_xlabel(x_labels[i], labelpad=5, loc='right')
+    ax.set_ylabel("Time (ms)")
+
+    ax.text(0.5, -0.15, titles[i], ha='center', va='center', transform=ax.transAxes, fontsize=9)
+    # panel标签放在标题下面
+    ax.text(0.5, -0.2, panel_labels[i], transform=ax.transAxes,
+            fontsize=9, fontweight='bold', va='center', ha='center')
+
+    ax.legend(fontsize=7, loc='upper left', frameon=False)
 # 调整子图间距
-plt.subplots_adjust(left=0.05, right=0.98, top=0.88, bottom=0.15, wspace=0.35)
+plt.subplots_adjust(left=0.08, right=0.92, top=0.94, bottom=0.25, wspace=0.2, hspace=0.3)
+fig.tight_layout(rect=[0, 0.02, 1, 1])
 plt.show()

@@ -33,7 +33,7 @@ FROM author;
 ```SQL
 CREATE VIEW book_info AS
 SELECT A.BOOK, A.AUTHOR, COALESCE(V.VER, 'NULL') FROM author AS A
-LEFT OUTER JOIN version AS V ON A.BOOK = V.BOOK;
+LEFT OUTER JOIN edition AS V ON A.BOOK = V.BOOK;
 ```
 
 #### book_bob.dbpl
