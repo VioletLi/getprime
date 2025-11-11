@@ -50,20 +50,22 @@ plt.rcParams.update({
     'legend.fontsize': 8
 })
 
-fig, axes = plt.subplots(2, 2, figsize=(7, 7), sharey='row') 
+fig, axes = plt.subplots(1, 4, figsize=(24, 3))
 
 
 titles = [
-    "Runtime vs. Database Size (Forward Transformation)",
-    "Runtime vs. Database Size (Backward Transformation)",
-    "Runtime vs. Operation Count (Forward Transformation)",
-    "Runtime vs. Operation Count (Backward Transformation)"
+    "Runtime vs. Database Size",
+    "Runtime vs. Database Size",
+    "Runtime vs. Operation Count",
+    "Runtime vs. Operation Count"
 ]
 datasets = [fwd_db, bwd_db, fwd_op, bwd_op]
 x_values = [db_sizes, db_sizes, ops, ops]
 x_labels = ["Database Size", "Database Size", "Operation Count", "Operation Count"]
 
 panel_labels = ['(a)', '(b)', '(c)', '(d)']
+
+title_direct=["(Forward Transformation)", "(Backward Transformation)"]
 
 # 绘制4张子图
 for i, ax in enumerate(axes.flat):
@@ -76,20 +78,22 @@ for i, ax in enumerate(axes.flat):
     if i < 2:
         ax.set_xlim(0, 10000)
         ax.set_xticks([0, 2500, 5000, 7500, 10000])
+        ax.set_ylim(0,100)
     else:
         ax.set_xlim(5, 20)
         ax.set_xticks([5, 10, 15, 20])
+        ax.set_ylim(0, 800)
 
     ax.set_xlabel(x_labels[i], labelpad=5, loc='right')
     ax.set_ylabel("Time (ms)")
 
-    ax.text(0.5, -0.15, titles[i], ha='center', va='center', transform=ax.transAxes, fontsize=9)
+    ax.text(0.5, -0.23, titles[i], ha='center', va='center', transform=ax.transAxes, fontsize=9)
+    ax.text(0.5, -0.3, title_direct[i%2], ha='center', va='center', transform=ax.transAxes, fontsize=9)
     # panel标签放在标题下面
-    ax.text(0.5, -0.2, panel_labels[i], transform=ax.transAxes,
+    ax.text(0.5, -0.37, panel_labels[i], transform=ax.transAxes,
             fontsize=9, fontweight='bold', va='center', ha='center')
 
     ax.legend(fontsize=7, loc='upper left', frameon=False)
 # 调整子图间距
-plt.subplots_adjust(left=0.08, right=0.92, top=0.94, bottom=0.25, wspace=0.2, hspace=0.3)
-fig.tight_layout(rect=[0, 0.02, 1, 1])
+plt.subplots_adjust(left=0.06, right=0.98, top=0.92, bottom=0.3, wspace=0.4)
 plt.show()
