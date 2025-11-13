@@ -12,11 +12,7 @@ CREATE vw_brands(
 );
 
 ON SOURCE [brands, brand_approvals], VIEW vw_brands:
-INSERT {10000000, BN} INTO brands
-WHEN NOT {_, BN} IN brands
-THEN INSERT {BN, 'Approved'} INTO vw_brands,
-
-INSERT {10000000, BN} INTO brand_approvals
+INSERT {1, BN} INTO brand_approvals
 WHEN NOT {_, BN} IN brand_approvals
 THEN INSERT {BN, 'Pending Approval'} INTO vw_brands,
 
