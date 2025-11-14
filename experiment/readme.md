@@ -1,3 +1,8 @@
+# Experiment
+
+## Expressiveness
+We list all our examples in Folder experiment, and all the view definitions are as follows.
+
 ### Folder case-study
 #### all_items.dbpl
 ```SQL
@@ -523,3 +528,7 @@ textbook.1/activestudents:project掉的属性不能退化为常量
 stackexchange.6/poi_view:同上
 
 运行实验：load ini - fwd_diff_time/bwd_diff_time -->
+
+## Efficiency
+
+All files used in evaluation of efficiency are in Folder efficiency. genDB.py is used to generate a initial database (suffixed with "_ini") as well as their source (suffixed with "_f")/view (suffixed with "_b") for corresponding four examples with specified size. 

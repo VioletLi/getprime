@@ -41,7 +41,7 @@ make
 
 ### Run
 ``` bash
-/the/path/to/files/bin/dBPL /the/path/to/launched/derivative
+/the/path/to/files/bin/dBX /the/path/to/launched/derivative
 ```
 
 This command launches an interactive tool. Upon startup, you are required to specify a file that stores the definition of `get'`. The loaded `get'` will then be used for all subsequent database operations until you exit the tool.

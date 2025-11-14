@@ -2,7 +2,7 @@ PACKAGES = str,num
 
 DIR_GUARD = @mkdir -p $(@D)
 
-EX_NAME = dBPL
+EX_NAME = dBX
 
 SOURCE_DIR=src
 # LOGIC_SOURCE_DIR=src/logic

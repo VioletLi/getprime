@@ -22,10 +22,6 @@ DELETE {E, B, G} FROM residents
 WHEN {E, B, G} IN residents && {E, _} IN ced
 THEN DELETE {E, B, G} FROM employees,
 
-INSERT {E, 'Unknown'} INTO ced
-WHEN {E, _, _} IN residents && NOT {E, _} IN ced
-THEN FORALL B SUCH THAT {E, B, _} IN residents DO [FORALL G SUCH THAT {E, B, G} IN residents DO [INSERT {E, B, G} INTO employees]],
-
 INSERT {E, D} INTO ced
 WHEN {E, _, _} IN residents && NOT {E, _} IN ced
 THEN FORALL B SUCH THAT {E, B, _} IN residents DO [FORALL G SUCH THAT {E, B, G} IN residents DO [INSERT {E, B, G} INTO employees]],
