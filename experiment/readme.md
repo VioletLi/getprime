@@ -1,7 +1,7 @@
 # Experiment
 
 ## Expressiveness
-We list all our examples in Folder experiment, and all the view definitions are as follows.
+We list all our examples in Folder expressiveness, and all the view definitions are as follows.
 
 ### Folder case-study
 #### all_items.dbpl

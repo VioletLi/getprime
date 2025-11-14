@@ -83,6 +83,6 @@ This command launches an interactive tool. Upon startup, you are required to spe
   Same as fwd_diff / bwd_diff, but additionally record and display the evaluation time for the update process.
 
 ### Evaluation
-The examples are in the benchmarks, please read the readme.md in folder experiment.
+Please read the readme.md in folder experiment.
 
 <!-- #### 加这个程序可以使用的命令：fwd/bwd，fwd_diff/bwd_diff，load，fwd_diff_time/bwd_diff_time -->
